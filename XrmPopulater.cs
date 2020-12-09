@@ -11,70 +11,14 @@ using System.Text;
 
 namespace Rappen.XTB.Helpers
 {
-    /// <summary>
-    /// Populate extensions for SDK Entity class
-    /// </summary>
-    public static class CDSPopulater
+    public static class XrmPopulater
     {
-        // List of possible special format tags to use when formatting data
-        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "SubStr", "Replace", "Math" };
-        private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() {
-            { "&", "&amp;" },
-            { "<", "&lt;" },
-            { ">", "&gt;"},
-            { "\"", "&quot;"},
-            { "'", "&apos;" } };
-
         public static string Populate(this Entity entity, IBag bag, string text) => Populate(entity, bag, text, string.Empty);
 
         public static string Populate(this Entity entity, IBag bag, string text, string scope) => Populate(entity, bag, text, scope, false);
 
         public static string Populate(this Entity entity, IBag bag, string text, string scope, bool supressinvalidattributepaths) => Populate(entity, bag, text, scope, null, supressinvalidattributepaths);
 
-        /// <summary>Replaces tokens in text with values from this Entity instance, or related entities</summary>
-        /// <param name="entity"></param>
-        /// <param name="bag"></param>
-        /// <param name="text">The target string to populate.
-        /// <para>
-        /// Format is:
-        ///   <c>{namespace:attribute-path|format}</c>
-        ///   <list type="bullet"><listheader><term>Term</term><description>Description</description></listheader>
-        ///   <item><term>Namespace</term><description>Optional, omitt : if no namespace is passed</description></item>
-        ///   <item><term>Attribute-path</term><description>Required</description></item>
-        ///   <item><term>Format</term><description>Optional, omitt | if not format is passed</description></item>
-        ///   </list>
-        ///   Set format to "&lt;value&gt;" to display base type of attribute instead of string representation
-        /// </para>
-        /// <example>
-        ///   Example targetstring:
-        ///   <code>"Account {acct:name} with category code {acct:accountcategorycode|&lt;value&gt;} was created on {acct:createdon|yyyy-MM-dd} by {acct:createdby.name}"</code>
-        /// </example>
-        /// <para>
-        ///   Attributenames can be replaced by the expand...-keyword, with the following syntax:
-        ///     <c>&lt;expand|[namespace:]childentity|relatingattribute|format|orderattributes|separator|distinct&gt;</c>
-        ///     <list type="table">
-        ///       <listheader><term>Part</term><description>Description</description></listheader>
-        ///       <item><term>childentity</term><description>name of child entity, namespace can be used</description></item>
-        ///       <item><term>relatingattribute</term><description>attribute name on child entity referring to "me"</description></item>
-        ///       <item><term>format</term><description>any format recognized by Populate, namespace to be used if used on childentity</description></item>
-        ///       <item><term>orderattributes</term><description>comma-separated string of attributes on child entity to sort by</description></item>
-        ///       <item><term>separator</term><description>string to separate the formatted results with</description></item>
-        ///       <item><term>distinct</term><description>indicates if formatted results may contain duplicates or not</description></item>
-        ///       <item><term>activeonly</term><description>returns only active records if true, if false the condition will not be included in fetch</description></item>
-        ///     </list>
-        ///   Example from an account instance:
-        ///     <c>&lt;expand|contact|parentcustomerid|{fullname} ägs av {ownerid.fullname}|lastname,firstname|\n|true&gt;</c>
-        ///   This syntax can be used instead of attribute-names in tokens, e.g.
-        ///     <c>{parentaccountid.&lt;expand|contact|parentcustomerid|{fullname} ägs av {ownerid.fullname}|lastname,firstname|\n|true&gt;}</c>
-        ///   Note:
-        ///     format may itself contain an expand-block, to loop more than one level down in the hierarchy
-        ///     orderattributes may be left blank, then the resulting strings will be sorted alphabetically
-        /// </para>
-        /// </param>
-        /// <param name="scope">Namespace to populate from this CintDynEntity. If blank, all namespaces are populated</param>
-        /// <param name="replacepatterns">Dictionary with strings to be replaced by strings in mapped data</param>
-        /// <param name="supressinvalidattributepaths">Set true to be forgiving if attribute paths in tokens are invalid</param>
-        /// <returns>Number of replacements made</returns>
         private static string Populate(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
         {
             bag.Logger.StartSection("Populate " + scope);
@@ -123,17 +67,9 @@ namespace Rappen.XTB.Helpers
             return text;
         }
 
-        /// <summary>
-        /// Compares positions of item1 and item2 in source
-        /// </summary>
-        /// <param name="source">Stringto be investigated</param>
-        /// <param name="item1">First string to find</param>
-        /// <param name="item2">Second string to find</param>
-        /// <returns>
-        /// 0  - Neither items exist in source
-        /// &lt;0 - Only item1 exists or item1 occurs before item2
-        /// &gt;0 - Only item2 exists or item1 occurs after item2
-        /// </returns>
+        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "SubStr", "Replace", "Math" };
+        private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
+
         private static int ComparePositions(string source, string item1, string item2)
         {
             return (source + item1).IndexOf(item1, StringComparison.Ordinal) - (source + item2).IndexOf(item2, StringComparison.Ordinal);
@@ -568,7 +504,7 @@ namespace Rappen.XTB.Helpers
             return text.Replace("<" + token + ">", value);
         }
 
-        private static string GetNowString(string format)
+        private static string SystemNow(string format)
         {
             string value;
             if (string.IsNullOrWhiteSpace(format))
@@ -582,7 +518,7 @@ namespace Rappen.XTB.Helpers
             return value;
         }
 
-        private static string GetTodayString(string format)
+        private static string SystemToday(string format)
         {
             string value;
             if (string.IsNullOrWhiteSpace(format))
@@ -596,7 +532,7 @@ namespace Rappen.XTB.Helpers
             return value;
         }
 
-        private static string GetUserString(this IBag bag, string token)
+        private static string SystemUser(this IBag bag, string token)
         {
             string value = "";
             var userid = getUserId(bag);
@@ -609,7 +545,7 @@ namespace Rappen.XTB.Helpers
             return value;
         }
 
-        private static string ParseChars(string format)
+        private static string SystemChars(string format)
         {
             return format
                 .Replace("\\n", "\n")
@@ -821,19 +757,19 @@ namespace Rappen.XTB.Helpers
             switch (systemtoken.ToUpperInvariant())
             {
                 case "NOW":
-                    value = GetNowString(format);
+                    value = SystemNow(format);
                     break;
 
                 case "TODAY":
-                    value = GetTodayString(format);
+                    value = SystemToday(format);
                     break;
 
                 case "USER":
-                    value = bag.GetUserString(format);
+                    value = bag.SystemUser(format);
                     break;
 
                 case "CHAR":
-                    value = ParseChars(format);
+                    value = SystemChars(format);
                     break;
 
                 default:

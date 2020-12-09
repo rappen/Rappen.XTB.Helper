@@ -458,7 +458,7 @@ namespace Rappen.XTB.Helpers
 
             // Extrahera eventuella egna implementerade formatsträngar, t.ex. "<MaxLen=20>"
             var extraFormats = new List<string>();
-            format = CDSPopulater.ExtractExtraFormatTags(format, extraFormats);
+            format = XrmPopulater.ExtractExtraFormatTags(format, extraFormats);
 
             string result = null;
             object oAttrValue = entity.Contains(name) ? entity[name] : null;
@@ -538,7 +538,7 @@ namespace Rappen.XTB.Helpers
             // Applicera eventuella egna implementerade formatsträngar
             foreach (var extraFormat in extraFormats)
             {
-                result = CDSPopulater.FormatByTag(result, extraFormat);
+                result = XrmPopulater.FormatByTag(result, extraFormat);
             }
             return result;
         }

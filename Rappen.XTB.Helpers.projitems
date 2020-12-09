@@ -13,7 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CDSPopulater.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XrmPopulater.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XTBBag.cs" />
   </ItemGroup>
