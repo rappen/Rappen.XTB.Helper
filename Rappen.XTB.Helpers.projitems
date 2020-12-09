@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>0b88b381-ee9d-41e8-a62c-90152c42de90</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)BagExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)EntityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CDSPopulater.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XTBBag.cs" />
+  </ItemGroup>
+</Project>
