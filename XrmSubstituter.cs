@@ -20,6 +20,29 @@ namespace Rappen.XTB.Helpers
 
         public static string Substitute(this Entity entity, IBag bag, string text, string scope, bool supressinvalidattributepaths) => Substitute(entity, bag, text, scope, null, supressinvalidattributepaths);
 
+        public static string InjectSequence(string text, int sequence)
+        {
+            var num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
+            while (!string.IsNullOrWhiteSpace(num))
+            {
+                var startnostr = "0" + GetSeparatedPart(num, "|", 2);
+                if (!int.TryParse(startnostr, out int startno))
+                {
+                    throw new InvalidPluginExecutionException($"Sequence start value invalid: {startnostr}");
+                }
+                if (startno > 0)
+                {
+                    startno--;
+                }
+                var format = GetSeparatedPart(num, "|", 3);
+                var currentvalue = startno + sequence;
+                text = text.Replace("[" + num + "]", currentvalue.ToString(format));
+                num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
+            }
+
+            return text;
+        }
+
         private static string Substitute(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
         {
             bag.Logger.StartSection("Substitute " + scope);
