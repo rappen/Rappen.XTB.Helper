@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
+using Rappen.XTB.Helpers.Extensions;
 using Rappen.XTB.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -11,17 +12,17 @@ using System.Text;
 
 namespace Rappen.XTB.Helpers
 {
-    public static class XrmPopulater
+    public static class XrmSubstituter
     {
-        public static string Populate(this Entity entity, IBag bag, string text) => Populate(entity, bag, text, string.Empty);
+        public static string Substitute(this Entity entity, IBag bag, string text) => Substitute(entity, bag, text, string.Empty);
 
-        public static string Populate(this Entity entity, IBag bag, string text, string scope) => Populate(entity, bag, text, scope, false);
+        public static string Substitute(this Entity entity, IBag bag, string text, string scope) => Substitute(entity, bag, text, scope, false);
 
-        public static string Populate(this Entity entity, IBag bag, string text, string scope, bool supressinvalidattributepaths) => Populate(entity, bag, text, scope, null, supressinvalidattributepaths);
+        public static string Substitute(this Entity entity, IBag bag, string text, string scope, bool supressinvalidattributepaths) => Substitute(entity, bag, text, scope, null, supressinvalidattributepaths);
 
-        private static string Populate(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
+        private static string Substitute(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
         {
-            bag.Logger.StartSection("Populate " + scope);
+            bag.Logger.StartSection("Substitute " + scope);
             if (text == null)
             {
                 text = string.Empty;
@@ -100,7 +101,7 @@ namespace Rappen.XTB.Helpers
             int len;
             if (!int.TryParse(lenstr, out len))
             {
-                throw new InvalidPluginExecutionException("Populate left length must be a positive integer (" + lenstr + ")");
+                throw new InvalidPluginExecutionException("Substitute left length must be a positive integer (" + lenstr + ")");
             }
             if (text.Length > len)
             {
@@ -114,7 +115,7 @@ namespace Rappen.XTB.Helpers
             decimal textvalue;
             if (!decimal.TryParse(text.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator).Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator), out textvalue))
             {
-                throw new InvalidPluginExecutionException("Populate math text must be a valid decimal number (" + text + ")");
+                throw new InvalidPluginExecutionException("Substitute math text must be a valid decimal number (" + text + ")");
             }
             var oper = GetSeparatedPart(formatTag, "|", 2).ToUpperInvariant();
             decimal value = 0;
@@ -123,7 +124,7 @@ namespace Rappen.XTB.Helpers
                 var valuestr = GetSeparatedPart(formatTag, "|", 3);
                 if (!decimal.TryParse(valuestr, out value))
                 {
-                    throw new InvalidPluginExecutionException("Populate math value must be a valid decimal number (" + valuestr + ")");
+                    throw new InvalidPluginExecutionException("Substitute math value must be a valid decimal number (" + valuestr + ")");
                 }
             }
             switch (oper)
@@ -164,7 +165,7 @@ namespace Rappen.XTB.Helpers
                     break;
 
                 default:
-                    throw new InvalidPluginExecutionException("Populate math operator not valid (" + oper + ")");
+                    throw new InvalidPluginExecutionException("Substitute math operator not valid (" + oper + ")");
             }
             return textvalue.ToString(CultureInfo.InvariantCulture);
         }
@@ -174,13 +175,13 @@ namespace Rappen.XTB.Helpers
             var dir = GetSeparatedPart(formatTag, "|", 2);
             if (dir != "R" && dir != "L")
             {
-                throw new InvalidPluginExecutionException("Populate pad direction must be R or L");
+                throw new InvalidPluginExecutionException("Substitute pad direction must be R or L");
             }
             var lenstr = GetSeparatedPart(formatTag, "|", 3);
             var len = 0;
             if (!int.TryParse(lenstr, out len))
             {
-                throw new InvalidPluginExecutionException("Populate pad length must be a positive integer (" + lenstr + ")");
+                throw new InvalidPluginExecutionException("Substitute pad length must be a positive integer (" + lenstr + ")");
             }
             var pad = GetSeparatedPart(formatTag, "|", 4);
             if (string.IsNullOrEmpty(pad))
@@ -204,7 +205,7 @@ namespace Rappen.XTB.Helpers
             var oldText = GetSeparatedPart(formatTag, "|", 2);
             if (string.IsNullOrEmpty(oldText))
             {
-                throw new InvalidPluginExecutionException("Populate replace old must be non-empty");
+                throw new InvalidPluginExecutionException("Substitute replace old must be non-empty");
             }
             var newText = GetSeparatedPart(formatTag, "|", 3);
             text = text.Replace(oldText, newText);
@@ -217,7 +218,7 @@ namespace Rappen.XTB.Helpers
             int len;
             if (!int.TryParse(lenstr, out len))
             {
-                throw new InvalidPluginExecutionException("Populate right length must be a positive integer (" + lenstr + ")");
+                throw new InvalidPluginExecutionException("Substitute right length must be a positive integer (" + lenstr + ")");
             }
             if (text.Length > len)
             {
@@ -232,7 +233,7 @@ namespace Rappen.XTB.Helpers
             int start;
             if (!int.TryParse(startstr, out start))
             {
-                throw new InvalidPluginExecutionException("Populate substr start must be a positive integer (" + startstr + ")");
+                throw new InvalidPluginExecutionException("Substitute substr start must be a positive integer (" + startstr + ")");
             }
             var lenstr = GetSeparatedPart(formatTag, "|", 3);
             if (!string.IsNullOrEmpty(lenstr))
@@ -240,7 +241,7 @@ namespace Rappen.XTB.Helpers
                 int len;
                 if (!int.TryParse(lenstr, out len))
                 {
-                    throw new InvalidPluginExecutionException("Populate substr length must be a positive integer (" + lenstr + ")");
+                    throw new InvalidPluginExecutionException("Substitute substr length must be a positive integer (" + lenstr + ")");
                 }
                 text = text.Substring(start, len);
             }
@@ -483,7 +484,7 @@ namespace Rappen.XTB.Helpers
             var nIndex = 1;
             foreach (var expanded in cExpanded.Entities)
             {
-                var subvalue = expanded.Populate(bag, format, "", replacepatterns, false);
+                var subvalue = expanded.Substitute(bag, format, "", replacepatterns, false);
                 if (!string.IsNullOrWhiteSpace(subvalue) && (!distinct.Equals("true", StringComparison.OrdinalIgnoreCase) || !subValues.Contains(subvalue)))
                 {
                     subValues.Add(subvalue.Replace("##", nIndex.ToString()));
@@ -540,7 +541,7 @@ namespace Rappen.XTB.Helpers
             {
                 var user = bag.Service.Retrieve("systemuser", userid, new ColumnSet(true));
                 bag.Logger.Log($"Retrieved user: {user.ToStringExt(bag.Service)}");
-                value = user.Populate(bag, token);
+                value = user.Substitute(bag, token);
             }
             return value;
         }
@@ -566,8 +567,8 @@ namespace Rappen.XTB.Helpers
             string value2 = GetSeparatedPart(token, "|", 4);
             string trueresult = GetSeparatedPart(token, "|", 5);
             string falseresult = GetSeparatedPart(token, "|", 6);
-            value1 = entity.Populate(bag, value1, scope);
-            value2 = entity.Populate(bag, value2, scope);
+            value1 = entity.Substitute(bag, value1, scope);
+            value2 = entity.Substitute(bag, value2, scope);
             bool numeric = false;
             decimal decValue1 = 0;
             decimal decValue2 = 0;
@@ -624,7 +625,7 @@ namespace Rappen.XTB.Helpers
                 default:
                     throw new InvalidPluginExecutionException("Invalid operator \"" + oper + "\"");
             }
-            string result = entity.Populate(bag, evaluation ? trueresult : falseresult, scope, replacepatterns, false);
+            string result = entity.Substitute(bag, evaluation ? trueresult : falseresult, scope, replacepatterns, false);
             bag.Logger.EndSection();
             return text.Replace("<" + token + ">", result);
         }
@@ -705,7 +706,7 @@ namespace Rappen.XTB.Helpers
                         }
                         else if (finalattribute.StartsWith("<expand|"))
                         {
-                            value = deRef.Populate(bag, finalattribute, scope);
+                            value = deRef.Substitute(bag, finalattribute, scope);
                         }
                         else
                         {

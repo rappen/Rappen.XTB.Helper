@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Text;
 using xrmtb.XrmToolBox.Controls;
 
-namespace Rappen.XTB.Helpers
+namespace Rappen.XTB.Helpers.Extensions
 {
     /// <summary>
     /// Light-weight features inspired by CintDynEntity
@@ -458,7 +458,7 @@ namespace Rappen.XTB.Helpers
 
             // Extrahera eventuella egna implementerade formatsträngar, t.ex. "<MaxLen=20>"
             var extraFormats = new List<string>();
-            format = XrmPopulater.ExtractExtraFormatTags(format, extraFormats);
+            format = XrmSubstituter.ExtractExtraFormatTags(format, extraFormats);
 
             string result = null;
             object oAttrValue = entity.Contains(name) ? entity[name] : null;
@@ -538,7 +538,7 @@ namespace Rappen.XTB.Helpers
             // Applicera eventuella egna implementerade formatsträngar
             foreach (var extraFormat in extraFormats)
             {
-                result = XrmPopulater.FormatByTag(result, extraFormat);
+                result = XrmSubstituter.FormatByTag(result, extraFormat);
             }
             return result;
         }

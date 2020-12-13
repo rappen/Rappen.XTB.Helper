@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Rappen.XTB.Helpers
+namespace Rappen.XTB.Helpers.Extensions
 {
     /// <summary>
     /// Extension methods for IContainable classes

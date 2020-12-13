@@ -9,12 +9,17 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)BagExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)EntityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlWrappers\EntityItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlWrappers\OptionsetItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)XrmPopulater.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XrmSubstituter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XTBBag.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
   </ItemGroup>
 </Project>
