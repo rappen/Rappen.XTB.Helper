@@ -14,36 +14,14 @@ namespace Rappen.XTB.Helpers
 {
     public static class XrmSubstituter
     {
-        public static string Substitute(this Entity entity, IBag bag, string text) => Substitute(entity, bag, text, string.Empty);
+        public static string Substitute(this Entity entity, IBag bag, string text) => Substitute(entity, bag, text, 0, string.Empty);
+        public static string Substitute(this Entity entity, IBag bag, string text, int sequence) => Substitute(entity, bag, text, sequence, string.Empty);
 
-        public static string Substitute(this Entity entity, IBag bag, string text, string scope) => Substitute(entity, bag, text, scope, false);
+        public static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope) => Substitute(entity, bag, text, sequence, scope, false);
 
-        public static string Substitute(this Entity entity, IBag bag, string text, string scope, bool supressinvalidattributepaths) => Substitute(entity, bag, text, scope, null, supressinvalidattributepaths);
+        public static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths) => Substitute(entity, bag, text, sequence, scope, null, supressinvalidattributepaths);
 
-        public static string InjectSequence(string text, int sequence)
-        {
-            var num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
-            while (!string.IsNullOrWhiteSpace(num))
-            {
-                var startnostr = "0" + GetSeparatedPart(num, "|", 2);
-                if (!int.TryParse(startnostr, out int startno))
-                {
-                    throw new InvalidPluginExecutionException($"Sequence start value invalid: {startnostr}");
-                }
-                if (startno > 0)
-                {
-                    startno--;
-                }
-                var format = GetSeparatedPart(num, "|", 3);
-                var currentvalue = startno + sequence;
-                text = text.Replace("[" + num + "]", currentvalue.ToString(format));
-                num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
-            }
-
-            return text;
-        }
-
-        private static string Substitute(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
+        private static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
         {
             bag.Logger.StartSection("Substitute " + scope);
             if (text == null)
@@ -87,6 +65,12 @@ namespace Rappen.XTB.Helpers
             {
                 text = text.Replace("%STARTKRULL_%", "{").Replace("%SLUTKRULL_%", "}");
             }
+
+            if (sequence > 0)
+            {
+                text = ReplaceSequence(text, sequence);
+            }
+
             bag.Logger.EndSection();
             return text;
         }
@@ -507,7 +491,7 @@ namespace Rappen.XTB.Helpers
             var nIndex = 1;
             foreach (var expanded in cExpanded.Entities)
             {
-                var subvalue = expanded.Substitute(bag, format, "", replacepatterns, false);
+                var subvalue = expanded.Substitute(bag, format, nIndex, string.Empty, replacepatterns, false);
                 if (!string.IsNullOrWhiteSpace(subvalue) && (!distinct.Equals("true", StringComparison.OrdinalIgnoreCase) || !subValues.Contains(subvalue)))
                 {
                     subValues.Add(subvalue.Replace("##", nIndex.ToString()));
@@ -590,8 +574,8 @@ namespace Rappen.XTB.Helpers
             string value2 = GetSeparatedPart(token, "|", 4);
             string trueresult = GetSeparatedPart(token, "|", 5);
             string falseresult = GetSeparatedPart(token, "|", 6);
-            value1 = entity.Substitute(bag, value1, scope);
-            value2 = entity.Substitute(bag, value2, scope);
+            value1 = entity.Substitute(bag, value1, 0, scope);
+            value2 = entity.Substitute(bag, value2, 0, scope);
             bool numeric = false;
             decimal decValue1 = 0;
             decimal decValue2 = 0;
@@ -648,7 +632,7 @@ namespace Rappen.XTB.Helpers
                 default:
                     throw new InvalidPluginExecutionException("Invalid operator \"" + oper + "\"");
             }
-            string result = entity.Substitute(bag, evaluation ? trueresult : falseresult, scope, replacepatterns, false);
+            string result = entity.Substitute(bag, evaluation ? trueresult : falseresult, 0, scope, replacepatterns, false);
             bag.Logger.EndSection();
             return text.Replace("<" + token + ">", result);
         }
@@ -729,7 +713,7 @@ namespace Rappen.XTB.Helpers
                         }
                         else if (finalattribute.StartsWith("<expand|"))
                         {
-                            value = deRef.Substitute(bag, finalattribute, scope);
+                            value = deRef.Substitute(bag, finalattribute, 0, scope);
                         }
                         else
                         {
@@ -803,6 +787,29 @@ namespace Rappen.XTB.Helpers
             bag.Logger.Log($"Replacing <{token}> with {value}");
             bag.Logger.EndSection();
             return text.Replace("<" + token + ">", value);
+        }
+
+        private static string ReplaceSequence(string text, int sequence)
+        {
+            var num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
+            while (!string.IsNullOrWhiteSpace(num))
+            {
+                var startnostr = "0" + GetSeparatedPart(num, "|", 2);
+                if (!int.TryParse(startnostr, out int startno))
+                {
+                    throw new InvalidPluginExecutionException($"Sequence start value invalid: {startnostr}");
+                }
+                if (startno > 0)
+                {
+                    startno--;
+                }
+                var format = GetSeparatedPart(num, "|", 3);
+                var currentvalue = startno + sequence;
+                text = text.Replace("[" + num + "]", currentvalue.ToString(format));
+                num = GetFirstEnclosedPart(text, "[", "#", "]", string.Empty);
+            }
+
+            return text;
         }
 
         internal static string ExtractExtraFormatTags(string format, List<string> extraFormats)
