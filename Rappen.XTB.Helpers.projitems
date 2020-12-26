@@ -14,6 +14,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IComboBoxItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmSubstituter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />

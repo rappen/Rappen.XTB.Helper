@@ -1,7 +1,7 @@
-﻿namespace Cinteros.XTB.BulkDataUpdater.AppCode
+﻿namespace Rappen.XTB.Helpers.ControlWrappers
 {
-    using Cinteros.Xrm.XmlEditorUtils;
     using Microsoft.Xrm.Sdk.Metadata;
+    using Rappen.XTB.Helpers.Interfaces;
 
     class OptionsetItem : IComboBoxItem
     {
