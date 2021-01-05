@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using xrmtb.XrmToolBox.Controls;
 
 namespace Rappen.XTB.Helpers.Extensions
 {
@@ -496,7 +495,7 @@ namespace Rappen.XTB.Helpers.Extensions
             {
                 if (oAttrValue != null && oAttrValue is EntityReference er)
                 {   // Introducerat för att nyttja metadata- och entitetscache på CrmServiceProxy
-                    var related = entity.GetRelated(bag, name, MetadataHelper.GetPrimaryAttribute(bag.Service, er.LogicalName).LogicalName);
+                    var related = entity.GetRelated(bag, name, bag.Service.GetPrimaryAttribute(er.LogicalName).LogicalName);
                     result = Utils.EntityToString(related, bag.Service);
                 }
                 else if (hasValueFormat)
@@ -632,7 +631,7 @@ namespace Rappen.XTB.Helpers.Extensions
                 }
                 else if (service != null)
                 {
-                    var primaryattribute = MetadataHelper.GetPrimaryAttribute(service, entity.LogicalName).LogicalName;
+                    var primaryattribute = service.GetPrimaryAttribute(entity.LogicalName).LogicalName;
                     var referencedentity = service.Retrieve(refatt.LogicalName, refatt.Id, new ColumnSet(primaryattribute));
                     if (referencedentity.Contains(primaryattribute))
                     {

@@ -3,10 +3,11 @@
     using Microsoft.Crm.Sdk.Messages;
     using Microsoft.Xrm.Sdk;
     using Microsoft.Xrm.Sdk.Query;
+    using Rappen.XTB.Helpers.Extensions;
+    using Rappen.XTB.Helpers.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using xrmtb.XrmToolBox.Controls;
 
     public static class Utils
     {
@@ -80,7 +81,7 @@
             var value = Format;
             if (string.IsNullOrWhiteSpace(value))
             {
-                value = MetadataHelper.GetPrimaryAttribute(service, entity.LogicalName)?.LogicalName ?? string.Empty;
+                value = service.GetPrimaryAttribute(entity.LogicalName)?.LogicalName ?? string.Empty;
             }
             if (!value.Contains("{{") || !value.Contains("}}"))
             {
@@ -115,7 +116,7 @@
                 return string.Empty;
             }
             var value = entity[attribute];
-            var metadata = MetadataHelper.GetAttribute(service, entity.LogicalName, attribute, value);
+            var metadata = service.GetAttribute(entity.LogicalName, attribute, value);
             if (EntitySerializer.AttributeToBaseType(value) is DateTime dtvalue && (dtvalue).Kind == DateTimeKind.Utc)
             {
                 value = dtvalue.ToLocalTime();

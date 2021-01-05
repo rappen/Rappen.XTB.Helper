@@ -10,20 +10,26 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ControlUtils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ControlWrappers\AttributeItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ControlWrappers\EntityItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ControlWrappers\OptionsetItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityMetadataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IComboBoxItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICDSControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmSubstituter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)XTBBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Serialization\" />
   </ItemGroup>
 </Project>

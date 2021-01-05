@@ -1,13 +1,13 @@
-﻿namespace Rappen.XTB.Helpers.ControlWrappers
+﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    class OptionsetItem : IComboBoxItem
+    class OptionMetadataItem : ICDSControlItem
     {
         public OptionMetadata meta = null;
 
-        public OptionsetItem(OptionMetadata Option)
+        public OptionMetadataItem(OptionMetadata Option)
         {
             meta = Option;
         }

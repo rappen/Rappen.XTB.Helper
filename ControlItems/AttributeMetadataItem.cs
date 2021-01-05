@@ -1,16 +1,16 @@
-﻿namespace Rappen.XTB.Helpers.ControlWrappers
-{
+﻿namespace Rappen.XTB.Helpers.ControlItems
+{ 
     using System.Windows.Forms;
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    class AttributeItem : IComboBoxItem
+    public class AttributeMetadataItem : ICDSControlItem
     {
         public bool FriendlyNames { get; set; }
 
         public AttributeMetadata Metadata { get; set; } = null;
 
-        public AttributeItem(AttributeMetadata Attribute, bool friendlynames)
+        public AttributeMetadataItem(AttributeMetadata Attribute, bool friendlynames)
         {
             Metadata = Attribute;
             FriendlyNames = friendlynames;
@@ -61,7 +61,7 @@
             }
             if (add)
             {
-                cmb.Items.Add(new AttributeItem(meta, friendlynames));
+                cmb.Items.Add(new AttributeMetadataItem(meta, friendlynames));
             }
         }
     }

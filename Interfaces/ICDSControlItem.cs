@@ -1,6 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers.Interfaces
 {
-    public interface IComboBoxItem
+    public interface ICDSControlItem
     {
         string GetValue();
     }

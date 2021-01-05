@@ -1,15 +1,15 @@
-﻿namespace Rappen.XTB.Helpers.ControlWrappers
+﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    public class EntityItem : IComboBoxItem
+    public class EntityMetadataItem : ICDSControlItem
     {
         private EntityMetadata meta = null;
 
         public bool FriendlyNames { get; set; }
 
-        public EntityItem(EntityMetadata Entity, bool friendlynames)
+        public EntityMetadataItem(EntityMetadata Entity, bool friendlynames)
         {
             meta = Entity;
             FriendlyNames = friendlynames;

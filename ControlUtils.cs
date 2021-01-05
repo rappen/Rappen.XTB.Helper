@@ -45,9 +45,9 @@
             else if (control is ComboBox)
             {
                 var item = ((ComboBox)control).SelectedItem;
-                if (item is IComboBoxItem)
+                if (item is ICDSControlItem)
                 {
-                    result = ((IComboBoxItem)item).GetValue();
+                    result = ((ICDSControlItem)item).GetValue();
                 }
                 else
                 {
@@ -221,9 +221,9 @@
                     object selitem = null;
                     foreach (var item in cmb.Items)
                     {
-                        if (item is IComboBoxItem)
+                        if (item is ICDSControlItem)
                         {
-                            if (((IComboBoxItem)item).GetValue() == value)
+                            if (((ICDSControlItem)item).GetValue() == value)
                             {
                                 selitem = item;
                                 break;
