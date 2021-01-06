@@ -9,6 +9,11 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordEventArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataTextBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataTextBox.Designer.cs">
+      <DependentUpon>XRMDataTextBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ControlUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityMetadataItem.cs" />
@@ -24,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)VoidLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmSubstituter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
