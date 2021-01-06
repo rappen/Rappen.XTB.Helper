@@ -10,17 +10,26 @@
     {
         #region Private Fields
 
-        private IOrganizationService service;
+        private IBag bag;
 
         #endregion Private Fields
 
         #region Public Constructors
 
+        public EntityItem(Entity entity, IOrganizationService organizationService)
+            : this(entity, string.Empty, organizationService) { }
+
         public EntityItem(Entity entity, string format, IOrganizationService organizationService)
+            : this(entity, format, new GenericBag(organizationService)) { }
+
+        public EntityItem(Entity entity, IBag bag)
+            : this(entity, string.Empty, bag) { }
+
+        public EntityItem(Entity entity, string format, IBag bag)
         {
             Entity = entity;
             Format = format;
-            service = organizationService;
+            this.bag = bag;
         }
 
         #endregion Public Constructors
@@ -78,26 +87,9 @@
             var value = Format;
             if (string.IsNullOrWhiteSpace(value))
             {
-                value = service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
+                value = bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
             }
-            if (!value.Contains("{{") || !value.Contains("}}"))
-            {
-                value = "{{" + value + "}}";
-            }
-            while (value.Contains("{{") && value.Contains("}}"))
-            {
-                var part = value.Substring(value.IndexOf("{{") + 2).Split(new string[] { "}}" }, StringSplitOptions.None)[0];
-                var attribute = part;
-                var format = string.Empty;
-                if (part.Contains("|"))
-                {
-                    attribute = part.Split('|')[0];
-                    format = part.Split('|')[1];
-                }
-                var partvalue = GetFormattedValue(Entity, service, attribute, format);
-                value = value.Replace("{{" + part + "}}", partvalue);
-            }
-            return value;
+            return Entity.Substitute(bag, value);
         }
 
         #endregion Public Methods
