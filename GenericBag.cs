@@ -9,10 +9,10 @@ namespace Rappen.XTB.Helpers
 
         public IOrganizationService Service { get; }
 
-        public GenericBag(IOrganizationService service, ILogger logger)
+        public GenericBag(IOrganizationService service)
         {
             Service = service;
-            Logger = logger;
+            Logger = new VoidLogger();
         }
     }
 }
