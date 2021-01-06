@@ -14,7 +14,10 @@ namespace Rappen.XTB.Helpers
 {
     public static class XrmSubstituter
     {
+        public static string Substitute(this Entity entity, IOrganizationService service, string text) => Substitute(entity, new GenericBag(service), text);
+
         public static string Substitute(this Entity entity, IBag bag, string text) => Substitute(entity, bag, text, 0, string.Empty);
+
         public static string Substitute(this Entity entity, IBag bag, string text, int sequence) => Substitute(entity, bag, text, sequence, string.Empty);
 
         public static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope) => Substitute(entity, bag, text, sequence, scope, false);
