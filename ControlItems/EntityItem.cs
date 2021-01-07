@@ -1,6 +1,7 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using Microsoft.Xrm.Sdk;
+    using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
     using Rappen.XTB.Helpers.Serialization;
@@ -10,7 +11,8 @@
     {
         #region Private Fields
 
-        private IBag bag;
+        protected IBag Bag;
+        private Lazy<EntityMetadataItem> entitymetadata;
 
         #endregion Private Fields
 
@@ -29,7 +31,8 @@
         {
             Entity = entity;
             Format = format;
-            this.bag = bag;
+            Bag = bag;
+            entitymetadata = new Lazy<EntityMetadataItem>(() => new EntityMetadataItem(bag.Service.GetEntity(entity.LogicalName), true));
         }
 
         #endregion Public Constructors
@@ -38,39 +41,13 @@
 
         public Entity Entity { get; }
 
+        public EntityMetadataItem Metadata => entitymetadata.Value;
+
         public string Format { get; set; }
 
         #endregion Public Properties
 
         #region Private Methods
-
-        private static string GetFormattedValue(Entity entity, IOrganizationService service, string attribute, string format)
-        {
-            if (!entity.Contains(attribute))
-            {
-                return string.Empty;
-            }
-            var value = entity[attribute];
-            var metadata = service.GetAttribute(entity.LogicalName, attribute, value);
-            if (EntitySerializer.AttributeToBaseType(value) is DateTime dtvalue && (dtvalue).Kind == DateTimeKind.Utc)
-            {
-                value = dtvalue.ToLocalTime();
-            }
-            if (!ValueTypeIsFriendly(value) && metadata != null)
-            {
-                value = EntitySerializer.AttributeToString(value, metadata, format);
-            }
-            else
-            {
-                value = EntitySerializer.AttributeToBaseType(value).ToString();
-            }
-            return value.ToString();
-        }
-
-        private static bool ValueTypeIsFriendly(object value)
-        {
-            return value is Int32 || value is decimal || value is double || value is string || value is Money;
-        }
 
         public string GetValue() => Entity?.Id.ToString();
 
@@ -87,9 +64,9 @@
             var value = Format;
             if (string.IsNullOrWhiteSpace(value))
             {
-                value = bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
+                value = Bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
             }
-            return Entity.Substitute(bag, value);
+            return Entity.Substitute(Bag, value);
         }
 
         #endregion Public Methods
