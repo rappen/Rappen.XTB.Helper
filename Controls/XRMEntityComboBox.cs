@@ -2,12 +2,12 @@
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
+using Rappen.XTB.Helpers.ControlItems;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
-using xrmtb.XrmToolBox.Controls.Helper;
 
 namespace Rappen.XTB.Helpers.Controls
 {
@@ -83,7 +83,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Browsable(false)]
-        public Entity SelectedEntity => (SelectedItem is EntityWrapper item) ? item.Entity : null;
+        public EntityMetadataItem SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item : null;
 
         #endregion Public Properties
 
