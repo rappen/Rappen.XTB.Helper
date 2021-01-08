@@ -2,27 +2,29 @@
 {
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
+    using System;
     using System.Linq;
 
     public class EntityMetadataItem : ICDSControlItem
     {
         private EntityMetadata meta = null;
-        private object rel;
 
         public bool FriendlyNames { get; set; }
 
         public EntityMetadataItem(EntityMetadata Entity, bool friendlynames)
         {
+            if (Entity == null)
+            {
+                throw new ArgumentNullException("Entity");
+            }
             meta = Entity;
             FriendlyNames = friendlynames;
         }
 
-        public override string ToString()
-        {
-            return FriendlyNames ? DisplayName : meta.LogicalName;
-        }
+        public override string ToString() => FriendlyNames ? DisplayName : meta.LogicalName;
 
         public string DisplayName => GetDisplayName();
+
         public string CollectionDisplayName => GetCollectionDisplayName();
 
         private string GetDisplayName()

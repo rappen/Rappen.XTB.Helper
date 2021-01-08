@@ -1,5 +1,5 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
-{ 
+{
     using System.Windows.Forms;
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
@@ -16,22 +16,21 @@
             FriendlyNames = friendlynames;
         }
 
-        public override string ToString()
+        public override string ToString() => FriendlyNames ? DisplayName : Metadata.LogicalName;
+
+        public string DisplayName => GetDisplayName();
+
+        private string GetDisplayName()
         {
             var result = Metadata.LogicalName;
-            if (FriendlyNames)
+            if (Metadata.DisplayName.UserLocalizedLabel != null)
             {
-                if (Metadata.DisplayName.UserLocalizedLabel != null)
-                {
-                    result = Metadata.DisplayName.UserLocalizedLabel.Label;
-                }
-                if (result == Metadata.LogicalName && Metadata.DisplayName.LocalizedLabels.Count > 0)
-                {
-                    result = Metadata.DisplayName.LocalizedLabels[0].Label;
-                }
-                result += " (" + Metadata.LogicalName + ")";
+                result = Metadata.DisplayName.UserLocalizedLabel.Label;
             }
-            if (this.Metadata.IsPrimaryId == true) result += " (id)";
+            if (result == Metadata.LogicalName && Metadata.DisplayName.LocalizedLabels.Count > 0)
+            {
+                result = Metadata.DisplayName.LocalizedLabels[0].Label;
+            }
             return result;
         }
 
