@@ -7,7 +7,9 @@
     using Rappen.XTB.Helpers.Serialization;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Linq;
+    using System.Web;
 
     public static class Utils
     {
@@ -95,6 +97,43 @@
             }
             return value;
         }
+
+        public static string GetDeepLink(string webappurl, string entity, Guid recordid, Guid viewid, NameValueCollection extraqs)
+        {
+            if (string.IsNullOrEmpty(entity))
+            {
+                return string.Empty;
+            }
+            var uri = new UriBuilder(webappurl);
+            uri.Path = "main.aspx";
+            var query = HttpUtility.ParseQueryString(uri.Query);
+            if (!string.IsNullOrWhiteSpace(entity))
+            {
+                query["etn"] = entity;
+            }
+            if (!viewid.Equals(Guid.Empty))
+            {
+                query["pagetype"] = "entitylist";
+                query["id"] = viewid.ToString();
+            }
+            else
+            {
+                query["pagetype"] = "entityrecord";
+                if (!recordid.Equals(Guid.Empty))
+                {
+                    query["id"] = recordid.ToString();
+                }
+            }
+            if (extraqs != null)
+            {
+                var eq = extraqs.AllKeys.Select(k => k + "=" + HttpUtility.UrlEncode(extraqs[k]));
+                var extraquerystring = string.Join("&", eq);
+                query["extraqs"] = extraquerystring;
+            }
+            uri.Query = query.ToString();
+            return uri.ToString();
+        }
+
 
         private static string GetValueFromIdentifier(Entity entity, IOrganizationService service, string part)
         {
