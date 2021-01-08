@@ -98,31 +98,59 @@
             return value;
         }
 
-        public static string GetDeepLink(string webappurl, string entity, Guid recordid, Guid viewid, NameValueCollection extraqs)
+        public static string GetRecordDeepLink(string webappurl, Entity entity, NameValueCollection extraqs)
         {
-            if (string.IsNullOrEmpty(entity))
+            var entityname = entity.LogicalName;
+            var entityid = entity.Id;
+            switch (entityname)
+            {
+                case "activitypointer":
+                    if (!entity.Contains("activitytypecode"))
+                    {
+                        throw new ArgumentException("To open records of type activitypointer, attribute 'activitytypecode' must be included in the query.");
+                    }
+                    else
+                    {
+                        entityname = entity["activitytypecode"].ToString();
+                    }
+                    break;
+
+                case "activityparty":
+                    if (!entity.Contains("partyid"))
+                    {
+                        throw new ArgumentException("To open records of type activityparty, attribute 'partyid' must be included in the query.");
+                    }
+                    else
+                    {
+                        var party = (EntityReference)entity["partyid"];
+                        entityname = party.LogicalName;
+                        entityid = party.Id;
+                    }
+                    break;
+            }
+            return GetRecordDeepLink(webappurl, entityname, entityid, extraqs);
+        }
+
+        public static string GetRecordDeepLink(string webappurl, string entity, Guid recordid, NameValueCollection extraqs) => GetDeepLink(webappurl, "entityrecord", entity, recordid, extraqs);
+
+        public static string GetViewDeepLink(string webappurl, string entity, Guid viewid, NameValueCollection extraqs) => GetDeepLink(webappurl, "entitylist", entity, viewid, extraqs);
+
+        private static string GetDeepLink(string webappurl,string pagetype, string entity, Guid id, NameValueCollection extraqs)
+        {
+            if (string.IsNullOrWhiteSpace(entity))
             {
                 return string.Empty;
             }
-            var uri = new UriBuilder(webappurl);
-            uri.Path = "main.aspx";
+            var uri = new UriBuilder(webappurl)
+            {
+                Path = "main.aspx"
+            };
             var query = HttpUtility.ParseQueryString(uri.Query);
-            if (!string.IsNullOrWhiteSpace(entity))
+            query["etn"] = entity;
+            query["pagetype"] = pagetype;
+            if (!id.Equals(Guid.Empty))
             {
-                query["etn"] = entity;
-            }
-            if (!viewid.Equals(Guid.Empty))
-            {
-                query["pagetype"] = "entitylist";
-                query["id"] = viewid.ToString();
-            }
-            else
-            {
-                query["pagetype"] = "entityrecord";
-                if (!recordid.Equals(Guid.Empty))
-                {
-                    query["id"] = recordid.ToString();
-                }
+                query["id"] = id.ToString();
             }
             if (extraqs != null)
             {
@@ -133,7 +161,6 @@
             uri.Query = query.ToString();
             return uri.ToString();
         }
-
 
         private static string GetValueFromIdentifier(Entity entity, IOrganizationService service, string part)
         {
