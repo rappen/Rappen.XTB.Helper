@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XTB.Helpers.ControlItems;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
@@ -10,9 +11,8 @@ namespace Rappen.XTB.Helpers.Controls
     public partial class XRMEntityComboBox : ComboBox
     {
         #region Private properties
-        private string displayFormat = string.Empty;
+        private bool showFriendlyNames = true;
         private IEnumerable<EntityMetadata> entities;
-        private IOrganizationService organizationService;
         #endregion
 
         #region Public Constructors
@@ -26,8 +26,9 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Properties
 
-        [Category("Data")]
-        [Description("Indicates the source of data (EntityCollection) for the CDSDataComboBox control.")]
+        [Category("Rappen XRM")]
+        [Description("Indicates the source of data (collection of EntityMetadata) for the XRMEntityComboBox control.")]
+        [Browsable(false)]
         public new object DataSource
         {
             get
@@ -48,35 +49,24 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        [Category("Data")]
-        [DisplayName("Display Format")]
-        [Description("Single attribute from datasource to display for items, or use {{attributename}} syntax freely.")]
-        public string DisplayFormat
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("True to show friendly names, False to show logical names and guid etc.")]
+        public bool ShowFriendlyNames
         {
-            get { return displayFormat; }
+            get { return showFriendlyNames; }
             set
             {
-                if (value != displayFormat)
+                if (value != showFriendlyNames)
                 {
-                    displayFormat = value;
+                    showFriendlyNames = value;
                     Refresh();
                 }
             }
         }
 
         [Browsable(false)]
-        public IOrganizationService OrganizationService
-        {
-            get { return organizationService; }
-            set
-            {
-                organizationService = value;
-                Refresh();
-            }
-        }
-
-        [Browsable(false)]
-        public EntityMetadataItem SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item : null;
+        public EntityMetadata SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item.Metadata : null;
 
         #endregion Public Properties
 
@@ -86,13 +76,13 @@ namespace Rappen.XTB.Helpers.Controls
         {
             SuspendLayout();
             var selected = SelectedEntity;
-            //var ds = entities?.Select(e => new EntityWrapper(e, displayFormat, organizationService)).ToArray();
-            //base.DataSource = ds;
-            //base.Refresh();
-            //if (selected != null && ds.FirstOrDefault(e => e.Entity.Id.Equals(selected.Id)) is EntityWrapper newselected)
-            //{
-            //    SelectedItem = newselected;
-            //}
+            var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames)).ToArray();
+            base.DataSource = ds;
+            base.Refresh();
+            if (selected != null && ds.FirstOrDefault(e => e.Metadata.LogicalName.Equals(selected.LogicalName)) is EntityMetadataItem newselected)
+            {
+                SelectedItem = newselected;
+            }
             ResumeLayout();
         }
 
