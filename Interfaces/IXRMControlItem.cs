@@ -1,6 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers.Interfaces
 {
-    public interface ICDSControlItem
+    public interface IXRMControlItem
     {
         string GetValue();
     }

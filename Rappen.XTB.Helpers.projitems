@@ -9,6 +9,20 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.designer.cs">
+      <DependentUpon>XRMGridView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.Designer.cs">
+      <DependentUpon>XRMDataComboBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ViewConsts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.Designer.cs">
+      <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMEntityComboBox.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMEntityComboBox.Designer.cs">
       <DependentUpon>XRMEntityComboBox.cs</DependentUpon>
@@ -22,13 +36,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICDSControlItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
@@ -39,7 +54,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Extensions\" />
     <Folder Include="$(MSBuildThisFileDirectory)Serialization\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.resx">
+      <DependentUpon>XRMGridView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.resx">
+      <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

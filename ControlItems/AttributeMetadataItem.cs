@@ -4,11 +4,11 @@
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    public class AttributeMetadataItem : ICDSControlItem
+    public class AttributeMetadataItem : IXRMControlItem
     {
         public bool FriendlyNames { get; set; }
 
-        public AttributeMetadata Metadata { get; set; } = null;
+        public AttributeMetadata Metadata { get; } = null;
 
         public AttributeMetadataItem(AttributeMetadata Attribute, bool friendlynames)
         {

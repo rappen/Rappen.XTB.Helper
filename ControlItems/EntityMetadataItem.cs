@@ -5,10 +5,8 @@
     using System;
     using System.Linq;
 
-    public class EntityMetadataItem : ICDSControlItem
+    public class EntityMetadataItem : IXRMControlItem
     {
-        private EntityMetadata meta = null;
-
         public bool FriendlyNames { get; set; }
 
         public EntityMetadataItem(EntityMetadata Entity, bool friendlynames)
@@ -17,11 +15,13 @@
             {
                 throw new ArgumentNullException("Entity");
             }
-            meta = Entity;
+            Metadata = Entity;
             FriendlyNames = friendlynames;
         }
 
-        public override string ToString() => FriendlyNames ? DisplayName : meta.LogicalName;
+        public EntityMetadata Metadata { get; } = null;
+
+        public override string ToString() => FriendlyNames ? DisplayName : Metadata.LogicalName;
 
         public string DisplayName => GetDisplayName();
 
@@ -29,44 +29,44 @@
 
         private string GetDisplayName()
         {
-            var result = meta.LogicalName;
-            if (meta.DisplayName.UserLocalizedLabel != null)
+            var result = Metadata.LogicalName;
+            if (Metadata.DisplayName.UserLocalizedLabel != null)
             {
-                result = meta.DisplayName.UserLocalizedLabel.Label;
+                result = Metadata.DisplayName.UserLocalizedLabel.Label;
             }
-            if (result == meta.LogicalName && meta.DisplayName.LocalizedLabels.Count > 0)
+            if (result == Metadata.LogicalName && Metadata.DisplayName.LocalizedLabels.Count > 0)
             {
-                result = meta.DisplayName.LocalizedLabels[0].Label;
+                result = Metadata.DisplayName.LocalizedLabels[0].Label;
             }
             return result;
         }
 
         private string GetCollectionDisplayName()
         {
-            var result = meta.LogicalCollectionName;
-            if (meta.DisplayCollectionName.UserLocalizedLabel != null)
+            var result = Metadata.LogicalCollectionName;
+            if (Metadata.DisplayCollectionName.UserLocalizedLabel != null)
             {
-                result = meta.DisplayCollectionName.UserLocalizedLabel.Label;
+                result = Metadata.DisplayCollectionName.UserLocalizedLabel.Label;
             }
-            if (result == meta.LogicalCollectionName && meta.DisplayCollectionName.LocalizedLabels.Count > 0)
+            if (result == Metadata.LogicalCollectionName && Metadata.DisplayCollectionName.LocalizedLabels.Count > 0)
             {
-                result = meta.DisplayCollectionName.LocalizedLabels[0].Label;
+                result = Metadata.DisplayCollectionName.LocalizedLabels[0].Label;
             }
             return result;
         }
 
         public string GetValue()
         {
-            return meta.LogicalName;
+            return Metadata.LogicalName;
         }
 
         public OneToManyRelationshipMetadata GetRelationship(string name)
         {
-            if (meta.OneToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata rel1m)
+            if (Metadata.OneToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata rel1m)
             {
                 return rel1m;
             }
-            if (meta.ManyToOneRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata relm1)
+            if (Metadata.ManyToOneRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata relm1)
             {
                 return relm1;
             }
@@ -75,7 +75,7 @@
 
         public ManyToManyRelationshipMetadata GetRelationshipMM(string name)
         {
-            if (meta.ManyToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is ManyToManyRelationshipMetadata relmm)
+            if (Metadata.ManyToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is ManyToManyRelationshipMetadata relmm)
             {
                 return relmm;
             }

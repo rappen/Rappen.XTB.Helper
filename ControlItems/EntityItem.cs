@@ -7,7 +7,7 @@
     using Rappen.XTB.Helpers.Serialization;
     using System;
 
-    public class EntityItem : ICDSControlItem
+    public class EntityItem : IXRMControlItem
     {
         #region Private Fields
 

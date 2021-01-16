@@ -3,23 +3,23 @@
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    class OptionMetadataItem : ICDSControlItem
+    class OptionMetadataItem : IXRMControlItem
     {
-        public OptionMetadata meta = null;
+        public OptionMetadata Metadata { get; } = null;
 
         public OptionMetadataItem(OptionMetadata Option)
         {
-            meta = Option;
+            Metadata = Option;
         }
 
         public override string ToString()
         {
-            return meta.Label.UserLocalizedLabel.Label + " (" + meta.Value.ToString() + ")";
+            return Metadata.Label.UserLocalizedLabel.Label + " (" + Metadata.Value.ToString() + ")";
         }
 
         public string GetValue()
         {
-            return meta.Value.ToString();
+            return Metadata.Value.ToString();
         }
     }
 }

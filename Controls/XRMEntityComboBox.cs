@@ -1,19 +1,12 @@
 ﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
-using Microsoft.Xrm.Sdk.Query;
 using Rappen.XTB.Helpers.ControlItems;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
 {
-    public delegate void ProgressUpdate(string message);
-    public delegate void RetrieveComplete(int itemCount, Entity FirstItem);
-
     public partial class XRMEntityComboBox : ComboBox
     {
         #region Private properties
@@ -101,59 +94,6 @@ namespace Rappen.XTB.Helpers.Controls
             //    SelectedItem = newselected;
             //}
             ResumeLayout();
-        }
-
-        public void RetrieveMultiple(QueryBase query, ProgressUpdate progressCallback, RetrieveComplete completeCallback)
-        {
-            if (this.OrganizationService == null)
-            {
-                throw new InvalidOperationException("The Service reference must be set before calling RetrieveMultiple.");
-            }
-
-            try
-            {
-                var worker = new BackgroundWorker();
-                worker.DoWork += (w, e) =>
-                {
-                    var queryExp = e.Argument as QueryBase;
-
-                    BeginInvoke(progressCallback, "Begin Retrieve Multiple");
-
-                    var fetchReq = new RetrieveMultipleRequest
-                    {
-                        Query = queryExp
-                    };
-
-                    var records = OrganizationService.RetrieveMultiple(query);
-
-                    BeginInvoke(progressCallback, "End Retrieve Multiple");
-
-                    e.Result = records;
-                };
-
-                worker.RunWorkerCompleted += (s, e) =>
-                {
-                    var records = e.Result as EntityCollection;
-
-                    BeginInvoke(progressCallback, $"Retrieve Multiple - records returned: {records.Entities.Count}");
-
-                    DataSource = records;
-
-                    // make the final callback
-                    BeginInvoke(completeCallback, entities?.Count(), SelectedEntity);
-                };
-
-                // kick off the worker thread!
-                worker.RunWorkerAsync(query);
-            }
-            catch (System.ServiceModel.FaultException ex)
-            {
-            }
-        }
-
-        public void RetrieveMultiple(string fetchXml, ProgressUpdate progressCallback, RetrieveComplete completeCallback)
-        {
-            RetrieveMultiple(new FetchExpression(fetchXml), progressCallback, completeCallback);
         }
 
         #endregion Public Methods
