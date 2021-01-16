@@ -35,7 +35,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Properties
 
-        [Category("Data")]
+        [Category("Rappen XRM")]
         [DisplayName("Record LogicalName")]
         [Description("LogicalName if the entity type")]
         public string LogicalName
@@ -58,7 +58,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [DefaultValue("00000000-0000-0000-0000-000000000000")]
-        [Category("Data")]
+        [Category("Rappen XRM")]
         [DisplayName("Record Id")]
         [Description("Id of the record. LogicalName must be set before setting the Id.")]
         public Guid Id
@@ -79,7 +79,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        [Category("Data")]
+        [Category("Rappen XRM")]
         [DisplayName("Display Format")]
         [Description("Single attribute from datasource to display for items, or use {{attributename}} syntax freely.")]
         public string DisplayFormat
@@ -97,7 +97,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [DefaultValue(false)]
-        [Category("Behavior")]
+        [Category("Rappen XRM")]
         [DisplayName("Record Clickable")]
         [Description("Displays the record text as a clickable text and fires RecordClick event when clicked")]
         public bool Clickable
@@ -197,7 +197,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Published events
 
-        [Category("CRM")]
+        [Category("Rappen XRM")]
         public event XRMRecordEventHandler RecordClick;
 
         #endregion Published Events

@@ -68,6 +68,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         [Description("Indicates the source of data (IEnumerable<Entity> or EntityCollection) for the CRMGridView control.")]
+        [Browsable(false)]
         public new object DataSource
         {
             get

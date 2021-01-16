@@ -32,8 +32,8 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Properties
 
-        [Category("Data")]
-        [Description("Indicates the source of data (EntityCollection) for the CDSDataComboBox control.")]
+        [Category("Rappen XRM")]
+        [Description("Indicates the source of data (EntityCollection) for the XRMDataComboBox control.")]
         public new object DataSource
         {
             get
@@ -63,9 +63,9 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        [Category("Data")]
+        [Category("Rappen XRM")]
         [DisplayName("Display Format")]
-        [Description("Single attribute from datasource to display for items, or use {{attributename}} syntax freely.")]
+        [Description("Single attribute from datasource to display for items, or use XRM Tokens syntax freely https://jonasr.app/xrm-tokens/")]
         public string DisplayFormat
         {
             get { return displayFormat; }
