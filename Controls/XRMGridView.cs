@@ -55,15 +55,15 @@ namespace Rappen.XTB.Helpers.Controls
         #region Published properties
 
         [Category("Rappen XRM")]
-        [ReadOnly(true)]
+        [Browsable(false)]
         public new bool ReadOnly { get; set; } = true;
 
         [Category("Rappen XRM")]
-        [ReadOnly(true)]
+        [Browsable(false)]
         public new bool AllowUserToAddRows { get; set; } = false;
 
         [Category("Rappen XRM")]
-        [ReadOnly(true)]
+        [Browsable(false)]
         public new bool AllowUserToDeleteRows { get; set; } = false;
 
         [Category("Rappen XRM")]
@@ -337,7 +337,7 @@ namespace Rappen.XTB.Helpers.Controls
         #region Public properties
 
         [Browsable(false)]
-        public IOrganizationService OrganizationService
+        public IOrganizationService Service
         {
             get { return organizationService; }
             set

@@ -34,6 +34,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         [Description("Indicates the source of data (EntityCollection) for the XRMDataComboBox control.")]
+        [Browsable(false)]
         public new object DataSource
         {
             get
@@ -80,7 +81,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Browsable(false)]
-        public IOrganizationService OrganizationService
+        public IOrganizationService Service
         {
             get { return organizationService; }
             set
@@ -89,6 +90,10 @@ namespace Rappen.XTB.Helpers.Controls
                 Refresh();
             }
         }
+
+        // Sorted not supported for databound combobox
+        [Browsable(false)]
+        public new bool Sorted { get; } = false;
 
         [Browsable(false)]
         public Entity SelectedEntity => (SelectedItem is EntityItem item) ? item.Entity : null;
@@ -113,7 +118,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void RetrieveMultiple(QueryBase query, ProgressUpdate progressCallback, RetrieveComplete completeCallback)
         {
-            if (this.OrganizationService == null)
+            if (this.Service == null)
             {
                 throw new InvalidOperationException("The Service reference must be set before calling RetrieveMultiple.");
             }
@@ -132,7 +137,7 @@ namespace Rappen.XTB.Helpers.Controls
                         Query = queryExp
                     };
 
-                    var records = OrganizationService.RetrieveMultiple(query);
+                    var records = Service.RetrieveMultiple(query);
 
                     BeginInvoke(progressCallback, "End Retrieve Multiple");
 

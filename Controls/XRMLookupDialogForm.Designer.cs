@@ -263,7 +263,7 @@
             this.gridResults.Location = new System.Drawing.Point(10, 0);
             this.gridResults.MultiSelect = false;
             this.gridResults.Name = "gridResults";
-            this.gridResults.OrganizationService = null;
+            this.gridResults.Service = null;
             this.gridResults.RowHeadersVisible = false;
             this.gridResults.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.gridResults.ShowFriendlyNames = true;
@@ -288,7 +288,7 @@
             this.gridSelection.FilterColumns = "";
             this.gridSelection.Location = new System.Drawing.Point(99, 0);
             this.gridSelection.Name = "gridSelection";
-            this.gridSelection.OrganizationService = null;
+            this.gridSelection.Service = null;
             this.gridSelection.RowHeadersVisible = false;
             this.gridSelection.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.gridSelection.ShowFriendlyNames = true;
@@ -310,7 +310,7 @@
             this.cmbView.FormattingEnabled = true;
             this.cmbView.Location = new System.Drawing.Point(100, 46);
             this.cmbView.Name = "cmbView";
-            this.cmbView.OrganizationService = null;
+            this.cmbView.Service = null;
             this.cmbView.Size = new System.Drawing.Size(421, 21);
             this.cmbView.TabIndex = 3;
             this.cmbView.SelectedIndexChanged += new System.EventHandler(this.cmbView_SelectedIndexChanged);

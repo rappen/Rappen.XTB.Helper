@@ -81,7 +81,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         [DisplayName("Display Format")]
-        [Description("Single attribute from datasource to display for items, or use {{attributename}} syntax freely.")]
+        [Description("Single attribute from datasource to display for items, or use XRM Tokens syntax freely https://jonasr.app/xrm-tokens/")]
         public string DisplayFormat
         {
             get { return displayFormat; }
@@ -132,7 +132,7 @@ namespace Rappen.XTB.Helpers.Controls
         public new bool ReadOnly { get; set; } = true;
 
         [Browsable(false)]
-        public IOrganizationService OrganizationService
+        public IOrganizationService Service
         {
             get { return organizationService; }
             set

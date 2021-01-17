@@ -66,6 +66,10 @@
             {
                 value = Bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
             }
+            if (!value.Contains("{")&&!value.Contains("}")&&!value.Contains(" "))
+            {
+                value = "{" + value + "}";
+            }
             return Entity.Substitute(Bag, value);
         }
 

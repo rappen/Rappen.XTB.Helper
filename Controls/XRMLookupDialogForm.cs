@@ -49,9 +49,9 @@ namespace Rappen.XTB.Helpers.Controls
             set
             {
                 service = value;
-                cmbView.OrganizationService = value;
-                gridResults.OrganizationService = value;
-                gridSelection.OrganizationService = value;
+                cmbView.Service = value;
+                gridResults.Service = value;
+                gridSelection.Service = value;
             }
         }
 

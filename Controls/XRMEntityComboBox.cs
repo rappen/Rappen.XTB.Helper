@@ -65,6 +65,10 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        // Sorted not supported for databound combobox
+        [Browsable(false)]
+        public new bool Sorted { get; } = false;
+
         [Browsable(false)]
         public EntityMetadata SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item.Metadata : null;
 
