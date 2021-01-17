@@ -1,6 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers.Controls
 {
-    partial class XRMGridView
+    partial class XRMDataGridView
     {
         /// <summary> 
         /// Required designer variable.

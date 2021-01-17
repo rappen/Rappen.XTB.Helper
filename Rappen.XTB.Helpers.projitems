@@ -9,9 +9,9 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.designer.cs">
-      <DependentUpon>XRMGridView.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.designer.cs">
+      <DependentUpon>XRMDataGridView.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.Designer.cs">
@@ -57,8 +57,8 @@
     <Folder Include="$(MSBuildThisFileDirectory)Serialization\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMGridView.resx">
-      <DependentUpon>XRMGridView.cs</DependentUpon>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.resx">
+      <DependentUpon>XRMDataGridView.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.resx">
       <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>

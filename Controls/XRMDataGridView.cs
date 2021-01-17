@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
 {
-    public partial class XRMGridView : DataGridView
+    public partial class XRMDataGridView : DataGridView
     {
         #region Private properties
         private IOrganizationService organizationService;
@@ -33,7 +33,7 @@ namespace Rappen.XTB.Helpers.Controls
         #endregion
 
         #region Constructor
-        public XRMGridView()
+        public XRMDataGridView()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
 

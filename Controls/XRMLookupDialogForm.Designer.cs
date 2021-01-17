@@ -47,8 +47,8 @@
             this.btnRemoveSelection = new System.Windows.Forms.Button();
             this.splitGrids = new System.Windows.Forms.SplitContainer();
             this.timerLoadData = new System.Windows.Forms.Timer(this.components);
-            this.gridResults = new Rappen.XTB.Helpers.Controls.XRMGridView();
-            this.gridSelection = new Rappen.XTB.Helpers.Controls.XRMGridView();
+            this.gridResults = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
+            this.gridSelection = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
             this.cmbView = new Rappen.XTB.Helpers.Controls.XRMDataComboBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -357,8 +357,8 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOk;
-        internal XRMGridView gridResults;
-        internal XRMGridView gridSelection;
+        internal XRMDataGridView gridResults;
+        internal XRMDataGridView gridSelection;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Button btnClearSelection;
         private System.Windows.Forms.Button btnAddSelection;
