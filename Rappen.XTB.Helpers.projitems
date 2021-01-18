@@ -36,9 +36,9 @@
       <DependentUpon>XRMEntityComboBox.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordEventArgs.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataTextBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataTextBox.Designer.cs">
-      <DependentUpon>XRMDataTextBox.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordTextBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordTextBox.Designer.cs">
+      <DependentUpon>XRMRecordTextBox.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ControlUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />

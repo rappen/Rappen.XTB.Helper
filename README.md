@@ -10,8 +10,21 @@ This is a C# Shared Project with various UI controls, helper classes and extenti
 
 ---
 
+## XRMRecordTextBox
+Just like any TextBox, but shows values from a record in Dataverse. The control has two new properties [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) and [`EntityReference`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entityreference). Both these can be set to display text about the record.
+### Properties
+* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
+* **Display Format** set to any [**XRM Token**](https://jonasr.app/xrm-tokens/) to define how each record is presented.
+* **Record Clickable** defines UX behavior of the textbox when hovering with the mouse.
+* **Record LogicalName**
+* **Record Id**
+### Events
+* **RecordClick**
+
+---
+
 ## XRMDataComboBox
-Just like any ComboBox, but accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
+Just like any ComboBox, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
 ### Properties
 * **`DataSource`**
 * **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
@@ -20,21 +33,8 @@ Just like any ComboBox, but accepts [`EntityCollection`](https://docs.microsoft.
 
 ---
 
-## XRMDataTextBox
-Just like any TextBox, but has two new properties [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) and [`EntityReference`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entityreference). Both these can be set to display text about the record.
-### Properties
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **Display Format** set to any [**XRM Token**](https://jonasr.app/xrm-tokens/) to define how each record is presented.
-* **Record Clickable** defines UX behavior of the textbox when hovering with the mouse.
-* **Record Id**
-* **Record LogicalName**
-### Events
-* **RecordClick**
-
----
-
 ## XRMDataGridView
-Just like any DataGridView, but accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
+Just like any DataGridView, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
 ### Properties
 * **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
 * **`DataSource`**

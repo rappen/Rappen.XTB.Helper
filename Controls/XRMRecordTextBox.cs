@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
 {
-    public partial class XRMDataTextBox : TextBox
+    public partial class XRMRecordTextBox : TextBox
     {
         #region Private properties
         private string displayFormat = string.Empty;
@@ -22,7 +22,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Constructors
 
-        public XRMDataTextBox()
+        public XRMRecordTextBox()
         {
             InitializeComponent();
             font = Font;
@@ -37,7 +37,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         [DisplayName("Record LogicalName")]
-        [Description("LogicalName if the entity type")]
+        [Description("LogicalName of the entity type to bind")]
         public string LogicalName
         {
             get
