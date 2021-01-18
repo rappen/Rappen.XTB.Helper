@@ -17,6 +17,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.Designer.cs">
       <DependentUpon>XRMDataComboBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMAttributeComboBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMAttributeComboBox.Designer.cs">
+      <DependentUpon>XRMAttributeComboBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMOptionSetComboBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMOptionSetComboBox.Designer.cs">
+      <DependentUpon>XRMOptionSetComboBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ViewConsts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.cs" />

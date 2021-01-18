@@ -3,18 +3,26 @@
     using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Interfaces;
 
-    class OptionMetadataItem : IXRMControlItem
+    public class OptionMetadataItem : IXRMControlItem
     {
+        public bool ShowValue { get; set; }
+
         public OptionMetadata Metadata { get; } = null;
 
-        public OptionMetadataItem(OptionMetadata Option)
+        public OptionMetadataItem(OptionMetadata option, bool showvalue)
         {
-            Metadata = Option;
+            Metadata = option;
+            ShowValue = showvalue;
         }
 
         public override string ToString()
         {
-            return Metadata.Label.UserLocalizedLabel.Label + " (" + Metadata.Value.ToString() + ")";
+            var result = Metadata.Label?.UserLocalizedLabel?.Label;
+            if (string.IsNullOrWhiteSpace(result))
+            {
+                return Metadata.Value?.ToString();
+            }
+            return result + (ShowValue ? $" ({Metadata.Value})" : string.Empty);
         }
 
         public string GetValue()
