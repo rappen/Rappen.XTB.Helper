@@ -113,4 +113,5 @@ Read more at https://jonasr.app/xrm-tokens
 # History
 
 This project stems from tools and snippets collected over a number of years.
-Some of the controls have been inherited/migrated from the [xrmtb.XrmToolBox.Controls](https://github.com/jamesnovak/xrmtb.XrmToolBox.Controls) project created and maintained by [@jamesnovak](https://github.com/jamesnovak/).
+Some of the controls have been inherited/migrated from the [xrmtb.XrmToolBox.Controls](https://github.com/jamesnovak/xrmtb.XrmToolBox.Controls) project created and maintained by [@jamesnovak](https://github.com/jamesnovak/). 
+This was partially in turn inherited/migrated from [CRMWinForm](https://github.com/rappen/CRMWinForm) by [@rappen](https://github.com/rappen/).
