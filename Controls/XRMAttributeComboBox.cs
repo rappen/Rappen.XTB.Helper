@@ -12,6 +12,7 @@ namespace Rappen.XTB.Helpers.Controls
     {
         #region Private properties
         private bool showFriendlyNames = true;
+        private bool sorted = true;
         private IEnumerable<AttributeMetadata> attributes;
         #endregion
 
@@ -41,7 +42,6 @@ namespace Rappen.XTB.Helpers.Controls
             }
             set
             {
-                var validmeta = true;
                 if (value is EntityMetadata entity)
                 {
                     attributes = entity.Attributes;
@@ -52,12 +52,9 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 else
                 {
-                    validmeta = false;
+                    attributes = null;
                 }
-                if (validmeta)
-                {
-                    Refresh();
-                }
+                Refresh();
             }
         }
 
@@ -77,9 +74,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        // Sorted not supported for databound combobox
-        [Browsable(false)]
-        public new bool Sorted { get; } = false;
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("Defines if the attributes should be sorted alphabetically, based on selected layout")]
+        public new bool Sorted
+        {
+            get { return sorted; }
+            set
+            {
+                base.Sorted = false;
+                if (value != sorted)
+                {
+                    sorted = value;
+                    Refresh();
+                }
+            }
+        }
 
         [Browsable(false)]
         public AttributeMetadata SelectedAttribute => (SelectedItem is AttributeMetadataItem item) ? item.Metadata : null;
@@ -92,10 +102,14 @@ namespace Rappen.XTB.Helpers.Controls
         {
             SuspendLayout();
             var selected = SelectedAttribute;
-            var ds = attributes?.Select(e => new AttributeMetadataItem(e, showFriendlyNames)).ToArray();
+            var ds = attributes?.Select(a => new AttributeMetadataItem(a, showFriendlyNames)).ToArray();
+            if (sorted && ds?.Length > 0)
+            {
+                ds = ds.OrderBy(a => a.ToString()).ToArray();
+            }
             base.DataSource = ds;
             base.Refresh();
-            if (selected != null && ds.FirstOrDefault(a => a.Metadata.LogicalName.Equals(selected.LogicalName)) is AttributeMetadataItem newselected)
+            if (selected != null && ds?.FirstOrDefault(a => a.Metadata.LogicalName.Equals(selected.LogicalName)) is AttributeMetadataItem newselected)
             {
                 SelectedItem = newselected;
             }

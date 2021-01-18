@@ -12,6 +12,7 @@ namespace Rappen.XTB.Helpers.Controls
     {
         #region Private properties
         private bool showValue = true;
+        private bool sorted = true;
         private IEnumerable<OptionMetadata> options;
         #endregion
 
@@ -41,7 +42,6 @@ namespace Rappen.XTB.Helpers.Controls
             }
             set
             {
-                var validmeta = true;
                 if (value is OptionSetMetadata osmeta)
                 {
                     options = osmeta.Options;
@@ -52,12 +52,9 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 else
                 {
-                    validmeta = false;
+                    options = null;
                 }
-                if (validmeta)
-                {
-                    Refresh();
-                }
+                Refresh();
             }
         }
 
@@ -77,9 +74,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        // Sorted not supported for databound combobox
-        [Browsable(false)]
-        public new bool Sorted { get; } = false;
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("Defines if the entities should be sorted alphabetically, based on selected layout")]
+        public new bool Sorted
+        {
+            get { return sorted; }
+            set
+            {
+                base.Sorted = false;
+                if (value != sorted)
+                {
+                    sorted = value;
+                    Refresh();
+                }
+            }
+        }
 
         [Browsable(false)]
         public OptionMetadata SelectedOption => (SelectedItem is OptionMetadataItem item) ? item.Metadata : null;
@@ -93,9 +103,13 @@ namespace Rappen.XTB.Helpers.Controls
             SuspendLayout();
             var selected = SelectedOption;
             var ds = options?.Select(o => new OptionMetadataItem(o, showValue)).ToArray();
+            if (sorted && ds?.Length > 0)
+            {
+                ds = ds.OrderBy(o => o.ToString()).ToArray();
+            }
             base.DataSource = ds;
             base.Refresh();
-            if (selected != null && ds.FirstOrDefault(e => e.Metadata.Value.Equals(selected.Value)) is OptionMetadataItem newselected)
+            if (selected != null && ds?.FirstOrDefault(e => e.Metadata.Value.Equals(selected.Value)) is OptionMetadataItem newselected)
             {
                 SelectedItem = newselected;
             }

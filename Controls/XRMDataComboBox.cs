@@ -17,7 +17,8 @@ namespace Rappen.XTB.Helpers.Controls
     {
         #region Private properties
         private string displayFormat = string.Empty;
-        private IEnumerable<Entity> entities;
+        private bool sorted = true;
+        private IEnumerable<Entity> records;
         private IOrganizationService organizationService;
         #endregion
 
@@ -39,28 +40,27 @@ namespace Rappen.XTB.Helpers.Controls
         {
             get
             {
-                if (entities != null)
+                if (records != null)
                 {
-                    return entities;
+                    return records;
                 }
                 return base.DataSource;
             }
             set
             {
-                IEnumerable<Entity> newEntities = null;
                 if (value is EntityCollection entityCollection)
                 {
-                    newEntities = entityCollection.Entities;
+                    records = entityCollection.Entities;
                 }
-                else if (value is IEnumerable<Entity> entities)
+                else if (value is IEnumerable<Entity> newentities)
                 {
-                    newEntities = entities;
+                    records = newentities;
                 }
-                if (newEntities != null)
+                else
                 {
-                    entities = newEntities;
-                    Refresh();
+                    records = null;
                 }
+                Refresh();
             }
         }
 
@@ -91,9 +91,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        // Sorted not supported for databound combobox
-        [Browsable(false)]
-        public new bool Sorted { get; } = false;
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("Defines if the date should be sorted alphabetically, based on selected format")]
+        public new bool Sorted
+        {
+            get { return sorted; }
+            set
+            {
+                base.Sorted = false;
+                if (value != sorted)
+                {
+                    sorted = value;
+                    Refresh();
+                }
+            }
+        }
 
         [Browsable(false)]
         public Entity SelectedEntity => (SelectedItem is EntityItem item) ? item.Entity : null;
@@ -106,10 +119,14 @@ namespace Rappen.XTB.Helpers.Controls
         {
             SuspendLayout();
             var selected = SelectedEntity;
-            var ds = entities?.Select(e => new EntityItem(e, displayFormat, organizationService)).ToArray();
+            var ds = records?.Select(r => new EntityItem(r, displayFormat, organizationService)).ToArray();
+            if (sorted && ds?.Length > 0)
+            {
+                ds = ds.OrderBy(r => r.ToString()).ToArray();
+            }
             base.DataSource = ds;
             base.Refresh();
-            if (selected != null && ds.FirstOrDefault(e => e.Entity.Id.Equals(selected.Id)) is EntityItem newselected)
+            if (selected != null && ds?.FirstOrDefault(r => r.Entity.Id.Equals(selected.Id)) is EntityItem newselected)
             {
                 SelectedItem = newselected;
             }
@@ -153,7 +170,7 @@ namespace Rappen.XTB.Helpers.Controls
                     DataSource = records;
 
                     // make the final callback
-                    BeginInvoke(completeCallback, entities?.Count(), SelectedEntity);
+                    BeginInvoke(completeCallback, this.records?.Count(), SelectedEntity);
                 };
 
                 // kick off the worker thread!

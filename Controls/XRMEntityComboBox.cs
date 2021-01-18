@@ -12,6 +12,7 @@ namespace Rappen.XTB.Helpers.Controls
     {
         #region Private properties
         private bool showFriendlyNames = true;
+        private bool sorted = true;
         private IEnumerable<EntityMetadata> entities;
         #endregion
 
@@ -41,11 +42,15 @@ namespace Rappen.XTB.Helpers.Controls
             }
             set
             {
+                if (entities == null && value == null)
+                {
+                    return;
+                }
                 if (value is IEnumerable<EntityMetadata> newentities)
                 {
                     entities = newentities;
-                    Refresh();
                 }
+                Refresh();
             }
         }
 
@@ -65,9 +70,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        // Sorted not supported for databound combobox
-        [Browsable(false)]
-        public new bool Sorted { get; } = false;
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("Defines if the entities should be sorted alphabetically, based on selected layout")]
+        public new bool Sorted
+        {
+            get { return sorted; }
+            set
+            {
+                base.Sorted = false;
+                if (value != sorted)
+                {
+                    sorted = value;
+                    Refresh();
+                }
+            }
+        }
 
         [Browsable(false)]
         public EntityMetadata SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item.Metadata : null;
@@ -81,9 +99,13 @@ namespace Rappen.XTB.Helpers.Controls
             SuspendLayout();
             var selected = SelectedEntity;
             var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames)).ToArray();
+            if (sorted && ds?.Length > 0)
+            {
+                ds = ds.OrderBy(e => e.ToString()).ToArray();
+            }
             base.DataSource = ds;
             base.Refresh();
-            if (selected != null && ds.FirstOrDefault(e => e.Metadata.LogicalName.Equals(selected.LogicalName)) is EntityMetadataItem newselected)
+            if (selected != null && ds?.FirstOrDefault(e => e.Metadata.LogicalName.Equals(selected.LogicalName)) is EntityMetadataItem newselected)
             {
                 SelectedItem = newselected;
             }
