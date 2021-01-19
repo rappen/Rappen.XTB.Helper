@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Rappen.XTB.Helpers.ControlItems;
+using Rappen.XTB.Helpers.Interfaces;
 using System;
 using System.ComponentModel;
 using System.Drawing;
@@ -8,15 +9,12 @@ using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
 {
-    public partial class XRMRecordTextBox : TextBox
+    public partial class XRMRecordTextBox : TextBox, IXRMRecordControl
     {
         #region Private properties
         private string displayFormat = string.Empty;
         private bool clickable = false;
-        private string logicalName = null;
-        private Guid id = Guid.Empty;
-        private EntityItem entity;
-        private IOrganizationService organizationService;
+        private XRMRecordControlBase controlBase;
         private Font font;
         #endregion
 
@@ -25,6 +23,7 @@ namespace Rappen.XTB.Helpers.Controls
         public XRMRecordTextBox()
         {
             InitializeComponent();
+            controlBase = new XRMRecordControlBase(this);
             font = Font;
             base.ReadOnly = true;
             BackColor = SystemColors.Window;
@@ -34,50 +33,6 @@ namespace Rappen.XTB.Helpers.Controls
         #endregion Public Constructors
 
         #region Public Properties
-
-        [Category("Rappen XRM")]
-        [DisplayName("Record LogicalName")]
-        [Description("LogicalName of the entity type to bind")]
-        public string LogicalName
-        {
-            get
-            {
-                return logicalName;
-            }
-            set
-            {
-                if (value?.Equals(logicalName) == true)
-                {
-                    return;
-                }
-                logicalName = value;
-                id = Guid.Empty;
-                entity = null;
-                Refresh();
-            }
-        }
-
-        [DefaultValue("00000000-0000-0000-0000-000000000000")]
-        [Category("Rappen XRM")]
-        [DisplayName("Record Id")]
-        [Description("Id of the record. LogicalName must be set before setting the Id.")]
-        public Guid Id
-        {
-            get
-            {
-                return id;
-            }
-            set
-            {
-                if (value.Equals(id))
-                {
-                    return;
-                }
-                id = string.IsNullOrWhiteSpace(logicalName) ? id = Guid.Empty : value;
-                LoadRecord();
-                Refresh();
-            }
-        }
 
         [Category("Rappen XRM")]
         [DisplayName("Display Format")]
@@ -128,70 +83,48 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        [ReadOnly(true)]
-        public new bool ReadOnly { get; set; } = true;
+        [Category("Rappen XRM")]
+        [DisplayName("Record LogicalName")]
+        [Description("LogicalName of the entity type to bind")]
+        public string LogicalName
+        {
+            get => controlBase.GetLogicalName();
+            set => controlBase.SetLogicalName(value);
+        }
+
+        [DefaultValue("00000000-0000-0000-0000-000000000000")]
+        [Category("Rappen XRM")]
+        [DisplayName("Record Id")]
+        [Description("Id of the record. LogicalName must be set before setting the Id.")]
+        public Guid Id
+        {
+            get => controlBase.GetId();
+            set => controlBase.SetId(value);
+        }
 
         [Browsable(false)]
         public IOrganizationService Service
         {
-            get { return organizationService; }
-            set
-            {
-                if (value == organizationService)
-                {
-                    return;
-                }
-                Entity = null;
-                organizationService = value;
-                LoadRecord();
-                Refresh();
-            }
+            get => controlBase.GetService();
+            set => controlBase.SetService(value);
         }
 
         [Browsable(false)]
         public EntityReference EntityReference
         {
-            get
-            {
-                var result = entity?.Entity?.ToEntityReference();
-                if (result == null)
-                {
-                    return null;
-                }
-                result.Name = new EntityItem(entity?.Entity, organizationService).ToString();
-                return result;
-            }
-            set
-            {
-                if (value?.LogicalName == logicalName && value?.Id.Equals(Id) == true)
-                {
-                    return;
-                }
-                LogicalName = value?.LogicalName;
-                Id = value?.Id ?? Guid.Empty;
-                Refresh();
-            }
+            get => controlBase.GetEntityReference();
+            set => controlBase.SetEntityReference(value);
         }
 
         [Browsable(false)]
         public Entity Entity
         {
-            get
-            {
-                return entity?.Entity;
-            }
-            set
-            {
-                if (entity?.Entity?.Id.Equals(value?.Id) == true)
-                {
-                    return;
-                }
-                entity = value != null ? new EntityItem(value, displayFormat, organizationService) : null;
-                logicalName = value?.LogicalName;
-                id = value?.Id ?? Guid.Empty;
-                Refresh();
-            }
+            get => controlBase.GetEntity();
+            set => controlBase.SetEntity(value);
         }
+
+        [ReadOnly(true)]
+        public new bool ReadOnly { get; set; } = true;
 
         #endregion Public Properties
 
@@ -210,20 +143,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return;
             }
-            new XRMRecordEventArgs(entity?.Entity, null).OnRecordEvent(this, RecordClick);
-        }
-
-        private void LoadRecord()
-        {
-            if (organizationService != null && !string.IsNullOrWhiteSpace(logicalName) && !Guid.Empty.Equals(Id))
-            {
-                var record = organizationService.Retrieve(logicalName, Id, new ColumnSet(true));
-                entity = new EntityItem(record, displayFormat, organizationService);
-            }
-            else
-            {
-                entity = null;
-            }
+            new XRMRecordEventArgs(Entity, null).OnRecordEvent(this, RecordClick);
         }
 
         #endregion Private Methods
@@ -232,11 +152,11 @@ namespace Rappen.XTB.Helpers.Controls
 
         public override void Refresh()
         {
-            if (entity != null && !entity.Format.Equals(displayFormat))
+            if (controlBase.EntityItem != null && !controlBase.EntityItem.Format.Equals(displayFormat))
             {
-                entity.Format = displayFormat;
+                controlBase.EntityItem.Format = displayFormat;
             }
-            Text = entity?.ToString();
+            Text = controlBase.EntityItem?.ToString();
             base.Refresh();
         }
 
