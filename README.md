@@ -19,6 +19,10 @@ Helper and extension classes can now be used and examined.
 
 Open a WinForm designer, and all the controls listed below should be available under a group with the name of your project.
 
+## Sample Code
+
+Check out repo [Rappen.XTB.Helper.Tester](https://github.com/rappen/Rappen.XTB.Helper.Tester) for a complete sample project using all controls.
+
 ---
 
 # Controls
