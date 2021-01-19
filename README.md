@@ -2,6 +2,19 @@
 
 This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en-us/visualstudio/ide/create-csharp-winform-visual-studio?WT.mc_id=BA-MVP-5002475) UI controls, helper classes and extention methods to work smoothly with [Microsoft Dataverse SDK](https://docs.microsoft.com/en-us/powerapps/developer/data-platform/?WT.mc_id=BA-MVP-5002475).
 
+## Adding to your project
+
+Just open a terminal at the root of a local repo and type:
+```
+git submodule add https://github.com/rappen/Rappen.XTB.Helper
+```
+
+Then right click your solution in Visual Studio, select Add Existing Project, and include the `Rappen.XTB.Helpers.shproj` project from the cloned submodule.
+
+In your project, add a Reference to the added shared project `Rappen.XTB.Helpers`.
+
+Tadaa! 🎉
+
 ---
 
 # Controls
