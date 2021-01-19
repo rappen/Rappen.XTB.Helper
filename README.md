@@ -40,6 +40,16 @@ Just like any TextBox, but shows values from a record in Dataverse. The control 
 
 ---
 
+## XRMRecordCheckBox
+Just like any CheckBox, but shows values from a bool / two option / yesno attribute on a record in Dataverse. The control has two new properties [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) and [`EntityReference`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entityreference). Both these can be set to display checked state about an attribute on the record. In addition to that, the new property `Attribute` must be set, specifying which attribute to bind the control to.
+### Properties
+* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
+* **Attribute** set to any Yes/No column.
+* **Record LogicalName**
+* **Record Id**
+
+---
+
 ## XRMDataComboBox
 Just like any ComboBox, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
 ### Properties
