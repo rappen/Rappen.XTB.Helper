@@ -15,6 +15,10 @@ In your project, add a Reference to the added shared project `Rappen.XTB.Helpers
 
 Tadaa! 🎉
 
+Helper and extension classes can now be used and examined.
+
+Open a WinForm designer, and all the controls listed below should be available under a group with the name of your project.
+
 ---
 
 # Controls
