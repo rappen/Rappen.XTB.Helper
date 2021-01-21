@@ -4,22 +4,12 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 
 ## Adding to your project
 
-Just open a terminal at the root of a local repo and type:
-```
-git submodule add https://github.com/rappen/Rappen.XTB.Helper
-```
-
-Then right click your solution in Visual Studio, select Add Existing Project, and include the `Rappen.XTB.Helpers.shproj` project from the cloned submodule.
-
-In your project, add a Reference to the added shared project `Rappen.XTB.Helpers`.
-
-Tadaa! 🎉
-
-Helper and extension classes can now be used and examined.
-
-Compile the project once, to make sure everything works and to make it possible for Visual Studio to find the controls in the tool window.
-
-Open a WinForm designer, and all the controls listed below should be available under a group with the name of your project.
+1. Open a terminal at the root of a local repo and type: `git submodule add https://github.com/rappen/Rappen.XTB.Helper`
+1. Right click your solution in Visual Studio, select Add Existing Project, and include the `Rappen.XTB.Helpers.shproj` project from the cloned submodule.
+1. In your project, add a Reference to the added shared project `Rappen.XTB.Helpers`.
+1. Compile the project once, to make sure everything works and to make it possible for Visual Studio to find the controls in the tool window.
+1. Open a WinForm designer and the Tool window, and all the controls listed below should be available under a group with the name of your project.
+1. Helper and extension classes can now be used and examined within the added project.
 
 ## Sample Code
 
