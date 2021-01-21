@@ -17,6 +17,8 @@ Tadaa! 🎉
 
 Helper and extension classes can now be used and examined.
 
+Compile the project once, to make sure everything works and to make it possible for Visual Studio to find the controls in the tool window.
+
 Open a WinForm designer, and all the controls listed below should be available under a group with the name of your project.
 
 ## Sample Code
