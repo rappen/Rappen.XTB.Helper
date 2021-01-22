@@ -135,7 +135,7 @@
     <Compile Include="..\XrmSubstituter.cs">
       <Link>XrmSubstituter.cs</Link>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Program.cs" />
     <EmbeddedResource Include="..\Controls\XRMDataGridView.resx">
       <Link>XRMDataGridView.resx</Link>
       <DependentUpon>XRMDataGridView.cs</DependentUpon>
