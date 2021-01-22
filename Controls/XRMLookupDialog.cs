@@ -29,34 +29,24 @@ namespace Rappen.XTB.Helpers.Controls
         [Browsable(false)]
         public Entity Entity
         {
-            get
-            {
-                return Entities?.FirstOrDefault();
-            }
-            set
-            {
-                SetRecord(value);
-            }
+            get => Entities?.FirstOrDefault();
+            set => SetRecord(value);
         }
 
-        [Description("Entity logicalname to select records from for standard lookups.")]
+        [Description("Table logicalname to select records from for standard lookups.")]
         public string LogicalName
         {
             get => logicalNames?.Length == 1 ? logicalNames[0] : string.Empty;
-            set
-            {
-                logicalNames = new string[] { value };
-            }
+            set => logicalNames = new string[] { value };
         }
 
-        [Description("List of entity logicalnames that shall be available to select from for polymorphic lookups.")]
+        [Description("List of table logicalnames that shall be available to select from for polymorphic lookups.")]
         public string[] LogicalNames
         {
             get => logicalNames;
             set
             {
                 if (value != null && value.Length > 0)
-                {
                     // Clever way to allow comma separated logicalnames too in the array
                     logicalNames =
                         string.Join(",", value)
@@ -64,11 +54,8 @@ namespace Rappen.XTB.Helpers.Controls
                         .Select(l => l.Trim())
                         .Where(l => !string.IsNullOrWhiteSpace(l))
                         .ToArray();
-                }
                 else
-                {
                     logicalNames = null;
-                }
             }
         }
 
@@ -120,13 +107,9 @@ namespace Rappen.XTB.Helpers.Controls
         public DialogResult ShowDialog(IWin32Window owner)
         {
             if (Service == null)
-            {
                 throw new Exception("Service property must be set before calling ShowDialog.");
-            }
             if (logicalNames == null || logicalNames.Length < 1)
-            {
                 throw new Exception("LogicalNames property must contain at least one entity before calling ShowDialog.");
-            }
             var title = string.IsNullOrEmpty(Title) ? Multiselect ? "Select Records" : "Select Record" : Title;
             using (var form = new XRMLookupDialogForm(Service, LogicalNames, Multiselect, ShowFriendlyNames, IncludePersonalViews, title))
             {

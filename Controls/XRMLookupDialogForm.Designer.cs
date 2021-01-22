@@ -136,7 +136,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(33, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Entity";
+            this.label1.Text = "Table";
             // 
             // panel2
             // 

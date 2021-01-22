@@ -64,15 +64,11 @@ namespace Rappen.XTB.Helpers.Controls
             if (gridResults.MultiSelect)
             {
                 if (gridSelection.GetDataSource<IEnumerable<Entity>>() is IEnumerable<Entity> current)
-                {
                     return current.ToArray();
-                }
                 return new Entity[] { };
             }
             else
-            {
                 return gridResults.SelectedCellRecords?.Take(1).ToArray();
-            }
         }
 
         #endregion Internal Methods
@@ -95,9 +91,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             txtFilter.Enabled = view.GetAttributeValue<int>(Savedquery.QueryType) == 4;
             if (!txtFilter.Enabled && !string.IsNullOrWhiteSpace(txtFilter.Text))
-            {
                 txtFilter.Text = string.Empty;
-            }
             try
             {
                 Cursor = Cursors.WaitCursor;
@@ -106,7 +100,6 @@ namespace Rappen.XTB.Helpers.Controls
             catch (FaultException<OrganizationServiceFault> ex)
             {
                 if (ex.Detail.ErrorCode == Error_QuickFindQueryRecordLimit)
-                {
                     if (view.TryGetAttributeValue<bool?>(Savedquery.Isquickfindquery, out bool? isqf) && isqf == true)
                     {
                         Cursor = Cursors.Arrow;
@@ -117,7 +110,6 @@ namespace Rappen.XTB.Helpers.Controls
                             cmbView.DataSource = views;
                         }
                     }
-                }
             }
             finally
             {
@@ -137,14 +129,12 @@ namespace Rappen.XTB.Helpers.Controls
         {
             cmbEntity.Items.Clear();
             if (logicalNames != null)
-            {
                 cmbEntity.Items.AddRange(logicalNames
                     .Where(l => !string.IsNullOrWhiteSpace(l))
                     .Select(l => service.GetEntity(l))
                     .Where(m => m != null)
                     .Select(m => new EntityMetadataItem(m, true))
                     .ToArray());
-            }
             cmbEntity.SelectedIndex = cmbEntity.Items.Count > 0 ? 0 : -1;
             cmbEntity.Enabled = cmbEntity.Items.Count > 1;
         }
@@ -173,13 +163,9 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 var views = new List<Entity>();
                 if (service.RetrieveSystemViews(logicalname, true) is EntityCollection qfviews)
-                {
                     views.AddRange(qfviews.Entities);
-                }
                 if (service.RetrieveSystemViews(logicalname, false) is EntityCollection otherviews)
-                {
                     views.AddRange(otherviews.Entities);
-                }
                 if (includePersonalViews && service.RetrievePersonalViews(logicalname) is EntityCollection userviews && userviews.Entities.Count > 0)
                 {
                     var separator = new Entity(UserQuery.EntityName);
@@ -190,9 +176,7 @@ namespace Rappen.XTB.Helpers.Controls
                 entityviews.Add(logicalname, views);
             }
             if (entityviews.ContainsKey(logicalname))
-            {
                 cmbView.DataSource = entityviews[logicalname];
-            }
         }
 
         #endregion Private Methods
@@ -252,13 +236,9 @@ namespace Rappen.XTB.Helpers.Controls
         private void gridResults_RecordDoubleClick(object sender, XRMRecordEventArgs e)
         {
             if (gridResults.MultiSelect)
-            {
                 btnAddSelection_Click(sender, e);
-            }
             else
-            {
                 DialogResult = DialogResult.OK;
-            }
         }
 
         private void gridSelection_SelectionChanged(object sender, EventArgs e)
