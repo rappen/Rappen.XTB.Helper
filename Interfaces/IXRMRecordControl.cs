@@ -1,16 +1,11 @@
-﻿using Microsoft.Xrm.Sdk;
-using System;
+﻿using Rappen.XTB.Helpers.Controls;
 
 namespace Rappen.XTB.Helpers.Interfaces
 {
     public interface IXRMRecordControl
     {
-        string LogicalName { get; set; }
-        Guid Id { get; set; }
-        IOrganizationService Service { get; set; }
-        EntityReference EntityReference { get; set; }
-        Entity Entity { get; set; }
-
-        void Refresh();
+        XRMRecordHost RecordHost { get; set; }
+        string Column { get; set; }
+        void PopulateFromRecord();
     }
 }

@@ -1,12 +1,9 @@
 ﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Metadata;
-using Microsoft.Xrm.Sdk.Query;
 using Rappen.XTB.Helpers.ControlItems;
 using Rappen.XTB.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
 using System.Windows.Forms;
@@ -86,7 +83,7 @@ namespace Rappen.XTB.Helpers.Controls
                 gridResults.DataSource = null;
                 return;
             }
-            if (!(cmbView.SelectedEntity is Entity view) ||
+            if (!(cmbView.SelectedRecord is Entity view) ||
                 !view.Contains(Savedquery.Fetchxml) ||
                 string.IsNullOrWhiteSpace(view.GetAttributeValue<string>(Savedquery.Fetchxml).Trim()))
             {

@@ -34,6 +34,7 @@
             this.btnFilter = new System.Windows.Forms.Button();
             this.txtFilter = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.cmbView = new Rappen.XTB.Helpers.Controls.XRMColumnLookup();
             this.label2 = new System.Windows.Forms.Label();
             this.cmbEntity = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -46,10 +47,9 @@
             this.btnAddSelection = new System.Windows.Forms.Button();
             this.btnRemoveSelection = new System.Windows.Forms.Button();
             this.splitGrids = new System.Windows.Forms.SplitContainer();
-            this.timerLoadData = new System.Windows.Forms.Timer(this.components);
             this.gridResults = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
             this.gridSelection = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
-            this.cmbView = new Rappen.XTB.Helpers.Controls.XRMDataComboBox();
+            this.timerLoadData = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -106,6 +106,21 @@
             this.label3.Size = new System.Drawing.Size(29, 13);
             this.label3.TabIndex = 4;
             this.label3.Text = "Filter";
+            // 
+            // cmbView
+            // 
+            this.cmbView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.cmbView.BackColor = System.Drawing.SystemColors.Window;
+            this.cmbView.Column = null;
+            this.cmbView.DisplayFormat = "";
+            this.cmbView.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbView.FormattingEnabled = true;
+            this.cmbView.Location = new System.Drawing.Point(100, 46);
+            this.cmbView.Name = "cmbView";
+            this.cmbView.Size = new System.Drawing.Size(421, 21);
+            this.cmbView.TabIndex = 3;
+            this.cmbView.SelectedIndexChanged += new System.EventHandler(this.cmbView_SelectedIndexChanged);
             // 
             // label2
             // 
@@ -246,12 +261,10 @@
             this.splitGrids.SplitterDistance = 269;
             this.splitGrids.TabIndex = 4;
             // 
-            // timerLoadData
-            // 
-            this.timerLoadData.Tick += new System.EventHandler(this.timerLoadData_Tick);
-            // 
             // gridResults
             // 
+            this.gridResults.AllowUserToAddRows = false;
+            this.gridResults.AllowUserToDeleteRows = false;
             this.gridResults.AllowUserToOrderColumns = true;
             this.gridResults.AllowUserToResizeRows = false;
             this.gridResults.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
@@ -263,9 +276,10 @@
             this.gridResults.Location = new System.Drawing.Point(10, 0);
             this.gridResults.MultiSelect = false;
             this.gridResults.Name = "gridResults";
-            this.gridResults.Service = null;
+            this.gridResults.ReadOnly = true;
             this.gridResults.RowHeadersVisible = false;
             this.gridResults.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.gridResults.Service = null;
             this.gridResults.ShowFriendlyNames = true;
             this.gridResults.ShowIdColumn = false;
             this.gridResults.ShowIndexColumn = false;
@@ -277,6 +291,8 @@
             // 
             // gridSelection
             // 
+            this.gridSelection.AllowUserToAddRows = false;
+            this.gridSelection.AllowUserToDeleteRows = false;
             this.gridSelection.AllowUserToOrderColumns = true;
             this.gridSelection.AllowUserToResizeRows = false;
             this.gridSelection.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.AllCells;
@@ -288,9 +304,10 @@
             this.gridSelection.FilterColumns = "";
             this.gridSelection.Location = new System.Drawing.Point(99, 0);
             this.gridSelection.Name = "gridSelection";
-            this.gridSelection.Service = null;
+            this.gridSelection.ReadOnly = true;
             this.gridSelection.RowHeadersVisible = false;
             this.gridSelection.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.gridSelection.Service = null;
             this.gridSelection.ShowFriendlyNames = true;
             this.gridSelection.ShowIdColumn = false;
             this.gridSelection.ShowIndexColumn = false;
@@ -300,22 +317,11 @@
             this.gridSelection.DataSourceChanged += new System.EventHandler(this.gridSelection_DataSourceChanged);
             this.gridSelection.SelectionChanged += new System.EventHandler(this.gridSelection_SelectionChanged);
             // 
-            // cmbView
+            // timerLoadData
             // 
-            this.cmbView.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.cmbView.BackColor = System.Drawing.SystemColors.Window;
-            this.cmbView.DisplayFormat = "";
-            this.cmbView.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbView.FormattingEnabled = true;
-            this.cmbView.Location = new System.Drawing.Point(100, 46);
-            this.cmbView.Name = "cmbView";
-            this.cmbView.Service = null;
-            this.cmbView.Size = new System.Drawing.Size(421, 21);
-            this.cmbView.TabIndex = 3;
-            this.cmbView.SelectedIndexChanged += new System.EventHandler(this.cmbView_SelectedIndexChanged);
+            this.timerLoadData.Tick += new System.EventHandler(this.timerLoadData_Tick);
             // 
-            // CDSLookupDialogForm
+            // XRMLookupDialogForm
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -328,7 +334,7 @@
             this.Controls.Add(this.panel1);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "CDSLookupDialogForm";
+            this.Name = "XRMLookupDialogForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
@@ -351,7 +357,7 @@
         private System.Windows.Forms.Button btnFilter;
         private System.Windows.Forms.TextBox txtFilter;
         private System.Windows.Forms.Label label3;
-        private XRMDataComboBox cmbView;
+        private XRMColumnLookup cmbView;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ComboBox cmbEntity;
         private System.Windows.Forms.Label label1;

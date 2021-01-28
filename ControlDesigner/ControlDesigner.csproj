@@ -66,13 +66,15 @@
     <Compile Include="..\ControlItems\EntityMetadataItem.cs">
       <Link>EntityMetadataItem.cs</Link>
     </Compile>
-    <Compile Include="..\Controls\XRMDataComboBox.cs">
-      <Link>XRMDataComboBox.cs</Link>
-      <SubType>Component</SubType>
+    <Compile Include="..\Controls\XRMColumnLookup.cs">
+      <Link>XRMColumnLookup.cs</Link>
     </Compile>
-    <Compile Include="..\Controls\XRMDataComboBox.designer.cs">
-      <Link>XRMDataComboBox.designer.cs</Link>
-      <DependentUpon>XRMDataComboBox.cs</DependentUpon>
+    <Compile Include="..\Controls\XRMColumnLookup.Designer.cs">
+      <Link>XRMColumnLookup.Designer.cs</Link>
+      <DependentUpon>XRMColumnLookup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\Controls\XRMControlException.cs">
+      <Link>XRMControlException.cs</Link>
     </Compile>
     <Compile Include="..\Controls\XRMDataGridView.cs">
       <Link>XRMDataGridView.cs</Link>
@@ -92,6 +94,10 @@
     </Compile>
     <Compile Include="..\Controls\XRMRecordEventArgs.cs">
       <Link>XRMRecordEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\Controls\XRMRecordHost.cs">
+      <Link>XRMRecordHost.cs</Link>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="..\Extensions\EntityExtensions.cs">
       <Link>EntityExtensions.cs</Link>
@@ -116,6 +122,9 @@
     </Compile>
     <Compile Include="..\Interfaces\IXRMControlItem.cs">
       <Link>IXRMControlItem.cs</Link>
+    </Compile>
+    <Compile Include="..\Interfaces\IXRMRecordControl.cs">
+      <Link>IXRMRecordControl.cs</Link>
     </Compile>
     <Compile Include="..\Serialization\EntityCollectionSerializer.cs">
       <Link>EntityCollectionSerializer.cs</Link>

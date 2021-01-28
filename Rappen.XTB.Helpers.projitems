@@ -9,26 +9,28 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMControlException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.designer.cs">
       <DependentUpon>XRMDataGridView.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataComboBox.Designer.cs">
-      <DependentUpon>XRMDataComboBox.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnLookup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnLookup.Designer.cs">
+      <DependentUpon>XRMColumnLookup.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMAttributeComboBox.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMAttributeComboBox.Designer.cs">
       <DependentUpon>XRMAttributeComboBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMOptionSetComboBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMOptionSetComboBox.Designer.cs">
-      <DependentUpon>XRMOptionSetComboBox.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnOptionSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnOptionSet.Designer.cs">
+      <DependentUpon>XRMColumnOptionSet.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordControlBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordCheckBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordCheckBox.Designer.cs">
-      <DependentUpon>XRMRecordCheckBox.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordHost.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnBool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnBool.Designer.cs">
+      <DependentUpon>XRMColumnBool.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ViewConsts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialog.cs" />
@@ -41,16 +43,15 @@
       <DependentUpon>XRMEntityComboBox.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordEventArgs.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordTextBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMRecordTextBox.Designer.cs">
-      <DependentUpon>XRMRecordTextBox.cs</DependentUpon>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnText.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnText.Designer.cs">
+      <DependentUpon>XRMColumnText.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)ControlUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />

@@ -1,10 +1,8 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using Microsoft.Xrm.Sdk;
-    using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
-    using Rappen.XTB.Helpers.Serialization;
     using System;
 
     public class EntityItem : IXRMControlItem
@@ -57,20 +55,24 @@
 
         public override string ToString()
         {
+            return GetFormattedText(Format);
+        }
+
+        public string GetFormattedText(string format)
+        {
             if (Entity == null)
             {
                 return string.Empty;
             }
-            var value = Format;
-            if (string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(format))
             {
-                value = Bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
+                format = Bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
             }
-            if (!value.Contains("{")&&!value.Contains("}")&&!value.Contains(" "))
+            if (!format.Contains("{") && !format.Contains("}") && !format.Contains(" "))
             {
-                value = "{" + value + "}";
+                format = "{" + format + "}";
             }
-            return Entity.Substitute(Bag, value);
+            return Entity.Substitute(Bag, format);
         }
 
         #endregion Public Methods

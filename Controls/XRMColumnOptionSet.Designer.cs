@@ -1,6 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers.Controls
 {
-    partial class XRMRecordTextBox
+    partial class XRMColumnOptionSet
     {
         /// <summary> 
         /// Required designer variable.

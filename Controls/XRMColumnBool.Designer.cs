@@ -1,6 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers.Controls
 {
-    partial class XRMDataComboBox
+    partial class XRMColumnBool
     {
         /// <summary> 
         /// Required designer variable.
