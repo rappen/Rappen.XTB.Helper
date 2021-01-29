@@ -21,17 +21,17 @@ namespace Rappen.XTB.Helpers.Controls
         /// Selected records.
         /// </summary>
         [Browsable(false)]
-        public Entity[] Entities { get; private set; }
+        public Entity[] Records { get; private set; }
 
         /// <summary>
         /// Selected record, or first selected record is Multiselect=true.
         /// </summary>
         [Browsable(false)]
-        public Entity Entity
+        public Entity Record
         {
             get
             {
-                return Entities?.FirstOrDefault();
+                return Records?.FirstOrDefault();
             }
             set
             {
@@ -131,7 +131,7 @@ namespace Rappen.XTB.Helpers.Controls
             using (var form = new XRMLookupDialogForm(Service, LogicalNames, Multiselect, ShowFriendlyNames, IncludePersonalViews, title))
             {
                 var result = form.ShowDialog(owner);
-                Entities = form.GetSelectedRecords();
+                Records = form.GetSelectedRecords();
                 return result;
             }
         }

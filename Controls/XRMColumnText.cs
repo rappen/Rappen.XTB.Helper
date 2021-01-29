@@ -9,21 +9,19 @@ namespace Rappen.XTB.Helpers.Controls
     public partial class XRMColumnText : TextBox, IXRMRecordControl
     {
         #region Private properties
-        private string displayFormat = string.Empty;
-        private bool clickable = false;
-        private Font font;
+
         private XRMRecordHost recordhost;
-        private bool populating = false;
         private string column;
-        #endregion
+        private string displayFormat = string.Empty;
+        private bool populating = false;
+
+        #endregion Private properties
 
         #region Public Constructors
 
         public XRMColumnText()
         {
             InitializeComponent();
-            font = Font;
-            Click += HandleClick;
             TextChanged += XRMRecordTextBox_TextChanged;
         }
 
@@ -66,7 +64,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
-        [Description("Column to bind the textbox to.")]
+        [Description("Column to bind the textbox to. Required for edit mode.")]
         public string Column
         {
             get { return column; }
@@ -86,7 +84,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
-        [Description("Single attribute from datasource to display for items, or use XRM Tokens syntax freely https://jonasr.app/xrm-tokens/")]
+        [Description("XRM Token to display column value. See https://jonasr.app/xrm-tokens/")]
         public string DisplayFormat
         {
             get { return displayFormat; }
@@ -106,61 +104,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        [DefaultValue(false)]
-        [Category("Rappen XRM")]
-        [Description("Displays the record text as a clickable text and fires RecordClick event when clicked")]
-        public bool Clickable
-        {
-            get
-            {
-                return clickable;
-            }
-            set
-            {
-                if (clickable.Equals(value))
-                {
-                    return;
-                }
-                clickable = value;
-                if (clickable)
-                {
-                    ForeColor = SystemColors.HotTrack;
-                    Font = new Font(font, Font.Style | FontStyle.Underline);
-                    Cursor = Cursors.Hand;
-                }
-                else
-                {
-                    ForeColor = SystemColors.ControlText;
-                    Font = font;
-                    Cursor = Cursors.IBeam;
-                }
-            }
-        }
-
-        //[ReadOnly(true)]
-        //public new bool ReadOnly { get; set; } = true;
-
         #endregion Public Properties
-
-        #region Published events
-
-        [Category("Rappen XRM")]
-        public event XRMRecordEventHandler RecordClick;
-
-        #endregion Published Events
-
-        #region Private Methods
-
-        private void HandleClick(object sender, EventArgs e)
-        {
-            if (!clickable)
-            {
-                return;
-            }
-            new XRMRecordEventArgs(RecordHost?.Record, null).OnRecordEvent(this, RecordClick);
-        }
-
-        #endregion Private Methods
 
         #region Public Methods
 

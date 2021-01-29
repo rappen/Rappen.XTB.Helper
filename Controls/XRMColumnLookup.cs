@@ -16,7 +16,6 @@ namespace Rappen.XTB.Helpers.Controls
 {
     public partial class XRMColumnLookup : ComboBox, IXRMRecordControl
     {
-
         private string displayFormat = string.Empty;
         private bool onlyactiverecords = true;
         private IEnumerable<Entity> records;
@@ -173,7 +172,7 @@ namespace Rappen.XTB.Helpers.Controls
         [Category("Rappen XRM")]
         [DefaultValue(true)]
         [Description("Defines if lookup records should be filtered by statecode=0")]
-        public new bool OnlyActiveRecords
+        public bool OnlyActiveRecords
         {
             get { return onlyactiverecords; }
             set
