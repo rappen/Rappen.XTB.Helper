@@ -11,51 +11,81 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 1. Open a WinForm designer and the Tool window, and all the controls listed below should be available under a group with the name of your project.
 1. Helper and extension classes can now be used and examined within the added project.
 
+&nbsp;
 ## Sample Code
 
 Check out repo [Rappen.XTB.Helper.Tester](https://github.com/rappen/Rappen.XTB.Helper.Tester) for a complete sample project using all controls.
 
 ---
+&nbsp;
 
 # Controls
 
-*Custom properties and events are found under category **Rappen XRM**.*
+*Custom published properties and events are found under category **Rappen XRM**.*
 
 ---
+&nbsp;
+## XRMRecordHost
+This is a non-UI component to which you can bind a Dataverse record (`Entity`). Then you can bind column specific UI controls to the RecordHost component. If the column bound controls are not readonly, they will have full two-way-binding to the record, providing both view and editing capabilities.
 
-## XRMRecordTextBox
-Just like any TextBox, but shows values from a record in Dataverse. The control has two new properties [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) and [`EntityReference`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entityreference). Both these can be set to display text about the record.
+The `XRMRecordHost` component exposes a Save method to push changes made in the UI controls back to Dataverse.
 ### Properties
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **Display Format** set to any [**XRM Token**](https://jonasr.app/xrm-tokens/) to define how each record is presented.
-* **Record Clickable** defines UX behavior of the textbox when hovering with the mouse.
-* **Record LogicalName**
-* **Record Id**
-### Events
-* **RecordClick**
+* **Service** This is an [`IOrganizationService`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475) connected to the Dataverse backend.
+* **Record** An object of type [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) to bind.
+* **LogicalName** A string representing the `logicalname` of bound `Record`. If set in combination with `Id` the `Record` will be automatically retrieved by the component.
+* **Id** Guid of the `Record` to retrieve, must be used in combination with `LogicalName` when setting.
 
 ---
-
-## XRMRecordCheckBox
-Just like any CheckBox, but shows values from a bool / two option / yesno attribute on a record in Dataverse. The control has two new properties [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) and [`EntityReference`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entityreference). Both these can be set to display checked state about an attribute on the record. In addition to that, the new property `Attribute` must be set, specifying which attribute to bind the control to.
+&nbsp;
+## XRMColumnText
+Just like any TextBox, but shows values from a record in Dataverse. The control shall be bound to an `XRMRecordHost`, and a `Column` or `DisplayFormat` specified.
 ### Properties
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **Attribute** set to any Yes/No column.
-* **Record LogicalName**
-* **Record Id**
+* **RecordHost** set to a `XRMRecordHost` instance to bind the textbox to.
+* **Column** the `logicalname` of the column on the `RecordHost` `Record` to bind the control to. Setting this property is required for edit mode with two way binding. Cannot be used in combination with `DisplayFormat`.
+* **DisplayFormat** set to any [**XRM Token**🔗](https://jonasr.app/xrm-tokens/) to define how each record is presented. Cannot be used in combination with `Column`.
 
 ---
+&nbsp;
+## XRMColumnOptionSet
+Just like any [`ComboBox`🔗](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.combobox?WT.mc_id=BA-MVP-5002475), but shows values from an OptionSet / Choice column on a record in Dataverse. The control *may* be bound to an `XRMRecordHost`, and a `Column` specified to automatically load available options and select the correct option from the bound record/column.
 
-## XRMDataComboBox
-Just like any ComboBox, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
+This control may also be unbound (`RecordHost` is null) and the `DataSource` may then be set to a collection of [`OptionMetadata`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionmetadata?WT.mc_id=BA-MVP-5002475) or an [`OptionSetMetadata`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionsetmetadata?WT.mc_id=BA-MVP-5002475) instance to populate with any optionset.
 ### Properties
-* **`DataSource`**
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **Display Format** set to any [**XRM Token**](https://jonasr.app/xrm-tokens/) to define how each record is presented.
-* **`SelectedEntity`** read this to get the record currently selected.
+* **RecordHost** set to a `XRMRecordHost` instance to bind the checkbox to.
+* **Column** the `logicalname` of the column on the `RecordHost` `Record` to bind the control to.
+* **Sorted** true to sort options alphabetically, false to keep sorting from metadata.
+* **ShowValue** true to show the numeric value after the label: "*Customer (42)*"
+* **DataSource** set to a collection of [`OptionMetadata`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionmetadata?WT.mc_id=BA-MVP-5002475) or an [`OptionSetMetadata`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionsetmetadata?WT.mc_id=BA-MVP-5002475) instance to populate with any optionset, overriding `RecordHost` and `Column`.
+* **SelectedOption** readonly property containing currently selected [`OptionMetadata`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionmetadata?WT.mc_id=BA-MVP-5002475).
 
 ---
+&nbsp;
+## XRMColumnBool
+Just like any [`CheckBox`🔗](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.checkbox?WT.mc_id=BA-MVP-5002475), but shows values from a bool / two option / yes/no column on a record in Dataverse. The control shall be bound to an `XRMRecordHost`, and a `Column` specified.
+### Properties
+* **RecordHost** set to a `XRMRecordHost` instance to bind the checkbox to.
+* **Column** the `logicalname` of the column on the `RecordHost` `Record` to bind the control to.
+* **ShowMetadataLabels** set this to update the `Text` of the checkbox to the user localized label of the [`TrueOption`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.booleanoptionsetmetadata.trueoption?WT.mc_id=BA-MVP-5002475) or [`FalseOption`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.booleanoptionsetmetadata.falseoption?WT.mc_id=BA-MVP-5002475) as the state changes.
 
+---
+&nbsp;
+## XRMColumnLookup
+Just like any [`ComboBox`🔗](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.combobox?WT.mc_id=BA-MVP-5002475), but shows records from Dataverse. The control *may* be bound to an `XRMRecordHost`, and a `Column` specified to automatically load records based on the target table of the bound record/column.
+
+This control may also be unbound (`RecordHost` is null) and the `DataSource` may then be set to a collection of [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) or an [`EntityCollection`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) instance to populate with any records. If a `DataSource` is set, the `Service` property must also be set.
+
+To get the more classic behavior of lookups with a readonly textbox and a button to open a new lookup dialog, a `XRMColumnLookup` bound to a dedicated `XRMRecordHost` can be used in combination with a `Button` and a `XRMLookupDialog` component (see below). This can be useful if the number of lookup records is too large to get a good UX with a combobox.
+### Properties
+* **RecordHost** set to a `XRMRecordHost` instance to bind the combobox to.
+* **Column** the `logicalname` of the column on the `RecordHost` `Record` to bind the control to. When `Record` of the `RecordHost` and the `Column` is set, the control will automatically load records of the target type of the lookup column.
+* **OnlyActiveRecords** true to filter loaded records by `statecode eq 0`. Caution when binding to lookups targeting tables with uncommon or not existing statecodes, this will explode 💥 if failing.
+* **Sorted** true to sort lookup records alphabetically according to current `DisplayFormat`.
+* **DisplayFormat** set to any [**XRM Token**🔗](https://jonasr.app/xrm-tokens/) to define how each record is presented. Leave blank to display the primary name of the lookup records (just like OOB behavior in the platform).
+* **DataSource** set to a collection of [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) or an [`EntityCollection`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) instance to populate with any records., overriding `RecordHost` and `Column`.
+* **Service** This is an [`IOrganizationService`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475) connected to the Dataverse backend. Must be set when control is unbound and setting `DataSource`.
+ 
+---
+&nbsp;
 ## XRMDataGridView
 Just like any DataGridView, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
 ### Properties
@@ -86,22 +116,27 @@ Just like any DataGridView, but shows data (records) from Dataverse. The control
 
 
 ---
-
+&nbsp;
 ## XRMLookupDialog
 Just like a `FileOpenDialog` or `ColorDialog`, but lets the user select an entity record.
 ### Properties
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **`Entity`** The selected entity record
-* **`Entities`** The selected entity records, when multiselect is allowed
+* **Service** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
+* **Record** The selected entity record
+* **Records** The selected entity records, when multiselect is allowed
 * **LogicalName** Logical name of the entity to select from
 * **LogicalNames** Logical names of the entity to select from, like a polymorphic lookup
 * **MultiSelect** Set true to allow user to select multiple records
-* **ShowFriendlyNames**
-* **IncludePersonalViews**
+* **ShowFriendlyNames** Set false to display records with raw values (Guids, OptionSetValues etc)
+* **IncludePersonalViews** Set true to make any personal views available to select from
 * **Title** of the dialog window
+### Methods
+* **ShowDialog** Call this method to open the dialog. Returns [`DialogResult`🔗](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.dialogresult?WT.mc_id=BA-MVP-5002475)
+  * OK: Record(s) selected
+  * Cancel: Nothing selected
+  * Abort: Remove value
 
 ---
-
+&nbsp;
 ## XRMEntityComboBox
 Just like any ComboBox, but accepts [`EntityMetadataCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.entitymetadatacollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<EntityMetadata>` as `DataSource`.
 ### Properties
@@ -109,29 +144,26 @@ Just like any ComboBox, but accepts [`EntityMetadataCollection`](https://docs.mi
 * `**SelectedEntity**` read this to get the entity currently selected.
 
 ---
-
+&nbsp;
 ## XRMAttributeComboBox
 Just like any ComboBox, but accepts [`EntityMetadata`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.entitymetadata?WT.mc_id=BA-MVP-5002475) or `IEnumerable<AttributeMetadata>` as `DataSource`.
 ### Properties
 * **Show Friendly Names** determines if Display Name or Logical Name of the entities shall be shown.
 * `**SelectedAttribute**` read this to get the entity currently selected.
 
----
-
-## XRMOptionSetComboBox
-Just like any ComboBox, but accepts [`OptionSetMetadata`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.optionsetmetadata?WT.mc_id=BA-MVP-5002475) or `IEnumerable<OptionMetadata>` as `DataSource`.
-### Properties
-* **ShowValue** determines if the option value should be shown after the option label.
-* `**SelectedOption**` read this to get the entity currently selected.
+&nbsp;
 
 ---
-
+&nbsp;
 # XrmSubstituter
 This is an extension to [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) used to replace "XRM Tokens" in a text with dynamic data from Dataverse.
 
 Read more at https://jonasr.app/xrm-tokens
 
+&nbsp;
+
 ---
+&nbsp;
 
 # History
 
