@@ -89,8 +89,8 @@ To get the more classic behavior of lookups with a readonly textbox and a button
 ## XRMDataGridView
 Just like any DataGridView, but shows data (records) from Dataverse. The control accepts [`EntityCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<Entity>` as `DataSource`.
 ### Properties
-* **`Service`** set to an active [`IOrganizationService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475).
-* **`DataSource`**
+* **Service** This is an [`IOrganizationService`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.iorganizationservice?WT.mc_id=BA-MVP-5002475) connected to the Dataverse backend.
+* **DataSource** set to a collection of [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) or an [`EntityCollection`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) instance to populate the DataGridView with Dataverse data.
 * **AutoRefresh**
 * **ColumnOrder**
 * **EntityReferenceClickable**
@@ -102,9 +102,9 @@ Just like any DataGridView, but shows data (records) from Dataverse. The control
 * **ShowIdColumn**
 * **ShowIndexColumn**
 * **ShowLocalTimes**
-* **`EntityName`**
-* **`SelectedRowRecords`**
-* **`SelectedCellRecords`**
+* **EntityName**
+* **SelectedRowRecords**
+* **SelectedCellRecords**
 
 ### Events
 * **RecordClick**
