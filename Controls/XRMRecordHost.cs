@@ -48,6 +48,7 @@ namespace Rappen.XTB.Helpers.Controls
                 EntityItem = value != null ? new EntityItem(value, organizationService) : null;
                 logicalName = value?.LogicalName;
                 id = value?.Id ?? Guid.Empty;
+                updatedattributes = null;
                 Refresh();
             }
         }

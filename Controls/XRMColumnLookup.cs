@@ -113,6 +113,8 @@ namespace Rappen.XTB.Helpers.Controls
             }
             set
             {
+                var populatingtemp = populating;
+                populating = true;
                 if (value is EntityCollection entityCollection)
                 {
                     records = entityCollection.Entities;
@@ -133,6 +135,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     Clear();
                 }
+                populating = populatingtemp;
             }
         }
 
@@ -215,6 +218,7 @@ namespace Rappen.XTB.Helpers.Controls
                 column = value;
                 if (recordhost?.Record != null && !string.IsNullOrWhiteSpace(column))
                 {
+                    GetRecordsFromRecordHost();
                     PopulateFromRecord();
                 }
                 else
@@ -277,10 +281,8 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 GetRecordsFromRecordHost();
             }
-            if (recordhost?[column] is EntityReference entref)
-            {
-                SelectById(entref.Id);
-            }
+            var entref = recordhost?[column] as EntityReference;
+            SelectById(entref?.Id);
             populating = false;
         }
 
@@ -303,17 +305,15 @@ namespace Rappen.XTB.Helpers.Controls
 
         private void SelectById(Guid? id)
         {
-            if (id != null && !id.Equals(Guid.Empty))
+            if (id != null && !id.Equals(Guid.Empty) &&
+                base.DataSource is IEnumerable<EntityItem> ds &&
+                ds?.FirstOrDefault(r => r.Entity.Id.Equals(id)) is EntityItem newselected)
             {
-                if (base.DataSource is IEnumerable<EntityItem> ds &&
-                    ds?.FirstOrDefault(r => r.Entity.Id.Equals(id)) is EntityItem newselected)
-                {
-                    SelectedItem = newselected;
-                }
-                else
-                {
-                    SelectedIndex = -1;
-                }
+                SelectedItem = newselected;
+            }
+            else
+            {
+                SelectedIndex = -1;
             }
         }
     }
