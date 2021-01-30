@@ -55,7 +55,9 @@ namespace Rappen.XTB.Helpers.Extensions
             }
         }
 
-        private static object AttributeToBaseType(object attribute)
+        #region Public Methods
+
+        public static object AttributeToBaseType(object attribute)
         {
             if (attribute is AliasedValue)
             {
@@ -78,8 +80,6 @@ namespace Rappen.XTB.Helpers.Extensions
                 return attribute;
             }
         }
-
-        #region Public Methods
 
         /// <summary>
         /// Generic method to add property with "name" and set its value of type "T" to "value"
@@ -204,7 +204,7 @@ namespace Rappen.XTB.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="bag"></param>
@@ -228,7 +228,7 @@ namespace Rappen.XTB.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="name"></param>
@@ -237,7 +237,7 @@ namespace Rappen.XTB.Helpers.Extensions
         public static bool Contains(this Entity entity, string name, bool notnull) => entity.Attributes.Contains(name) && (!notnull || entity.Attributes[name] != null);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="source"></param>
         /// <param name="bag"></param>
@@ -247,7 +247,7 @@ namespace Rappen.XTB.Helpers.Extensions
         public static Entity GetRelated(this Entity source, IBag bag, string related, params string[] columns) => source.GetRelated(bag, related, new ColumnSet(columns));
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="source"></param>
         /// <param name="bag"></param>
@@ -321,7 +321,7 @@ namespace Rappen.XTB.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="source"></param>
         /// <param name="bag"></param>
@@ -333,7 +333,7 @@ namespace Rappen.XTB.Helpers.Extensions
         public static EntityCollection GetRelating(this Entity source, IBag bag, string entity, string referencingattribute, bool onlyactive, params string[] columns) => source.GetRelating(bag, entity, referencingattribute, onlyactive, null, null, new ColumnSet(columns), false);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="source"></param>
         /// <param name="bag"></param>
@@ -376,7 +376,7 @@ namespace Rappen.XTB.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="entity1"></param>
         /// <param name="bag"></param>
@@ -543,7 +543,7 @@ namespace Rappen.XTB.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="entity"></param>
         /// <param name="name"></param>
@@ -704,7 +704,6 @@ namespace Rappen.XTB.Helpers.Extensions
                 return null;
             }
         }
-
 
         #endregion Public Methods
     }
