@@ -110,6 +110,10 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void PopulateFromRecord()
         {
+            if (recordhost?.Suspended == true)
+            {
+                return;
+            }
             populating = true;
             if (!string.IsNullOrWhiteSpace(column))
             {

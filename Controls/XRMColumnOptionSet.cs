@@ -11,7 +11,6 @@ namespace Rappen.XTB.Helpers.Controls
 {
     public partial class XRMColumnOptionSet : ComboBox, IXRMRecordControl
     {
-
         private bool showValue = true;
         private bool sorted = false;
         private IEnumerable<OptionMetadata> options;
@@ -142,7 +141,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private void GetOptions()
         {
-            if (DesignMode || recordhost == null || string.IsNullOrWhiteSpace(Column))
+            if (DesignMode || recordhost == null || recordhost?.Suspended == true || string.IsNullOrWhiteSpace(Column))
             {
                 return;
             }

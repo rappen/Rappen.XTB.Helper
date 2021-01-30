@@ -102,7 +102,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void PopulateFromRecord()
         {
-            if (DesignMode || recordhost == null)
+            if (DesignMode || recordhost == null || recordhost?.Suspended == true)
             {
                 return;
             }

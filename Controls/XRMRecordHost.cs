@@ -20,6 +20,7 @@ namespace Rappen.XTB.Helpers.Controls
         private string logicalName = null;
         private IOrganizationService organizationService;
         private Microsoft.Xrm.Sdk.AttributeCollection updatedattributes;
+        private bool layoutsuspended;
 
         #endregion Private Fields
 
@@ -95,6 +96,8 @@ namespace Rappen.XTB.Helpers.Controls
 
         internal EntityMetadata Metadata => EntityItem?.Metadata?.Metadata;
 
+        internal bool Suspended => layoutsuspended;
+
         #endregion Internal Properties
 
         #region Public Methods
@@ -146,6 +149,10 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void Refresh()
         {
+            if (layoutsuspended)
+            {
+                return;
+            }
             foreach (var child in controls)
             {
                 child.PopulateFromRecord();
@@ -178,6 +185,17 @@ namespace Rappen.XTB.Helpers.Controls
             }
             updatedattributes = null;
             return true;
+        }
+
+        public void SuspendLayout()
+        {
+            layoutsuspended = true;
+        }
+
+        public void ResumeLayout()
+        {
+            layoutsuspended = false;
+            Refresh();
         }
 
         #endregion Public Methods

@@ -34,6 +34,9 @@ The `XRMRecordHost` component exposes a Save method to push changes made in the 
 * **Record** An object of type [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) to bind.
 * **LogicalName** A string representing the `logicalname` of bound `Record`. If set in combination with `Id` the `Record` will be automatically retrieved by the component.
 * **Id** Guid of the `Record` to retrieve, must be used in combination with `LogicalName` when setting.
+### Methods
+* **SuspendLayout** Prevents refresh of data and metadata for bound controls until `ResumeLayout` is called. May be used when several properties shall be changed for the `XRMRecordHost` and its bound controls to prevent flickering and unnecessary calls to the backend.
+* **ResumeLayout** Resumes refresh of all bound controls after being suspended using `SuspendLayout`.
 
 ---
 &nbsp;
@@ -79,6 +82,7 @@ To get the more classic behavior of lookups with a readonly textbox and a button
 * **RecordHost** set to a `XRMRecordHost` instance to bind the combobox to.
 * **Column** the `logicalname` of the column on the `RecordHost` `Record` to bind the control to. When `Record` of the `RecordHost` and the `Column` is set, the control will automatically load records of the target type of the lookup column.
 * **OnlyActiveRecords** true to filter loaded records by `statecode eq 0`. Caution when binding to lookups targeting tables with uncommon or not existing statecodes, this will explode 💥 if failing.
+* **Filter** additional [`FilterExpression`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.query.filterexpression?WT.mc_id=BA-MVP-5002475) to add to the query when loading records based on bound `RecordHost` and `Column`.
 * **Sorted** true to sort lookup records alphabetically according to current `DisplayFormat`.
 * **DisplayFormat** set to any [**XRM Token**🔗](https://jonasr.app/xrm-tokens/) to define how each record is presented. Leave blank to display the primary name of the lookup records (just like OOB behavior in the platform).
 * **DataSource** set to a collection of [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) or an [`EntityCollection`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entitycollection?WT.mc_id=BA-MVP-5002475) instance to populate with any records., overriding `RecordHost` and `Column`.

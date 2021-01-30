@@ -26,6 +26,7 @@ namespace Rappen.XTB.Helpers.Controls
         private string loadedcolumnname;
         private bool sorted = false;
         private bool populating;
+        private FilterExpression filter;
 
         public XRMColumnLookup()
         {
@@ -186,6 +187,21 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
+        [Description("Additional filter of records to load from target table")]
+        public FilterExpression Filter
+        {
+            get { return filter; }
+            set
+            {
+                if (value != filter)
+                {
+                    filter = value;
+                    GetRecordsFromRecordHost();
+                }
+            }
+        }
+
+        [Category("Rappen XRM")]
         [Description("Lookup column to bind the ComboBox to, to load available records as items.")]
         public string Column
         {
@@ -212,6 +228,7 @@ namespace Rappen.XTB.Helpers.Controls
         {
             if (DesignMode
                 || recordhost?.Record == null
+                || recordhost?.Suspended == true
                 || string.IsNullOrWhiteSpace(column)
                 || !(recordhost.Metadata?.Attributes.FirstOrDefault(a => a.LogicalName == column) is LookupAttributeMetadata lkp))
             {
@@ -228,6 +245,10 @@ namespace Rappen.XTB.Helpers.Controls
             if (onlyactiverecords)
             {
                 query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+            }
+            if (filter != null)
+            {
+                query.Criteria.AddFilter(Filter);
             }
             DataSource = recordhost.Service.RetrieveMultiple(query);
             loadedentityname = recordhost.Metadata.LogicalName;
