@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Rappen.XTB.Helpers.ControlItems;
+using Rappen.XTB.Helpers.Extensions;
 using Rappen.XTB.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,6 @@ namespace Rappen.XTB.Helpers.Controls
         private string logicalName = null;
         private IOrganizationService organizationService;
         private Microsoft.Xrm.Sdk.AttributeCollection updatedattributes;
-        private bool layoutsuspended;
 
         #endregion Private Fields
 
@@ -55,7 +55,6 @@ namespace Rappen.XTB.Helpers.Controls
 
         [DefaultValue("00000000-0000-0000-0000-000000000000")]
         [Category("Rappen XRM")]
-        [DisplayName("Record Id")]
         [Description("Id of the record. LogicalName must be set before setting the Id.")]
         public Guid Id
         {
@@ -64,7 +63,6 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
-        [DisplayName("Record LogicalName")]
         [Description("LogicalName of the entity type to bind.")]
         public string LogicalName
         {
@@ -89,19 +87,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        #endregion Public Properties
-
-        #region Internal Properties
-
-        internal EntityItem EntityItem { get; private set; }
-
-        internal EntityMetadata Metadata => EntityItem?.Metadata?.Metadata;
-
-        internal bool Suspended => layoutsuspended;
-
-        #endregion Internal Properties
-
-        #region Public Methods
+        public IEnumerable<string> ChangedColumns => updatedattributes?.Keys;
 
         public object this[string columnname]
         {
@@ -135,22 +121,37 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     MessageBox.Show($"Column '{columnname}' is not available for table {Record.LogicalName}.", "Set value", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                var oldval = Record?.PropertyAsBaseType(columnname, null, true);
+                var newval = EntityExtensions.AttributeToBaseType(value);
+                if (oldval.Equals(newval))
+                {
+                    updatedattributes.Remove(columnname);
+                }
+                AnnounceColumnChange(columnname);
             }
         }
 
-        public bool HasChanges()
-        {
-            if (updatedattributes == null)
-            {
-                return false;
-            }
-            // TODO Compare each updated attribute with associated Entity record.
-            return updatedattributes.Count > 0;
-        }
+        #endregion Public Properties
+
+        [Category("Rappen XRM")]
+        [Description("Called when any bound column control updates a column value on bound record.")]
+        public event XRMRecordEventHandler ColumnValueChanged;
+
+        #region Internal Properties
+
+        internal EntityItem EntityItem { get; private set; }
+
+        internal EntityMetadata Metadata => EntityItem?.Metadata?.Metadata;
+
+        internal bool Suspended { get; private set; }
+
+        #endregion Internal Properties
+
+        #region Public Methods
 
         public void Refresh()
         {
-            if (layoutsuspended)
+            if (Suspended)
             {
                 return;
             }
@@ -185,17 +186,25 @@ namespace Rappen.XTB.Helpers.Controls
                 organizationService.Update(saverecord);
             }
             updatedattributes = null;
+            AnnounceColumnChange(string.Empty);
             return true;
+        }
+
+        public void UndoChanges()
+        {
+            updatedattributes = null;
+            Refresh();
+            AnnounceColumnChange(string.Empty);
         }
 
         public void SuspendLayout()
         {
-            layoutsuspended = true;
+            Suspended = true;
         }
 
         public void ResumeLayout()
         {
-            layoutsuspended = false;
+            Suspended = false;
             Refresh();
         }
 
@@ -225,6 +234,11 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Private Methods
 
+        private void AnnounceColumnChange(string columnname)
+        {
+            new XRMRecordEventArgs(Record, columnname).OnRecordEvent(this, ColumnValueChanged);
+        }
+
         private void LoadRecord()
         {
             updatedattributes = null;
@@ -237,6 +251,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 EntityItem = null;
             }
+            AnnounceColumnChange(string.Empty);
         }
 
         private void SetId(Guid value)

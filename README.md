@@ -34,9 +34,15 @@ The `XRMRecordHost` component exposes a Save method to push changes made in the 
 * **Record** An object of type [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) to bind.
 * **LogicalName** A string representing the `logicalname` of bound `Record`. If set in combination with `Id` the `Record` will be automatically retrieved by the component.
 * **Id** Guid of the `Record` to retrieve, must be used in combination with `LogicalName` when setting.
+* **ChangedColumns** A list of column names that have pending changes compared to the bound record.
+* **Item[columnname]** Indexer for columns on the bound record. Use this to set values, which will then be added to the `ChangedColumns` and used to create/update the record when calling `SaveChanges`. Use this to read column values programmatically, values returned will be the pending value if available, otherwise the original value from the bound record. All bound control writes to the indexer automatically as the user changes values.
 ### Methods
 * **SuspendLayout** Prevents refresh of data and metadata for bound controls until `ResumeLayout` is called. May be used when several properties shall be changed for the `XRMRecordHost` and its bound controls to prevent flickering and unnecessary calls to the backend.
 * **ResumeLayout** Resumes refresh of all bound controls after being suspended using `SuspendLayout`.
+* **SaveChanges** Saves the bound record to Dataverse. The change will only include the columns that are updated according to `ChangedColumns`.
+* **UndoChanges** Clears the list of pending changes and issues a Refresh to all bound controls to show the original values from the bound record.
+### Events
+* **ColumnValueChanged** Event invoked when the user updates the value in any bound control, or if a column value is updated through code by setting through the indexer.
 
 ---
 &nbsp;
