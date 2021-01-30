@@ -67,7 +67,7 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 if (recordhost != null && !string.IsNullOrWhiteSpace(column))
                 {
-                    PopulateFromRecord();
+                    RecordUpdated();
                 }
                 else
                 {
@@ -219,7 +219,7 @@ namespace Rappen.XTB.Helpers.Controls
                 if (recordhost?.Record != null && !string.IsNullOrWhiteSpace(column))
                 {
                     GetRecordsFromRecordHost();
-                    PopulateFromRecord();
+                    RecordUpdated();
                 }
                 else
                 {
@@ -270,7 +270,7 @@ namespace Rappen.XTB.Helpers.Controls
         [Browsable(false)]
         public Entity SelectedRecord => (SelectedItem is EntityItem item) ? item.Entity : null;
 
-        public void PopulateFromRecord()
+        public void RecordUpdated()
         {
             if (DesignMode || recordhost == null)
             {

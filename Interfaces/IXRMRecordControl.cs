@@ -6,6 +6,6 @@ namespace Rappen.XTB.Helpers.Interfaces
     {
         XRMRecordHost RecordHost { get; set; }
         string Column { get; set; }
-        void PopulateFromRecord();
+        void RecordUpdated();
     }
 }

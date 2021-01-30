@@ -123,7 +123,7 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 var oldval = Record?.PropertyAsBaseType(columnname, null, true);
                 var newval = EntityExtensions.AttributeToBaseType(value);
-                if (oldval.Equals(newval))
+                if ((oldval == null && newval == null) || oldval?.Equals(newval) == true)
                 {
                     updatedattributes.Remove(columnname);
                 }
@@ -157,7 +157,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             foreach (var child in controls)
             {
-                child.PopulateFromRecord();
+                child.RecordUpdated();
             }
         }
 

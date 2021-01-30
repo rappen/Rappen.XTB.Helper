@@ -135,7 +135,7 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 column = value;
                 GetOptions();
-                PopulateFromRecord();
+                RecordUpdated();
             }
         }
 
@@ -156,7 +156,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        public void PopulateFromRecord()
+        public void RecordUpdated()
         {
             if (DesignMode || recordhost == null)
             {

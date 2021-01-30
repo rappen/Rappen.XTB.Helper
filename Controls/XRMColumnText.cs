@@ -79,7 +79,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     displayFormat = string.Empty;
                 }
-                PopulateFromRecord();
+                RecordUpdated();
             }
         }
 
@@ -100,7 +100,7 @@ namespace Rappen.XTB.Helpers.Controls
                     column = string.Empty;
                     ReadOnly = true;
                 }
-                PopulateFromRecord();
+                RecordUpdated();
             }
         }
 
@@ -108,7 +108,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Methods
 
-        public void PopulateFromRecord()
+        public void RecordUpdated()
         {
             if (recordhost?.Suspended == true)
             {

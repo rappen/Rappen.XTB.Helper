@@ -67,7 +67,7 @@ namespace Rappen.XTB.Helpers.Controls
                     return;
                 }
                 column = value;
-                PopulateFromRecord();
+                RecordUpdated();
             }
         }
 
@@ -100,7 +100,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        public void PopulateFromRecord()
+        public void RecordUpdated()
         {
             if (DesignMode || recordhost == null || recordhost?.Suspended == true)
             {
