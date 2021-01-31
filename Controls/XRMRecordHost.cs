@@ -89,7 +89,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         public IEnumerable<string> ChangedColumns => updatedattributes?.Keys;
 
-        public object this[string columnname]
+        internal object this[string columnname]
         {
             get
             {
@@ -188,6 +188,12 @@ namespace Rappen.XTB.Helpers.Controls
             updatedattributes = null;
             AnnounceColumnChange(string.Empty);
             return true;
+        }
+
+        public void SetValue(string columnname, object value)
+        {
+            this[columnname] = value;
+            controls.Where(c => c.Column.Equals(columnname)).ToList().ForEach(c => c.RecordUpdated());
         }
 
         public void UndoChanges()

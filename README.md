@@ -37,6 +37,7 @@ The `XRMRecordHost` component exposes a Save method to push changes made in the 
 * **ChangedColumns** A list of column names that have pending changes compared to the bound record.
 * **Item[columnname]** Indexer for columns on the bound record. Use this to set values, which will then be added to the `ChangedColumns` and used to create/update the record when calling `SaveChanges`. Use this to read column values programmatically, values returned will be the pending value if available, otherwise the original value from the bound record. All bound control writes to the indexer automatically as the user changes values.
 ### Methods
+* **SetValue** Sets the value of given column on the bound record. Changes will be propagated to any bound controls for the given column.
 * **SuspendLayout** Prevents refresh of data and metadata for bound controls until `ResumeLayout` is called. May be used when several properties shall be changed for the `XRMRecordHost` and its bound controls to prevent flickering and unnecessary calls to the backend.
 * **ResumeLayout** Resumes refresh of all bound controls after being suspended using `SuspendLayout`.
 * **SaveChanges** Saves the bound record to Dataverse. The change will only include the columns that are updated according to `ChangedColumns`.
