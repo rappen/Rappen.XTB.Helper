@@ -152,7 +152,7 @@ Just like a `FileOpenDialog` or `ColorDialog`, but lets the user select an entit
 Just like any ComboBox, but accepts [`EntityMetadataCollection`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.entitymetadatacollection?WT.mc_id=BA-MVP-5002475) or `IEnumerable<EntityMetadata>` as `DataSource`.
 ### Properties
 * **Show Friendly Names** determines if Display Name or Logical Name of the entities shall be shown.
-* `**SelectedEntity**` read this to get the entity currently selected.
+* **SelectedEntity** read this to get the entity currently selected.
 ### Methods
 * **SetSelected** Select a table by logicalname.
 
@@ -162,7 +162,7 @@ Just like any ComboBox, but accepts [`EntityMetadataCollection`](https://docs.mi
 Just like any ComboBox, but accepts [`EntityMetadata`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.metadata.entitymetadata?WT.mc_id=BA-MVP-5002475) or `IEnumerable<AttributeMetadata>` as `DataSource`.
 ### Properties
 * **Show Friendly Names** determines if Display Name or Logical Name of the entities shall be shown.
-* `**SelectedAttribute**` read this to get the entity currently selected.
+* **SelectedAttribute** read this to get the entity currently selected.
 
 &nbsp;
 
