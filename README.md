@@ -166,7 +166,7 @@ Just like any ComboBox, but accepts [`EntityMetadata`](https://docs.microsoft.co
 ---
 &nbsp;
 # XrmSubstituter
-This is an extension to [`Entity`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) used to replace "XRM Tokens" in a text with dynamic data from Dataverse.
+This is an extension to the [`Entity`🔗](https://docs.microsoft.com/en-us/dotnet/api/microsoft.xrm.sdk.entity?WT.mc_id=BA-MVP-5002475) class used to replace "XRM Tokens" in a text with dynamic data from a Dataverse record.
 
 Read more at https://jonasr.app/xrm-tokens
 
