@@ -16,6 +16,12 @@
 
         #region Public Constructors
 
+        private EntityItem()
+        {
+            Entity = new Entity();
+            Bag = new GenericBag(null);
+        }
+
         public EntityItem(Entity entity, IOrganizationService organizationService)
             : this(entity, string.Empty, organizationService) { }
 
@@ -36,6 +42,8 @@
         #endregion Public Constructors
 
         #region Public Properties
+
+        public static EntityItem Empty => new EntityItem();
 
         public Entity Entity { get; }
 
@@ -66,9 +74,9 @@
             }
             if (string.IsNullOrWhiteSpace(format))
             {
-                format = Bag.Service.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
+                format = Bag?.Service?.GetPrimaryAttribute(Entity.LogicalName)?.LogicalName ?? string.Empty;
             }
-            if (!format.Contains("{") && !format.Contains("}") && !format.Contains(" "))
+            if (!format.Contains("{") && !format.Contains("}") && !format.Contains(" ") && !string.IsNullOrWhiteSpace(format))
             {
                 format = "{" + format + "}";
             }

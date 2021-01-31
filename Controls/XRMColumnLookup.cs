@@ -26,6 +26,7 @@ namespace Rappen.XTB.Helpers.Controls
         private bool sorted = false;
         private bool populating;
         private FilterExpression filter;
+        private bool addnullrecord;
 
         public XRMColumnLookup()
         {
@@ -44,7 +45,7 @@ namespace Rappen.XTB.Helpers.Controls
                 MessageBox.Show("Cannot set value, Column property missing.", this.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            recordhost[column] = SelectedRecord != null ? SelectedRecord.ToEntityReference() : null;
+            recordhost[column] = !Guid.Empty.Equals(SelectedRecord?.Id) ? SelectedRecord.ToEntityReference() : null;
         }
 
         [Category("Rappen XRM")]
@@ -190,6 +191,22 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
+        [DefaultValue(false)]
+        [Description("Defines if a blank (null) option should be added at the top of the list of records.")]
+        public bool AddNullRecord
+        {
+            get { return addnullrecord; }
+            set
+            {
+                if (value != addnullrecord)
+                {
+                    addnullrecord = value;
+                    PopulateRecords();
+                }
+            }
+        }
+
+        [Category("Rappen XRM")]
         [Description("Additional filter of records to load from target table")]
         public FilterExpression Filter
         {
@@ -302,6 +319,10 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 ds = ds.OrderBy(r => r.ToString()).ToArray();
             }
+            if (ds != null && addnullrecord)
+            {
+                ds = ds.Prepend(EntityItem.Empty).ToArray();
+            }
             base.DataSource = ds;
             base.Refresh();
             SelectById(selected?.Id);
@@ -311,7 +332,7 @@ namespace Rappen.XTB.Helpers.Controls
         {
             if (id != null && !id.Equals(Guid.Empty) &&
                 base.DataSource is IEnumerable<EntityItem> ds &&
-                ds?.FirstOrDefault(r => r.Entity.Id.Equals(id)) is EntityItem newselected)
+                ds?.FirstOrDefault(r => id.Equals(r.Entity?.Id)) is EntityItem newselected)
             {
                 SelectedItem = newselected;
             }

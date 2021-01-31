@@ -9,6 +9,10 @@
 
         public OptionMetadata Metadata { get; } = null;
 
+        public static OptionMetadataItem Empty => new OptionMetadataItem();
+
+        private OptionMetadataItem() { }
+
         public OptionMetadataItem(OptionMetadata option, bool showvalue)
         {
             Metadata = option;
@@ -17,6 +21,10 @@
 
         public override string ToString()
         {
+            if (Metadata == null)
+            {
+                return string.Empty;
+            }
             var result = Metadata.Label?.UserLocalizedLabel?.Label;
             if (string.IsNullOrWhiteSpace(result))
             {

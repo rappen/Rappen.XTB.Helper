@@ -11,10 +11,13 @@ namespace Rappen.XTB.Helpers.Controls
     public partial class XRMEntityComboBox : ComboBox
     {
         #region Private properties
+
         private bool showFriendlyNames = true;
         private bool sorted = true;
         private IEnumerable<EntityMetadata> entities;
-        #endregion
+        private bool addnulloption;
+
+        #endregion Private properties
 
         #region Public Constructors
 
@@ -87,6 +90,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        [Category("Rappen XRM")]
+        [DefaultValue(false)]
+        [Description("Defines if a blank (null) option should be added at the top of the list of tables.")]
+        public bool AddNullOption
+        {
+            get { return addnulloption; }
+            set
+            {
+                if (value != addnulloption)
+                {
+                    addnulloption = value;
+                    Refresh();
+                }
+            }
+        }
+
         [Browsable(false)]
         public EntityMetadata SelectedEntity => (SelectedItem is EntityMetadataItem item) ? item.Metadata : null;
 
@@ -96,12 +115,19 @@ namespace Rappen.XTB.Helpers.Controls
 
         public override void Refresh()
         {
-            SuspendLayout();
+            if (DesignMode)
+            {
+                return;
+            }
             var selected = SelectedEntity;
             var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames)).ToArray();
             if (sorted && ds?.Length > 0)
             {
                 ds = ds.OrderBy(e => e.ToString()).ToArray();
+            }
+            if (ds != null && addnulloption)
+            {
+                ds = ds.Prepend(EntityMetadataItem.Empty).ToArray();
             }
             base.DataSource = ds;
             base.Refresh();
@@ -109,7 +135,6 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 SelectedItem = newselected;
             }
-            ResumeLayout();
         }
 
         #endregion Public Methods

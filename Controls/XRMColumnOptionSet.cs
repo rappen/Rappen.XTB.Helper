@@ -18,6 +18,7 @@ namespace Rappen.XTB.Helpers.Controls
         private string entityname;
         private string column;
         private bool populating;
+        private bool addnulloption;
 
         public XRMColumnOptionSet()
         {
@@ -103,6 +104,22 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        [Category("Rappen XRM")]
+        [DefaultValue(false)]
+        [Description("Defines if a blank (null) option should be added at the top of the list of options.")]
+        public bool AddNullOption
+        {
+            get { return addnulloption; }
+            set
+            {
+                if (value != addnulloption)
+                {
+                    addnulloption = value;
+                    PopulateOptions();
+                }
+            }
+        }
+
         [Browsable(false)]
         public OptionMetadata SelectedOption => (SelectedItem is OptionMetadataItem item) ? item.Metadata : null;
 
@@ -176,11 +193,19 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void PopulateOptions()
         {
+            if (DesignMode)
+            {
+                return;
+            }
             var selected = SelectedOption;
             var ds = options?.Select(o => new OptionMetadataItem(o, showValue)).ToArray();
             if (sorted && ds?.Length > 0)
             {
                 ds = ds.OrderBy(o => o.ToString()).ToArray();
+            }
+            if (ds != null && addnulloption)
+            {
+                ds = ds.Prepend(OptionMetadataItem.Empty).ToArray();
             }
             base.DataSource = ds;
             base.Refresh();
@@ -192,12 +217,13 @@ namespace Rappen.XTB.Helpers.Controls
             if (value != null)
             {
                 if (base.DataSource is IEnumerable<OptionMetadataItem> ds &&
-                ds?.FirstOrDefault(e => e.Metadata.Value.Equals(value)) is OptionMetadataItem newselected)
+                    ds?.FirstOrDefault(e => e.Metadata?.Value.Equals(value) == true) is OptionMetadataItem newselected)
                 {
                     SelectedItem = newselected;
                 }
                 else
                 {
+                    SelectedItem = null;
                     SelectedIndex = -1;
                 }
             }

@@ -9,6 +9,8 @@
     {
         public bool FriendlyNames { get; set; }
 
+        private EntityMetadataItem() { }
+
         public EntityMetadataItem(EntityMetadata Entity, bool friendlynames)
         {
             if (Entity == null)
@@ -21,14 +23,20 @@
 
         public EntityMetadata Metadata { get; } = null;
 
-        public override string ToString() => FriendlyNames ? DisplayName : Metadata.LogicalName;
+        public override string ToString() => FriendlyNames ? DisplayName : Metadata?.LogicalName ?? string.Empty;
 
         public string DisplayName => GetDisplayName();
 
         public string CollectionDisplayName => GetCollectionDisplayName();
 
+        public static EntityMetadataItem Empty => new EntityMetadataItem();
+
         private string GetDisplayName()
         {
+            if (Metadata == null)
+            {
+                return string.Empty;
+            }
             var result = Metadata.LogicalName;
             if (Metadata.DisplayName.UserLocalizedLabel != null)
             {
@@ -43,6 +51,10 @@
 
         private string GetCollectionDisplayName()
         {
+            if (Metadata == null)
+            {
+                return string.Empty;
+            }
             var result = Metadata.LogicalCollectionName;
             if (Metadata.DisplayCollectionName.UserLocalizedLabel != null)
             {
@@ -57,6 +69,10 @@
 
         public string GetValue()
         {
+            if (Metadata == null)
+            {
+                return string.Empty;
+            }
             return Metadata.LogicalName;
         }
 
