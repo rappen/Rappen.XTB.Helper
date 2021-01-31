@@ -22,8 +22,7 @@ namespace Rappen.XTB.Helpers.Controls
         private IOrganizationService organizationService;
         private XRMRecordHost recordhost;
         private string column;
-        private string loadedentityname;
-        private string loadedcolumnname;
+        private bool reloadrequired = true;
         private bool sorted = false;
         private bool populating;
         private FilterExpression filter;
@@ -183,6 +182,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 if (value != onlyactiverecords)
                 {
+                    reloadrequired = true;
                     onlyactiverecords = value;
                     GetRecordsFromRecordHost();
                 }
@@ -198,6 +198,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 if (value != filter)
                 {
+                    reloadrequired = true;
                     filter = value;
                     GetRecordsFromRecordHost();
                 }
@@ -218,6 +219,7 @@ namespace Rappen.XTB.Helpers.Controls
                 column = value;
                 if (recordhost?.Record != null && !string.IsNullOrWhiteSpace(column))
                 {
+                    reloadrequired = true;
                     GetRecordsFromRecordHost();
                     RecordUpdated();
                 }
@@ -230,15 +232,19 @@ namespace Rappen.XTB.Helpers.Controls
 
         private void GetRecordsFromRecordHost()
         {
-            if (DesignMode
-                || recordhost?.Record == null
-                || recordhost?.Suspended == true
-                || string.IsNullOrWhiteSpace(column)
-                || !(recordhost.Metadata?.Attributes.FirstOrDefault(a => a.LogicalName == column) is LookupAttributeMetadata lkp))
+            if (DesignMode ||
+                recordhost?.Suspended == true)
+            {
+                return;
+            }
+            if (recordhost?.Record == null ||
+                string.IsNullOrWhiteSpace(column) ||
+                !(recordhost.Metadata?.Attributes.FirstOrDefault(a => a.LogicalName == column) is LookupAttributeMetadata lkp))
             {
                 Clear();
                 return;
             }
+
             if (lkp.Targets.Length != 1)
             {
                 Clear();
@@ -255,15 +261,13 @@ namespace Rappen.XTB.Helpers.Controls
                 query.Criteria.AddFilter(Filter);
             }
             DataSource = recordhost.Service.RetrieveMultiple(query);
-            loadedentityname = recordhost.Metadata.LogicalName;
-            loadedcolumnname = column;
+            reloadrequired = false;
         }
 
         private void Clear()
         {
             records = null;
-            loadedentityname = null;
-            loadedcolumnname = null;
+            reloadrequired = true;
             base.DataSource = null;
         }
 
@@ -277,7 +281,7 @@ namespace Rappen.XTB.Helpers.Controls
                 return;
             }
             populating = true;
-            if (recordhost?.Metadata?.LogicalName != loadedentityname || column != loadedcolumnname)
+            if (reloadrequired)
             {
                 GetRecordsFromRecordHost();
             }
@@ -313,6 +317,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             else
             {
+                SelectedItem = null;
                 SelectedIndex = -1;
             }
         }

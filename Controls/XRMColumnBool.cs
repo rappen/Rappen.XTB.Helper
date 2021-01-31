@@ -102,12 +102,12 @@ namespace Rappen.XTB.Helpers.Controls
 
         public void RecordUpdated()
         {
-            if (DesignMode || recordhost == null || recordhost?.Suspended == true)
+            if (DesignMode || recordhost?.Suspended == true)
             {
                 return;
             }
             populating = true;
-            if (!string.IsNullOrWhiteSpace(column) && recordhost[column] is bool value)
+            if (recordhost != null && !string.IsNullOrWhiteSpace(column) && recordhost[column] is bool value)
             {
                 Checked = value;
             }
