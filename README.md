@@ -153,6 +153,8 @@ Just like any ComboBox, but accepts [`EntityMetadataCollection`](https://docs.mi
 ### Properties
 * **Show Friendly Names** determines if Display Name or Logical Name of the entities shall be shown.
 * `**SelectedEntity**` read this to get the entity currently selected.
+### Methods
+* **SetSelected** Select a table by logicalname.
 
 ---
 &nbsp;

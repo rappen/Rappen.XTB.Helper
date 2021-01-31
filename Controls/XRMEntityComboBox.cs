@@ -119,7 +119,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return;
             }
-            var selected = SelectedEntity;
+            var selected = SelectedEntity?.LogicalName;
             var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames)).ToArray();
             if (sorted && ds?.Length > 0)
             {
@@ -131,9 +131,21 @@ namespace Rappen.XTB.Helpers.Controls
             }
             base.DataSource = ds;
             base.Refresh();
-            if (selected != null && ds?.FirstOrDefault(e => e.Metadata.LogicalName.Equals(selected.LogicalName)) is EntityMetadataItem newselected)
+            SetSelected(selected);
+        }
+
+        public void SetSelected(string entitylogicalname)
+        {
+            if (!string.IsNullOrEmpty(entitylogicalname) &&
+                base.DataSource is IEnumerable<EntityMetadataItem> ds &&
+                ds?.FirstOrDefault(e => e.Metadata.LogicalName.Equals(entitylogicalname)) is EntityMetadataItem newselected)
             {
                 SelectedItem = newselected;
+            }
+            else
+            {
+                SelectedItem = null;
+                SelectedIndex = -1;
             }
         }
 
