@@ -59,21 +59,25 @@ namespace Rappen.XTB.Helpers.Extensions
 
         public static object AttributeToBaseType(object attribute)
         {
-            if (attribute is AliasedValue)
+            if (attribute is AliasedValue aliasedvalue)
             {
-                return AttributeToBaseType(((AliasedValue)attribute).Value);
+                return AttributeToBaseType(aliasedvalue.Value);
             }
-            else if (attribute is EntityReference)
+            else if (attribute is EntityReference entref)
             {
-                return ((EntityReference)attribute).Id;
+                if (!string.IsNullOrEmpty(entref.LogicalName) && !entref.Id.Equals(Guid.Empty))
+                {
+                    return entref.Id;
+                }
+                return null;
             }
-            else if (attribute is OptionSetValue)
+            else if (attribute is OptionSetValue osv)
             {
-                return ((OptionSetValue)attribute).Value;
+                return osv.Value;
             }
-            else if (attribute is Money)
+            else if (attribute is Money money)
             {
-                return ((Money)attribute).Value;
+                return money.Value;
             }
             else
             {
