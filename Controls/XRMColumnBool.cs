@@ -111,6 +111,10 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 Checked = value;
             }
+            else
+            {
+                Checked = false;
+            }
             populating = false;
             SetMetaText();
         }
