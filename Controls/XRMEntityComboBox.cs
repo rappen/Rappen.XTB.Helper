@@ -53,6 +53,10 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     entities = newentities;
                 }
+                else
+                {
+                    entities = null;
+                }
                 Refresh();
             }
         }
