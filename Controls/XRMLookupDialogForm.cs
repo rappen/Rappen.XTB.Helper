@@ -24,13 +24,14 @@ namespace Rappen.XTB.Helpers.Controls
 
         #region Public Constructors
 
-        public XRMLookupDialogForm(IOrganizationService service, string[] logicalNames, bool multiSelect, bool friendlyNames, bool includePersonalViews, string title)
+        public XRMLookupDialogForm(IOrganizationService service, string[] logicalNames, bool multiSelect, bool friendlyNames, bool includePersonalViews, bool removebutton, string title)
         {
             InitializeComponent();
             SetMulti(multiSelect);
             this.includePersonalViews = includePersonalViews;
             gridResults.ShowFriendlyNames = friendlyNames;
             gridSelection.ShowFriendlyNames = friendlyNames;
+            btnRemoveValue.Visible = removebutton;
             Text = title;
             SetService(service);
             SetLogicalNames(logicalNames);
@@ -189,6 +190,10 @@ namespace Rappen.XTB.Helpers.Controls
             if (entityviews.ContainsKey(logicalname))
             {
                 cmbView.DataSource = entityviews[logicalname];
+                if (cmbView.Items.Count > 0 && cmbView.SelectedIndex == -1)
+                {
+                    cmbView.SelectedIndex = 0;
+                }
             }
         }
 

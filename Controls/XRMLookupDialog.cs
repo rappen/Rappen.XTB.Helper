@@ -84,6 +84,10 @@ namespace Rappen.XTB.Helpers.Controls
         [Description("True to show friendly names, False to show logical names and guid etc.")]
         public bool ShowFriendlyNames { get; set; } = true;
 
+        [DefaultValue(true)]
+        [Description("Determines if the button Remove Value should be shown.")]
+        public bool ShowRemoveButton { get; set; } = true;
+
         /// <summary>
         /// IOrganizationService to use when retrieving metadata, views and records.
         /// </summary>
@@ -128,7 +132,7 @@ namespace Rappen.XTB.Helpers.Controls
                 throw new Exception("LogicalNames property must contain at least one entity before calling ShowDialog.");
             }
             var title = string.IsNullOrEmpty(Title) ? Multiselect ? "Select Records" : "Select Record" : Title;
-            using (var form = new XRMLookupDialogForm(Service, LogicalNames, Multiselect, ShowFriendlyNames, IncludePersonalViews, title))
+            using (var form = new XRMLookupDialogForm(Service, LogicalNames, Multiselect, ShowFriendlyNames, IncludePersonalViews, ShowRemoveButton, title))
             {
                 var result = form.ShowDialog(owner);
                 Records = form.GetSelectedRecords();

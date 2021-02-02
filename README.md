@@ -148,6 +148,7 @@ Just like a `FileOpenDialog` or `ColorDialog`, but lets the user select an entit
 * **MultiSelect** Set true to allow user to select multiple records
 * **ShowFriendlyNames** Set false to display records with raw values (Guids, OptionSetValues etc)
 * **IncludePersonalViews** Set true to make any personal views available to select from
+* **ShowRemoveButton** Set true to show the "Remove Value" button in the dialog
 * **Title** of the dialog window
 ### Methods
 * **ShowDialog** Call this method to open the dialog. Returns [`DialogResult`🔗](https://docs.microsoft.com/en-us/dotnet/api/system.windows.forms.dialogresult?WT.mc_id=BA-MVP-5002475)
