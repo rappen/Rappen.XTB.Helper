@@ -183,12 +183,13 @@ namespace Rappen.XTB.Helpers.Controls
             saverecord.Attributes.AddRange(updatedattributes);
             if (saverecord.Id.Equals(Guid.Empty))
             {
-                organizationService.Create(saverecord);
+                Record.Id = organizationService.Create(saverecord);
             }
             else
             {
                 organizationService.Update(saverecord);
             }
+            updatedattributes.ToList().ForEach(u => Record[u.Key] = u.Value);
             updatedattributes = null;
             AnnounceColumnChange(string.Empty);
             return true;
