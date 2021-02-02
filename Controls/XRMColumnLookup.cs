@@ -45,7 +45,7 @@ namespace Rappen.XTB.Helpers.Controls
                 MessageBox.Show("Cannot set value, Column property missing.", this.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            recordhost[column] = !Guid.Empty.Equals(SelectedRecord?.Id) ? SelectedRecord.ToEntityReference() : null;
+            recordhost[column] = SelectedRecord != null && !SelectedRecord.Id.Equals(Guid.Empty) ? SelectedRecord.ToEntityReference() : null;
         }
 
         [Category("Rappen XRM")]

@@ -109,6 +109,10 @@ namespace Rappen.XTB.Helpers.Controls
             }
             set
             {
+                if (Metadata == null)
+                {
+                    return;
+                }
                 if (updatedattributes == null)
                 {
                     updatedattributes = new Microsoft.Xrm.Sdk.AttributeCollection();
