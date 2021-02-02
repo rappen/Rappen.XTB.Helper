@@ -4,7 +4,7 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 
 ## Adding to your project
 
-1. Open a terminal at the root of a local repo and type: `git submodule add https://github.com/rappen/Rappen.XTB.Helper`
+1. Open a terminal at the root of a local repo and type:<br/>`git submodule add https://github.com/rappen/Rappen.XTB.Helper`
 1. Right click your solution in Visual Studio, select Add Existing Project, and include the `Rappen.XTB.Helpers.shproj` project from the cloned submodule.
 1. In your project, add a Reference to the added shared project `Rappen.XTB.Helpers`.
 1. Compile the project once, to make sure everything works and to make it possible for Visual Studio to find the controls in the tool window.
@@ -13,8 +13,8 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 
 &nbsp;
 ## Updating your project with latest
-1. Open a terminal at the root of the helper submodule. This is probably `[your project folder]\Rappen.XTB.Helpers`.
-2. Type: `git pull`
+1. Open a terminal at the root of the helper submodule. This is probably<br/>`[your project folder]\Rappen.XTB.Helpers`.
+2. Type:<br/>`git pull`
 
 Yes, there may be slightly breaking changes, but that's life on the cutting edge.
 
