@@ -12,6 +12,15 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 1. Helper and extension classes can now be used and examined within the added project.
 
 &nbsp;
+## Updating your project with latest
+1. Open a terminal at the root of the helper submodule. This is probably `[your project folder]\Rappen.XTB.Helpers`.
+2. Type: `git pull`
+
+Yes, there may be slightly breaking changes, but that's life on the cutting edge.
+
+Majorly breaking changes will be announced in this readme.
+
+&nbsp;
 ## Sample Code
 
 Check out repo [Rappen.XTB.Helper.Tester](https://github.com/rappen/Rappen.XTB.Helper.Tester) for a complete sample project using all controls.
