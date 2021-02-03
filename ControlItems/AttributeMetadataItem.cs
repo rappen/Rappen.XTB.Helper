@@ -1,7 +1,9 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using System.Windows.Forms;
+    using Microsoft.Xrm.Sdk;
     using Microsoft.Xrm.Sdk.Metadata;
+    using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
 
     public class AttributeMetadataItem : IXRMControlItem
@@ -15,6 +17,8 @@
             Metadata = Attribute;
             FriendlyNames = friendlynames;
         }
+
+        public AttributeMetadataItem(IOrganizationService service, string entity, string attribute, bool friendlynames) : this(service.GetAttribute(entity, attribute), friendlynames) { }
 
         public override string ToString() => FriendlyNames ? DisplayName : Metadata.LogicalName;
 

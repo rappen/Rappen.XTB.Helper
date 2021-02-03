@@ -1,6 +1,8 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
+    using Microsoft.Xrm.Sdk;
     using Microsoft.Xrm.Sdk.Metadata;
+    using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
     using System.Linq;
@@ -20,6 +22,8 @@
             Metadata = Entity;
             FriendlyNames = friendlynames;
         }
+
+        public EntityMetadataItem(IOrganizationService service, string entity, bool friendlynames) : this(service.GetEntity(entity), friendlynames) { }
 
         public EntityMetadata Metadata { get; } = null;
 
