@@ -62,6 +62,10 @@
                 {
                     result = optionsetvalue.Value.ToString();
                 }
+                else if (value is OptionSetValueCollection)
+                {
+                    result = "[" + string.Join(",", ((OptionSetValueCollection)value).OrderBy(v => v.Value).Select(v => v.Value.ToString())) + "]";
+                }
                 else if (value is Money money)
                 {
                     result = money.Value.ToString();
