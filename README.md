@@ -11,6 +11,8 @@ This is a C# Shared Project with various [WinForm](https://docs.microsoft.com/en
 1. Open a WinForm designer and the Tool window, and all the controls listed below should be available under a group with the name of your project.
 1. Helper and extension classes can now be used and examined within the added project.
 
+Sometimes, the submodules are not of right version of no files local, try this from the `Rappen.XTB.Helpers` folder:<br/>`git submodule update --force`
+
 &nbsp;
 ## Updating your project with latest
 1. Open a terminal at the root of the helper submodule. This is probably<br/>`[your project folder]\Rappen.XTB.Helpers`.
