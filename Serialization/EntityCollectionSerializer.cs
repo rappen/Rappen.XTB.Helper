@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Xml;
@@ -74,19 +75,24 @@ namespace Rappen.XTB.Helpers.Serialization
             return ec;
         }
 
-        public static string ToJSON(EntityCollection collection, Formatting format)
+        public static string ToJSONComplex(EntityCollection collection, Formatting format)
         {
-            var space = format == Formatting.Indented ? " " : "";
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{" + EntitySerializer.Sep(format, 1) + "\"entities\":" + space + "[");
-            List<string> entities = new List<string>();
-            foreach (Entity entity in collection.Entities)
+            var rootDictionary = new Dictionary<string, object>
             {
-                entities.Add(EntitySerializer.ToJSON(entity, format, 2));
-            }
-            sb.Append(string.Join(",", entities));
-            sb.Append(EntitySerializer.Sep(format, 1) + "]" + EntitySerializer.Sep(format, 0) + "}");
-            return sb.ToString();
+                ["entities"] = collection.Entities.Select(e => EntitySerializer.ToJSONComplexObject(e)).ToArray()
+            };
+
+            return Newtonsoft.Json.JsonConvert.SerializeObject(rootDictionary, format == System.Xml.Formatting.Indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+        }
+
+        public static string ToJSONSimple(EntityCollection collection, Formatting format)
+        {
+            var rootDictionary = new Dictionary<string, object>
+            {
+                ["value"] = collection.Entities.Select(e => EntitySerializer.ToJSONSimpleObject(e)).ToArray()
+            };
+
+            return Newtonsoft.Json.JsonConvert.SerializeObject(rootDictionary, format == Formatting.Indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
         }
     }
 }

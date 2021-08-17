@@ -157,81 +157,96 @@ namespace Rappen.XTB.Helpers.Serialization
                     xName.Value = attribute.Key;
                     xAttribute.Attributes.Append(xName);
                     return xAttribute;
+
                 case SerializationStyle.Explicit:
                     return result.CreateNode(XmlNodeType.Element, attribute.Key, "");
+
                 default:
                     return null;
             }
         }
 
-        public static string ToJSON(Entity entity, Formatting format, int indent)
+        internal static object ToJSONComplexObject(Entity entity)
         {
-            StringBuilder sb = new StringBuilder();
-            var space = format == Formatting.Indented ? " " : "";
-            sb.Append(
-                Sep(format, indent + 0) + "{" + space +
-                Sep(format, indent + 1) + "\"entity\":" + space + "\"" + entity.LogicalName + "\"," +
-                Sep(format, indent + 1) + "\"id\":" + space + "\"{" + entity.Id.ToString() + "}\"," +
-                Sep(format, indent + 1) + "\"attributes\":" + space + "[");
+            var entityDictionary = new Dictionary<string, object>();
 
-            bool first = true;
-            foreach (KeyValuePair<string, object> attribute in entity.Attributes)
+            entityDictionary["entity"] = entity.LogicalName;
+            entityDictionary["id"] = entity.Id.ToString("B");
+
+            var attributesList = new List<Dictionary<string, object>>();
+            entityDictionary["attributes"] = attributesList;
+
+            foreach (var attribute in entity.Attributes)
             {
-                Object value = attribute.Value;
-                if (attribute.Key == entity.LogicalName + "id")
+                var name = attribute.Key;
+                var value = attribute.Value;
+
+                if (name == entity.LogicalName + "id")
                 {
                     continue;
                 }
-                if (attribute.Key.EndsWith("_base") && entity.Contains(attribute.Key.Substring(0, attribute.Key.Length - 5)))
+
+                if (name.EndsWith("_base") && entity.Contains(name.Substring(0, name.Length - 5)))
                 {
                     continue;
                 }
 
-                if (first)
-                {
-                    sb.Append(Sep(format, indent + 2) + "{");
-                    first = false;
-                }
-                else
-                    sb.Append("," + Sep(format, indent + 2) + "{");
+                var attributeDictionary = new Dictionary<string, object>();
+                attributesList.Add(attributeDictionary);
 
-                if (value is AliasedValue)
+                if (value is AliasedValue av)
                 {
-                    if (!string.IsNullOrEmpty(((AliasedValue)value).AttributeLogicalName))
+                    if (!String.IsNullOrEmpty(av.AttributeLogicalName))
                     {
-                        sb.Append(Sep(format, indent + 3) + "\"attributelogicalname\":" + space + "\"" + (((AliasedValue)value).AttributeLogicalName) + "\",");
+                        attributeDictionary["attributelogicalname"] = av.AttributeLogicalName;
                     }
-                    if (!string.IsNullOrEmpty(((AliasedValue)value).EntityLogicalName))
+
+                    if (!String.IsNullOrEmpty(av.EntityLogicalName))
                     {
-                        sb.Append(Sep(format, indent + 3) + "\"entitylogicalname\":" + space + "\"" + (((AliasedValue)value).EntityLogicalName) + "\",");
+                        attributeDictionary["entitylogicalname"] = av.EntityLogicalName;
                     }
-                    value = (((AliasedValue)value).Value);
                 }
 
-                sb.Append(Sep(format, indent + 3) + "\"name\":" + space + "\"" + attribute.Key + "\",");
-                sb.Append(Sep(format, indent + 3) + "\"type\":" + space + "\"" + LastClassName(value) + "\",");
+                attributeDictionary["name"] = name;
+                attributeDictionary["type"] = LastClassName(value);
 
-                if (value is EntityReference)
+                if (value is EntityReference er)
                 {
-                    sb.Append(Sep(format, indent + 3) + "\"entity\":" + space + "\"" + ((EntityReference)value).LogicalName + "\",");
-                    if (!string.IsNullOrEmpty(((EntityReference)value).Name))
-                    {
-                        sb.Append(Sep(format, indent + 3) + "\"namevalue\":" + space + "\"" + ((EntityReference)value).Name + "\",");
-                    }
-                    value = ((EntityReference)value).Id;
+                    attributeDictionary["entity"] = er.LogicalName;
 
+                    if (!String.IsNullOrEmpty(er.Name))
+                    {
+                        attributeDictionary["namevalue"] = er.Name;
+                    }
                 }
 
                 if (value != null)
                 {
-                    sb.Append(string.Format(Sep(format, indent + 3) + "\"value\":" + space + "\"{0}\"", AttributeToBaseType(value)));
+                    attributeDictionary["value"] = AttributeToBaseType(value);
+                }
+            }
+
+            return entityDictionary;
+        }
+
+        internal static object ToJSONSimpleObject(Entity entity)
+        {
+            var entityDictionary = new Dictionary<string, object>();
+
+            foreach (var attribute in entity.Attributes)
+            {
+                var name = attribute.Key;
+                var value = attribute.Value;
+
+                if (name.EndsWith("_base") && entity.Contains(name.Substring(0, name.Length - 5)))
+                {
+                    continue;
                 }
 
-                sb.Append(Sep(format, indent + 2) + "}");
+                entityDictionary[name] = AttributeToJSONType(value);
             }
-            sb.Append(Sep(format, indent + 1) + "]");
-            sb.Append(Sep(format, indent + 0) + "}");
-            return sb.ToString();
+
+            return entityDictionary;
         }
 
         private static string LastClassName(object obj)
@@ -243,34 +258,38 @@ namespace Rappen.XTB.Helpers.Serialization
 
         public static object AttributeToBaseType(object attribute, bool showFriendlyNames = false)
         {
-            if (attribute is AliasedValue) {
+            if (attribute is AliasedValue)
+            {
                 return AttributeToBaseType(((AliasedValue)attribute).Value, showFriendlyNames);
             }
-            else if (attribute is EntityReference) {
-                if (showFriendlyNames) {
-                    return ((EntityReference)attribute).Name;
+            else if (attribute is EntityReference er)
+            {
+                if (showFriendlyNames)
+                {
+                    return er.Name;
                 }
-                else { 
-                    return ((EntityReference)attribute).Id;
+                else
+                {
+                    return er.Id;
                 }
             }
             else if (attribute is EntityReferenceCollection)
             {
                 var referencedEntity = "";
-                foreach (var er in (EntityReferenceCollection)attribute)
+                foreach (var erc in (EntityReferenceCollection)attribute)
                 {
                     if (referencedEntity == "")
                     {
-                        referencedEntity = er.LogicalName;
+                        referencedEntity = erc.LogicalName;
                     }
-                    else if (referencedEntity != er.LogicalName)
+                    else if (referencedEntity != erc.LogicalName)
                     {
                         referencedEntity = "";
                         break;
                     }
                 }
                 var result = "";
-                foreach (var er in (EntityReferenceCollection)attribute)
+                foreach (var erc in (EntityReferenceCollection)attribute)
                 {
                     if (result != "")
                     {
@@ -278,11 +297,11 @@ namespace Rappen.XTB.Helpers.Serialization
                     }
                     if (referencedEntity != "")
                     {
-                        result += er.Id.ToString();
+                        result += erc.Id.ToString();
                     }
                     else
                     {
-                        result += er.LogicalName + ":" + er.Id.ToString();
+                        result += erc.LogicalName + ":" + erc.Id.ToString();
                     }
                 }
                 return result;
@@ -304,14 +323,60 @@ namespace Rappen.XTB.Helpers.Serialization
                 }
                 return result;
             }
-            else if (attribute is OptionSetValue)
-                return ((OptionSetValue)attribute).Value;
-            else if (attribute is OptionSetValueCollection)
-                return "[" + string.Join(",", ((OptionSetValueCollection)attribute).Select(v => v.Value.ToString())) + "]";
-            else if (attribute is Money)
-                return ((Money)attribute).Value;
-            else if (attribute is BooleanManagedProperty)
-                return ((BooleanManagedProperty)attribute).Value;
+            else if (attribute is OptionSetValue osv)
+                return osv.Value;
+            else if (attribute is OptionSetValueCollection osvc)
+                return "[" + string.Join(",", osvc.Select(v => v.Value.ToString())) + "]";
+            else if (attribute is Money m)
+                return m.Value;
+            else if (attribute is BooleanManagedProperty bmp)
+                return bmp.Value;
+            else
+                return attribute;
+        }
+
+        private static object AttributeToJSONType(object attribute, bool showFriendlyNames = false)
+        {
+            if (attribute is AliasedValue av)
+            {
+                return AttributeToJSONType(av.Value, showFriendlyNames);
+            }
+            else if (attribute is EntityReference er)
+            {
+                if (showFriendlyNames)
+                {
+                    return er.Name;
+                }
+                else
+                {
+                    return er.Id;
+                }
+            }
+            else if (attribute is EntityReferenceCollection erc)
+            {
+                // What is the best format for this? Can't see where this is returned by WebAPI so currently making up our own format
+                // This currently generates the format:
+                // {
+                //   "logicalname1": [ "id1", "id2" ],
+                //   "logicalname2": [ "id3", "id4" ]
+                // }
+                return erc.GroupBy(e => e.LogicalName)
+                    .ToDictionary(g => g.Key, g => g.Select(e => e.Id).ToArray());
+            }
+            else if (attribute is EntityCollection ec)
+            {
+                return ec.Entities
+                    .Select(e => ToJSONSimpleObject(e))
+                    .ToArray();
+            }
+            else if (attribute is OptionSetValue osv)
+                return osv.Value;
+            else if (attribute is OptionSetValueCollection osvc)
+                return osvc.Select(o => o.Value).ToArray();
+            else if (attribute is Money m)
+                return m.Value;
+            else if (attribute is BooleanManagedProperty bmp)
+                return bmp.Value;
             else
                 return attribute;
         }
@@ -503,6 +568,7 @@ namespace Rappen.XTB.Helpers.Serialization
                 case "String":
                 case "Memo":
                     return value;
+
                 case "Int32":
                 case "Integer":
                     if (!string.IsNullOrWhiteSpace(value))
@@ -510,12 +576,14 @@ namespace Rappen.XTB.Helpers.Serialization
                         return Int32.Parse(value);
                     }
                     break;
+
                 case "Int64":
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         return Int64.Parse(value);
                     }
                     break;
+
                 case "OptionSetValue":
                 case "Picklist":
                 case "State":
@@ -525,6 +593,7 @@ namespace Rappen.XTB.Helpers.Serialization
                         return new OptionSetValue(int.Parse(value));
                     }
                     break;
+
                 case "EntityReference":
                 case "Lookup":
                 case "Customer":
@@ -543,18 +612,21 @@ namespace Rappen.XTB.Helpers.Serialization
                         return entref;
                     }
                     break;
+
                 case "DateTime":
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         return DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
                     }
                     break;
+
                 case "Boolean":
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         return StringToBool(value);
                     }
                     break;
+
                 case "Guid":
                 case "Uniqueidentifier":
                     if (!string.IsNullOrWhiteSpace(value))
@@ -563,20 +635,24 @@ namespace Rappen.XTB.Helpers.Serialization
                         return uId;
                     }
                     break;
+
                 case "Decimal":
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         return decimal.Parse(value);
                     }
                     break;
+
                 case "Money":
                     if (!string.IsNullOrWhiteSpace(value))
                     {
                         return new Money(decimal.Parse(value));
                     }
                     break;
+
                 case "null":
                     return null;
+
                 default:
                     throw new ArgumentOutOfRangeException("Type", type, "Cannot parse attibute type");
             }
