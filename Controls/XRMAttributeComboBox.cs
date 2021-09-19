@@ -115,6 +115,49 @@ namespace Rappen.XTB.Helpers.Controls
             }
             ResumeLayout();
         }
+        
+        public void SetSelected(string attributelogicalname)
+        {
+            if (!string.IsNullOrEmpty(attributelogicalname) &&
+                base.DataSource is IEnumerable<AttributeMetadataItem> ds &&
+                ds?.FirstOrDefault(e => e.Metadata.LogicalName.Equals(attributelogicalname)) is AttributeMetadataItem newselected)
+            {
+                SelectedItem = newselected;
+            }
+            else
+            {
+                SelectedItem = null;
+                SelectedIndex = -1;
+            }
+        }
+
+        public void SetSelectedPrimaryId()
+        {
+            if (base.DataSource is IEnumerable<AttributeMetadataItem> ds &&
+                ds?.FirstOrDefault(e => e.Metadata.IsPrimaryId == true) is AttributeMetadataItem newselected)
+            {
+                SelectedItem = newselected;
+            }
+            else
+            {
+                SelectedItem = null;
+                SelectedIndex = -1;
+            }
+        }
+
+        public void SetSelectedPrimaryName()
+        {
+            if (base.DataSource is IEnumerable<AttributeMetadataItem> ds &&
+                ds?.FirstOrDefault(e => e.Metadata.IsPrimaryName == true) is AttributeMetadataItem newselected)
+            {
+                SelectedItem = newselected;
+            }
+            else
+            {
+                SelectedItem = null;
+                SelectedIndex = -1;
+            }
+        }
 
         #endregion Public Methods
     }
