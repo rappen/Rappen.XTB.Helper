@@ -57,13 +57,9 @@ namespace Rappen.XTB.Helpers.Extensions
                 entities.Add(service, serviceEntities);
             }
 
-            if (!serviceEntities.ContainsKey(entity))
+            if (!serviceEntities.ContainsKey(entity) && LoadEntityDetails(service, entity) is EntityMetadata e)
             {
-                var response = LoadEntityDetails(service, entity);
-                if (response != null && response.EntityMetadata != null && response.EntityMetadata.Count == 1 && response.EntityMetadata[0].LogicalName == entity)
-                {
-                    serviceEntities.Add(entity, response.EntityMetadata[0]);
-                }
+                serviceEntities.Add(entity, e);
             }
             if (serviceEntities.TryGetValue(entity, out EntityMetadata meta))
             {
@@ -127,6 +123,16 @@ namespace Rappen.XTB.Helpers.Extensions
                 ClientVersionStamp = null
             };
             return service.Execute(req) as RetrieveMetadataChangesResponse;
+        }
+
+        public static EntityMetadata LoadEntityDetails(this IOrganizationService service, string entity)
+        {
+            var request = new RetrieveEntityRequest
+            {
+                EntityFilters = EntityFilters.All,
+                LogicalName = entity
+            };
+            return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
         }
 
         private static string[] GetEntityDetailsForVersion(int orgMajorVer, int orgMinorVer)
