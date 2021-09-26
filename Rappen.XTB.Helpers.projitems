@@ -32,7 +32,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnBool.Designer.cs">
       <DependentUpon>XRMColumnBool.cs</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ViewConsts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.Designer.cs">
@@ -51,25 +50,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\AttributeMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)VoidLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)XrmSubstituter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)Serialization\" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.resx">
