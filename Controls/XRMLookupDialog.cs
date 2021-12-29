@@ -1,5 +1,6 @@
-﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -12,6 +13,9 @@ namespace Rappen.XTB.Helpers.Controls
         #region Private Fields
 
         private string[] logicalNames;
+
+        private string defaultEntity;
+        private Guid defaultViewId;
 
         #endregion Private Fields
 
@@ -48,6 +52,8 @@ namespace Rappen.XTB.Helpers.Controls
                 logicalNames = new string[] { value };
             }
         }
+
+        public Dictionary<string, List<Entity>> AdditionalViews { get; set; } = new Dictionary<string, List<Entity>>();
 
         [Description("List of entity logicalnames that shall be available to select from for polymorphic lookups.")]
         public string[] LogicalNames
@@ -134,10 +140,29 @@ namespace Rappen.XTB.Helpers.Controls
             var title = string.IsNullOrEmpty(Title) ? Multiselect ? "Select Records" : "Select Record" : Title;
             using (var form = new XRMLookupDialogForm(Service, LogicalNames, Multiselect, ShowFriendlyNames, IncludePersonalViews, ShowRemoveButton, title))
             {
+                if (AdditionalViews.Keys.Count > 0)
+                {
+                    foreach (var logicalname in AdditionalViews.Keys)
+                    {
+                        if (!LogicalNames.Contains(logicalname)) continue;
+
+                        foreach (var view in AdditionalViews[logicalname])
+                        {
+                            form.AddCustomView(logicalname, view, logicalname == defaultEntity && view.Id.Equals(defaultViewId));
+                        }
+                    }
+                }
+
                 var result = form.ShowDialog(owner);
                 Records = form.GetSelectedRecords();
                 return result;
             }
+        }
+
+        public void SetDefaultView(string logicalName, Guid savedqueryId)
+        {
+            defaultEntity = logicalName;
+            defaultViewId = savedqueryId;
         }
 
         #endregion Public Methods
