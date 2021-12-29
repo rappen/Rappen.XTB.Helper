@@ -185,6 +185,21 @@ namespace Rappen.XTB.Helpers.Controls
                     views.Add(separator);
                     views.AddRange(userviews.Entities);
                 }
+          
+                // If no view have been found, set a default one
+                if (views.Count == 0)
+                {
+                    views.Add(new Entity("savedquery")
+                    {
+                        Attributes =
+                        {
+                            {"name", "All records" },
+                            {"fetchxml", $"<fetch mapping=\"logical\"><entity name=\"{entity.Metadata.LogicalName}\"><attribute name=\"{entity.Metadata.PrimaryNameAttribute}\"/><order attribute=\"{entity.Metadata.PrimaryNameAttribute}\"/></entity></fetch>" },
+                            {"layoutxml", $"<grid name=\"resultset\" object=\"{entity.Metadata.ObjectTypeCode}\" jump=\"name\" select=\"1\" icon=\"{entity.Metadata.ObjectTypeCode}\" preview=\"1\"><row name=\"result\" id=\"{entity.Metadata.PrimaryIdAttribute}\"><cell name=\"{entity.Metadata.PrimaryNameAttribute}\" width=\"150\" /></row></grid>" },
+                        }
+                    });
+                }
+
                 entityviews.Add(logicalname, views);
             }
             if (entityviews.ContainsKey(logicalname))
