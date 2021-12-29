@@ -1,4 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk;
 using Rappen.XTB.Helpers.ControlItems;
 using Rappen.XTB.Helpers.Extensions;
 using System;
@@ -70,6 +70,23 @@ namespace Rappen.XTB.Helpers.Controls
             else
             {
                 return gridResults.SelectedCellRecords?.Take(1).ToArray();
+            }
+        }
+
+        internal void AddCustomView(string logicalName, Entity view, bool setAsDefaultView = false)
+        {
+            if (!entityviews.ContainsKey(logicalName))
+            {
+                entityviews.Add(logicalName, new List<Entity>());
+            }
+
+            entityviews[logicalName].Add(view);
+
+            cmbView.DataSource = entityviews[logicalName];
+
+            if (setAsDefaultView)
+            {
+                cmbView.SelectedIndex = entityviews[logicalName].Count - 1;
             }
         }
 
@@ -185,7 +202,7 @@ namespace Rappen.XTB.Helpers.Controls
                     views.Add(separator);
                     views.AddRange(userviews.Entities);
                 }
-          
+
                 // If no view have been found, set a default one
                 if (views.Count == 0)
                 {
@@ -195,7 +212,7 @@ namespace Rappen.XTB.Helpers.Controls
                         {
                             {"name", "All records" },
                             {"fetchxml", $"<fetch mapping=\"logical\"><entity name=\"{entity.Metadata.LogicalName}\"><attribute name=\"{entity.Metadata.PrimaryNameAttribute}\"/><order attribute=\"{entity.Metadata.PrimaryNameAttribute}\"/></entity></fetch>" },
-                            {"layoutxml", $"<grid name=\"resultset\" object=\"{entity.Metadata.ObjectTypeCode}\" jump=\"name\" select=\"1\" icon=\"{entity.Metadata.ObjectTypeCode}\" preview=\"1\"><row name=\"result\" id=\"{entity.Metadata.PrimaryIdAttribute}\"><cell name=\"{entity.Metadata.PrimaryNameAttribute}\" width=\"150\" /></row></grid>" },
+                            {"layoutxml", $"<grid name=\"resultset\" object=\"{entity.Metadata.ObjectTypeCode}\" jump=\"{entity.Metadata.PrimaryNameAttribute}\" select=\"1\" icon=\"{entity.Metadata.ObjectTypeCode}\" preview=\"1\"><row name=\"result\" id=\"{entity.Metadata.PrimaryIdAttribute}\"><cell name=\"{entity.Metadata.PrimaryNameAttribute}\" width=\"150\" /></row></grid>" },
                         }
                     });
                 }
