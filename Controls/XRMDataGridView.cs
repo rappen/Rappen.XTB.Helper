@@ -674,7 +674,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private bool ValueTypeIsFriendly(object value)
         {
-            return value is Int32 || value is decimal || value is double || value is string || value is Money;
+            return value is Int32 || value is decimal || value is double || value is string || value is Money || value is DateTime;
         }
 
         private void AddColumnForAttribute(IEnumerable<Entity> entities, List<DataColumn> columns, string attribute, bool force)
