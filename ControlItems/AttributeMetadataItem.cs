@@ -58,7 +58,7 @@
                     add = false;
                 }
             }
-            if (!allowvirtual && meta.AttributeType == AttributeTypeCode.Virtual)
+            if (!allowvirtual && meta.AttributeType == AttributeTypeCode.Virtual && !(meta is MultiSelectPicklistAttributeMetadata))
             {
                 add = false;
             }
