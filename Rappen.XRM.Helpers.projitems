@@ -18,6 +18,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\CanaryTracer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
