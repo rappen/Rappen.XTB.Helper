@@ -238,7 +238,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 if (value != showLocalTimes)
                 {
-                    showLocalTimes = value && showFriendlyNames;
+                    showLocalTimes = value;
                     if (autoRefresh)
                     {
                         Refresh();
@@ -258,11 +258,7 @@ namespace Rappen.XTB.Helpers.Controls
                 if (value != showFriendlyNames)
                 {
                     showFriendlyNames = value;
-                    if (!showFriendlyNames)
-                    {
-                        showLocalTimes = false;
-                    }
-                    if (autoRefresh)
+                  if (autoRefresh)
                     {
                         Refresh();
                     }
@@ -756,12 +752,12 @@ namespace Rappen.XTB.Helpers.Controls
                         else if (entity.Contains(col) && entity[col] != null)
                         {
                             value = entity[col];
+                            if (EntitySerializer.AttributeToBaseType(value) is DateTime dtvalue && showLocalTimes && (dtvalue).Kind == DateTimeKind.Utc)
+                            {
+                                value = dtvalue.ToLocalTime();
+                            }
                             if (showFriendlyNames)
                             {
-                                if (EntitySerializer.AttributeToBaseType(value) is DateTime dtvalue && showLocalTimes && (dtvalue).Kind == DateTimeKind.Utc)
-                                {
-                                    value = dtvalue.ToLocalTime();
-                                }
                                 if (!ValueTypeIsFriendly(value) && column.ExtendedProperties.ContainsKey("Metadata"))
                                 {
                                     value = EntitySerializer.AttributeToString(value, column.ExtendedProperties["Metadata"] as AttributeMetadata, column.ExtendedProperties["Format"] as string);
