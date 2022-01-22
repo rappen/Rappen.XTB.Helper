@@ -10,6 +10,8 @@ namespace Rappen.XRM.Helpers.Plugin
 
         public ILogger Logger => logger;
 
+        public bool AddTimes { get { return logger.AddTimes; } set { logger.AddTimes = value; } }
+
         public IOrganizationService Service { get; }
 
         public IPluginExecutionContext Context { get; }
