@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using Rappen.XRM.Helpers.Extensions;
 using Rappen.XTB.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -47,13 +48,31 @@ namespace Rappen.XTB.Helpers.Extensions
         /// 
         /// </summary>
         /// <param name="bag"></param>
+        /// <param name="entityName"></param>
+        /// <param name="id"></param>
+        /// <param name="columnSet"></param>
+        /// <returns></returns>
+        public static Entity Retrieve(this IBag bag, string entityName, Guid id, ColumnSet columnSet)
+        {
+            bag.Logger.StartSection("Retrieve");
+            var entity = bag.Service.Retrieve(entityName, id, columnSet);
+            bag.Logger.Log($"Retrieved {entityName} {id}");
+            bag.Logger.EndSection();
+            return entity;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="bag"></param>
         /// <param name="query"></param>
         /// <returns></returns>
         public static EntityCollection RetrieveMultiple(this IBag bag, QueryBase query)
         {
-            bag.Logger.StartSection("RetrieveMultiple");
+            var name = query is QueryExpression qex ? qex.EntityName : query.ToString();
+            bag.Logger.StartSection($"RetrieveMultiple");
             var cEntities = bag.Service.RetrieveMultiple(query);
-            bag.Logger.Log($"Retrieved {cEntities.Entities.Count} records");
+            bag.Logger.Log($"Retrieved {cEntities.Entities.Count} {name}");
             bag.Logger.EndSection();
             return cEntities;
         }
@@ -213,6 +232,40 @@ namespace Rappen.XTB.Helpers.Extensions
             }
         }
 
+        public static string GetEnvironmentVariableValue(this IBag container, string variablename, bool throwifnotfound)
+        {
+            container.Logger.StartSection("GetEnvironmentVariableValue");
+            container.Logger.Log($"Variable Name: {variablename}");
+            var qe = new QueryExpression(Environmentvariabledefinition.EntityName);
+            qe.ColumnSet.AddColumns(Environmentvariabledefinition.PrimaryName, Environmentvariabledefinition.Defaultvalue);
+            qe.Criteria.AddCondition(Environmentvariabledefinition.PrimaryName, ConditionOperator.Equal, variablename);
+            var ev = qe.AddLink(Environmentvariablevalue.EntityName, Environmentvariablevalue.EnvironmentvariabledefinitionId, Environmentvariabledefinition.PrimaryKey, JoinOperator.LeftOuter);
+            ev.EntityAlias = "EV";
+            ev.Columns.AddColumns(Environmentvariablevalue.Value);
+            var variablevalues = container.RetrieveMultiple(qe);
+            if (variablevalues.Entities.Count != 1)
+            {
+                if (throwifnotfound)
+                {
+                    throw new InvalidPluginExecutionException($"Found {variablevalues.Entities.Count} environment variables.");
+                }
+                return string.Empty;
+            }
+            string result;
+            if (variablevalues[0].GetAttributeValue<AliasedValue>("EV.value") is AliasedValue value)
+            {
+                //
+                result = value.Value.ToString();
+                container.Logger.Log($"Found Environment Variable value: {result}");
+            }
+            else
+            {
+                variablevalues[0].TryGetAttributeValue<string>(Environmentvariabledefinition.Defaultvalue, out result);
+                container.Logger.Log($"Found Environment Variable default: {result}");
+            }
+            container.Logger.EndSection();
+            return result;
+        }
         #endregion Public Methods
     }
 }
