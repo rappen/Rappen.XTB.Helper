@@ -10,17 +10,29 @@
     {
         public bool FriendlyNames { get; set; }
 
+        public bool ShowTypes { get; set; }
+
         public AttributeMetadata Metadata { get; } = null;
 
-        public AttributeMetadataItem(AttributeMetadata Attribute, bool friendlynames)
+        public AttributeMetadataItem(AttributeMetadata Attribute, bool friendlynames, bool showtypes)
         {
             Metadata = Attribute;
             FriendlyNames = friendlynames;
+            ShowTypes = showtypes;
         }
 
-        public AttributeMetadataItem(IOrganizationService service, string entity, string attribute, bool friendlynames) : this(service.GetAttribute(entity, attribute), friendlynames) { }
+        public AttributeMetadataItem(IOrganizationService service, string entity, string attribute, bool friendlynames, bool showtypes)
+            : this(service.GetAttribute(entity, attribute), friendlynames, showtypes) { }
 
-        public override string ToString() => FriendlyNames ? DisplayName : Metadata.LogicalName;
+        public override string ToString()
+        {
+            var result = FriendlyNames ? DisplayName : Metadata.LogicalName;
+            if (ShowTypes)
+            {
+                result += $" ({GetType()})";
+            }
+            return result;
+        }
 
         public string DisplayName => GetDisplayName();
 
@@ -36,6 +48,16 @@
                 result = Metadata.DisplayName.LocalizedLabels[0].Label;
             }
             return result;
+        }
+
+        public string GetType()
+        {
+            var result= Metadata.AttributeTypeName.Value;
+            if (result.EndsWith("Type"))
+            {
+                result = result.Substring(0, result.Length - 4);
+            }
+            return result.Trim();
         }
 
         public string GetValue()
@@ -64,7 +86,7 @@
             }
             if (add)
             {
-                cmb.Items.Add(new AttributeMetadataItem(meta, friendlynames));
+                cmb.Items.Add(new AttributeMetadataItem(meta, friendlynames, true));
             }
         }
     }

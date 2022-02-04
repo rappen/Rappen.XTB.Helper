@@ -1,5 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Metadata;
+﻿using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XTB.Helpers.ControlItems;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -12,6 +11,7 @@ namespace Rappen.XTB.Helpers.Controls
     {
         #region Private properties
         private bool showFriendlyNames = true;
+        private bool showTypes = true;
         private bool sorted = true;
         private IEnumerable<AttributeMetadata> attributes;
         #endregion
@@ -76,6 +76,22 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         [DefaultValue(true)]
+        [Description("True to show types in parentheses after name.")]
+        public bool ShowTypes
+        {
+            get { return showTypes; }
+            set
+            {
+                if (value != showTypes)
+                {
+                    showTypes = value;
+                    Refresh();
+                }
+            }
+        }
+
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
         [Description("Defines if the attributes should be sorted alphabetically, based on selected layout")]
         public new bool Sorted
         {
@@ -102,7 +118,7 @@ namespace Rappen.XTB.Helpers.Controls
         {
             SuspendLayout();
             var selected = SelectedAttribute;
-            var ds = attributes?.Select(a => new AttributeMetadataItem(a, showFriendlyNames)).ToArray();
+            var ds = attributes?.Select(a => new AttributeMetadataItem(a, showFriendlyNames, showTypes)).ToArray();
             if (sorted && ds?.Length > 0)
             {
                 ds = ds.OrderBy(a => a.ToString()).ToArray();
@@ -115,7 +131,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             ResumeLayout();
         }
-        
+
         public void SetSelected(string attributelogicalname)
         {
             if (!string.IsNullOrEmpty(attributelogicalname) &&
