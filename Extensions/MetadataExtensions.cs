@@ -11,9 +11,48 @@ namespace Rappen.XTB.Helpers.Extensions
     {
         private static Dictionary<IOrganizationService, Dictionary<string, EntityMetadata>> entities = new Dictionary<IOrganizationService, Dictionary<string, EntityMetadata>>();
 
-        public static string[] entityProperties = { "LogicalName", "DisplayName", "DisplayCollectionName", "PrimaryIdAttribute", "PrimaryNameAttribute", "ObjectTypeCode", "IsManaged", "IsCustomizable", "IsCustomEntity", "IsIntersect", "IsValidForAdvancedFind" };
-        public static string[] entityDetails = { "Attributes", "ManyToOneRelationships", "OneToManyRelationships", "ManyToManyRelationships", "SchemaName", "LogicalCollectionName", "PrimaryIdAttribute" };
-        public static string[] attributeProperties = { "DisplayName", "AttributeType", "IsValidForRead", "AttributeOf", "IsManaged", "IsCustomizable", "IsCustomAttribute", "IsValidForAdvancedFind", "IsPrimaryId", "IsPrimaryName", "OptionSet", "SchemaName", "Targets" };
+        public static string[] entityProperties = {
+            "LogicalName",
+            "DisplayName",
+            "DisplayCollectionName",
+            "PrimaryIdAttribute",
+            "PrimaryNameAttribute",
+            "ObjectTypeCode",
+            "IsManaged",
+            "IsCustomizable",
+            "IsCustomEntity",
+            "IsIntersect",
+            "IsValidForAdvancedFind",
+            "DataProviderId",
+            "IsAuditEnabled",
+            "IsLogicalEntity",
+            "IsActivity",
+            "IsActivityParty"
+        };
+        public static string[] entityDetails = {
+            "Attributes",
+            "ManyToOneRelationships",
+            "OneToManyRelationships",
+            "ManyToManyRelationships",
+            "SchemaName",
+            "LogicalCollectionName",
+            "PrimaryIdAttribute"
+        };
+        public static string[] attributeProperties = { 
+            "DisplayName",
+            "AttributeType", 
+            "IsValidForRead", 
+            "AttributeOf",
+            "IsManaged",
+            "IsCustomizable",
+            "IsCustomAttribute",
+            "IsValidForAdvancedFind", 
+            "IsPrimaryId", 
+            "IsPrimaryName", 
+            "OptionSet",
+            "SchemaName", 
+            "Targets" 
+        };
 
         public static AttributeMetadata GetAttribute(this IOrganizationService service, string entity, string attribute, object value)
         {
@@ -141,6 +180,10 @@ namespace Rappen.XTB.Helpers.Extensions
             if (orgMajorVer < 8)
             {
                 result.Remove("LogicalCollectionName");
+            }
+            if (orgMinorVer < 9)
+            {
+                result.Remove("DataProviderId");
             }
             return result.ToArray();
         }
