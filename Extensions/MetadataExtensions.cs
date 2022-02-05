@@ -181,7 +181,7 @@ namespace Rappen.XTB.Helpers.Extensions
             {
                 result.Remove("LogicalCollectionName");
             }
-            if (orgMinorVer < 9)
+            if (orgMajorVer < 9)
             {
                 result.Remove("DataProviderId");
             }
