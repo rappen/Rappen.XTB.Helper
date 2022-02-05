@@ -27,7 +27,8 @@ namespace Rappen.XTB.Helpers.Extensions
             "IsAuditEnabled",
             "IsLogicalEntity",
             "IsActivity",
-            "IsActivityParty"
+            "IsActivityParty",
+            "OwnershipType"
         };
         public static string[] entityDetails = {
             "Attributes",
