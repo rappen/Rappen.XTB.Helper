@@ -127,14 +127,14 @@ namespace Rappen.XTB.Helpers.Extensions
             return null;
         }
 
-        public static RetrieveMetadataChangesResponse LoadEntities(this IOrganizationService service)
+        public static RetrieveMetadataChangesResponse LoadEntities(this IOrganizationService service, int orgMajorVer = 0, int orgMinorVer = 0)
         {
             if (service == null)
             {
                 return null;
             }
             var eqe = new EntityQueryExpression();
-            eqe.Properties = new MetadataPropertiesExpression(entityProperties);
+            eqe.Properties = new MetadataPropertiesExpression(GetEntityDetailsForVersion(entityProperties, orgMajorVer, orgMinorVer));
             var req = new RetrieveMetadataChangesRequest()
             {
                 Query = eqe,
@@ -150,8 +150,8 @@ namespace Rappen.XTB.Helpers.Extensions
                 return null;
             }
             var eqe = new EntityQueryExpression();
-            eqe.Properties = new MetadataPropertiesExpression(entityProperties);
-            string[] details = GetEntityDetailsForVersion(orgMajorVer, orgMinorVer);
+            eqe.Properties = new MetadataPropertiesExpression(GetEntityDetailsForVersion(entityProperties, orgMajorVer, orgMinorVer));
+            string[] details = GetEntityDetailsForVersion(entityDetails, orgMajorVer, orgMinorVer);
             eqe.Properties.PropertyNames.AddRange(details);
             eqe.Criteria.Conditions.Add(new MetadataConditionExpression("LogicalName", MetadataConditionOperator.Equals, entityName));
             var aqe = new AttributeQueryExpression();
@@ -175,9 +175,9 @@ namespace Rappen.XTB.Helpers.Extensions
             return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
         }
 
-        private static string[] GetEntityDetailsForVersion(int orgMajorVer, int orgMinorVer)
+        private static string[] GetEntityDetailsForVersion(string[] entitiesoptions, int orgMajorVer, int orgMinorVer)
         {
-            var result = entityDetails.ToList();
+            var result = entitiesoptions.ToList();
             if (orgMajorVer < 8)
             {
                 result.Remove("LogicalCollectionName");
