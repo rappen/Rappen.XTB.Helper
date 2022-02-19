@@ -39,20 +39,20 @@ namespace Rappen.XTB.Helpers.Extensions
             "LogicalCollectionName",
             "PrimaryIdAttribute"
         };
-        public static string[] attributeProperties = { 
+        public static string[] attributeProperties = {
             "DisplayName",
-            "AttributeType", 
-            "IsValidForRead", 
+            "AttributeType",
+            "IsValidForRead",
             "AttributeOf",
             "IsManaged",
             "IsCustomizable",
             "IsCustomAttribute",
-            "IsValidForAdvancedFind", 
-            "IsPrimaryId", 
-            "IsPrimaryName", 
+            "IsValidForAdvancedFind",
+            "IsPrimaryId",
+            "IsPrimaryName",
             "OptionSet",
-            "SchemaName", 
-            "Targets" 
+            "SchemaName",
+            "Targets"
         };
 
         public static AttributeMetadata GetAttribute(this IOrganizationService service, string entity, string attribute, object value)
@@ -181,6 +181,8 @@ namespace Rappen.XTB.Helpers.Extensions
             if (orgMajorVer < 8)
             {
                 result.Remove("LogicalCollectionName");
+                result.Remove("IsLogicalEntity");
+                result.Remove("IsAuditEnabled");
             }
             if (orgMajorVer < 9)
             {
@@ -190,4 +192,3 @@ namespace Rappen.XTB.Helpers.Extensions
         }
     }
 }
-
