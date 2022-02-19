@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rappen.XTB.Helpers.Extensions;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using XrmToolBox.Extensibility;
@@ -8,24 +9,28 @@ namespace Rappen.XTB.Helpers.XTBExtensions
 {
     public static class GitHub
     {
-        public static void CreateNewIssueFromError(PluginControlBase tool, Exception error)
-            => CreateNewIssue(tool, "```\n" + error.Message + "\n" + error.StackTrace + "\n```");
+        public static void CreateNewIssueFromError(PluginControlBase tool, Exception error, string moreinfo)
+            => CreateNewIssue(tool, "```\n" + error.ToTypeString() + ":\n" + error.Message + "\n" + error.StackTrace + "\n```", moreinfo);
 
-        public static void CreateNewIssue(PluginControlBase tool, string addedtext)
+        public static void CreateNewIssue(PluginControlBase tool, string addedtext, string extrainfo)
         {
             if (!(tool is IGitHubPlugin githubtool))
             {
                 return;
             }
-            var additionalInfo = "?body=[Write your comment/feedback/issue here]%0A%0A---%0A";
-            additionalInfo += addedtext.Replace("\n", "%0A").Replace("&", "%26").Replace("   at ", "- ") + "%0A%0A---%0A";
-            additionalInfo += $"-%20{tool.ProductName}%20Version:%20{Assembly.GetExecutingAssembly().GetName().Version}%0A";
+            var additionalInfo = "?body=[Write any error info to resolve easier]\n\n---\n";
+            additionalInfo += addedtext.Replace("   at ", "- ") + "\n\n---\n";
+            if (!string.IsNullOrWhiteSpace(extrainfo))
+            {
+                additionalInfo += "\n```\n" + extrainfo + "\n```\n---\n";
+            }
+            additionalInfo += $"- {tool.ProductName} Version: {Assembly.GetExecutingAssembly().GetName().Version}\n";
             if (tool.ConnectionDetail != null)
             {
-                additionalInfo += $"-%20DB%20Version:%20{tool.ConnectionDetail.OrganizationVersion}%0A";
-                additionalInfo +=
-                    $"-%20Deployment:%20{(tool.ConnectionDetail.WebApplicationUrl.ToLower().Contains("dynamics.com") ? "Online" : "OnPremise")}%0A";
+                additionalInfo += $"- DB Version: {tool.ConnectionDetail.OrganizationVersion}\n";
+                additionalInfo += $"- Deployment: {(tool.ConnectionDetail.WebApplicationUrl.ToLower().Contains("dynamics.com") ? "Online" : "OnPremise")}\n";
             }
+            additionalInfo = additionalInfo.Replace("\n", "%0A").Replace("&", "%26").Replace(" ", "%20");
             var url = $"https://github.com/{githubtool.UserName}/{githubtool.RepositoryName}/issues/new";
             Process.Start(url + additionalInfo);
         }

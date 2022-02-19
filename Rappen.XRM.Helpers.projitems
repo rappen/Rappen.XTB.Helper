@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\Exception.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
