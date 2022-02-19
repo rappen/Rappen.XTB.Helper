@@ -9,12 +9,12 @@ namespace Rappen.XTB.Helpers.XTBExtensions
 {
     public static class GitHub
     {
-        public static void CreateNewIssueFromError(PluginControlBase tool, Exception error, string moreinfo)
-            => CreateNewIssue(tool, "```\n" + error.ToTypeString() + ":\n" + error.Message + "\n" + error.StackTrace + "\n```", moreinfo);
+        public static void CreateNewIssueFromError(this PluginControlBase tool, Exception error, string moreinfo)
+            => tool.CreateNewIssue("```\n" + error.ToTypeString() + ":\n" + error.Message + "\n" + error.StackTrace + "\n```", moreinfo);
 
-        public static void CreateNewIssue(PluginControlBase tool, string addedtext, string extrainfo)
+        public static void CreateNewIssue(this PluginControlBase tool, string addedtext, string extrainfo)
         {
-            if (!(tool is IGitHubPlugin githubtool))
+            if (tool == null || !(tool is IGitHubPlugin githubtool))
             {
                 return;
             }
