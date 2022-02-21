@@ -175,14 +175,24 @@ namespace Rappen.XTB.Helpers.Extensions
             return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
         }
 
+        /// <summary>
+        /// Don't try to retrieve properties when this version don't have it.
+        /// Got the info from https://github.com/albanian-xrm/PackageHistoryBuilder
+        /// </summary>
+        /// <param name="entitiesoptions"></param>
+        /// <param name="orgMajorVer"></param>
+        /// <param name="orgMinorVer"></param>
+        /// <returns></returns>
         private static string[] GetEntityDetailsForVersion(string[] entitiesoptions, int orgMajorVer, int orgMinorVer)
         {
             var result = entitiesoptions.ToList();
-            if (orgMajorVer < 8)
+            if (orgMajorVer < 7 || (orgMajorVer == 7 && orgMinorVer < 1))
             {
                 result.Remove("LogicalCollectionName");
+            }
+            if (orgMajorVer < 8 || (orgMajorVer == 8 && orgMinorVer < 2))
+            {
                 result.Remove("IsLogicalEntity");
-                result.Remove("IsAuditEnabled");
             }
             if (orgMajorVer < 9)
             {
