@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XTBExtensions\GitHub.cs" />
   </ItemGroup>
   <ItemGroup>
