@@ -35,7 +35,7 @@
 
         public string GetValue()
         {
-            return Metadata.Value.ToString();
+            return Metadata.Value?.ToString();
         }
     }
 }

@@ -39,11 +39,11 @@
         private string GetDisplayName()
         {
             var result = Metadata.LogicalName;
-            if (Metadata.DisplayName.UserLocalizedLabel != null)
+            if (Metadata.DisplayName?.UserLocalizedLabel != null)
             {
                 result = Metadata.DisplayName.UserLocalizedLabel.Label;
             }
-            if (result == Metadata.LogicalName && Metadata.DisplayName.LocalizedLabels.Count > 0)
+            if (result == Metadata.LogicalName && Metadata.DisplayName?.LocalizedLabels?.Count > 0)
             {
                 result = Metadata.DisplayName.LocalizedLabels[0].Label;
             }
@@ -52,8 +52,12 @@
 
         public string GetType()
         {
-            var result= Metadata.AttributeTypeName.Value;
-            if (result.EndsWith("Type"))
+            var result = Metadata.AttributeTypeName?.Value;
+            if (string.IsNullOrEmpty(result))
+            {
+                result = Metadata.AttributeType?.ToString();
+            }
+            if (result != null && result.EndsWith("Type"))
             {
                 result = result.Substring(0, result.Length - 4);
             }

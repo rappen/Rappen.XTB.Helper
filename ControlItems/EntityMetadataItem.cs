@@ -42,11 +42,11 @@
                 return string.Empty;
             }
             var result = Metadata.LogicalName;
-            if (Metadata.DisplayName.UserLocalizedLabel != null)
+            if (Metadata.DisplayName?.UserLocalizedLabel != null)
             {
                 result = Metadata.DisplayName.UserLocalizedLabel.Label;
             }
-            if (result == Metadata.LogicalName && Metadata.DisplayName.LocalizedLabels.Count > 0)
+            if (result == Metadata.LogicalName && Metadata.DisplayName?.LocalizedLabels.Count > 0)
             {
                 result = Metadata.DisplayName.LocalizedLabels[0].Label;
             }
@@ -82,11 +82,11 @@
 
         public OneToManyRelationshipMetadata GetRelationship(string name)
         {
-            if (Metadata.OneToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata rel1m)
+            if (Metadata.OneToManyRelationships?.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata rel1m)
             {
                 return rel1m;
             }
-            if (Metadata.ManyToOneRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata relm1)
+            if (Metadata.ManyToOneRelationships?.FirstOrDefault(r => r.SchemaName.Equals(name)) is OneToManyRelationshipMetadata relm1)
             {
                 return relm1;
             }
@@ -95,7 +95,7 @@
 
         public ManyToManyRelationshipMetadata GetRelationshipMM(string name)
         {
-            if (Metadata.ManyToManyRelationships.FirstOrDefault(r => r.SchemaName.Equals(name)) is ManyToManyRelationshipMetadata relmm)
+            if (Metadata.ManyToManyRelationships?.FirstOrDefault(r => r.SchemaName.Equals(name)) is ManyToManyRelationshipMetadata relmm)
             {
                 return relmm;
             }
