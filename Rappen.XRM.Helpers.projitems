@@ -16,6 +16,16 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Attribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Condition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Entity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Enum.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Fetch.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\FetchXML.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Filter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\LinkEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Order.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
