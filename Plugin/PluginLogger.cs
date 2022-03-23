@@ -8,6 +8,7 @@ namespace Rappen.XRM.Helpers.Plugin
     internal class PluginLogger : ILogger, ITracingService, IDisposable
     {
         private readonly ITracingService trace;
+        private readonly Microsoft.Xrm.Sdk.PluginTelemetry.ILogger logger;
         private List<string> sections;
         public bool AddTimes { get; set; } = false;
 
@@ -16,6 +17,7 @@ namespace Rappen.XRM.Helpers.Plugin
         public PluginLogger(IServiceProvider serviceProvider)
         {
             trace = (ITracingService)serviceProvider.GetService(typeof(ITracingService));
+            logger = (Microsoft.Xrm.Sdk.PluginTelemetry.ILogger)serviceProvider.GetService(typeof(Microsoft.Xrm.Sdk.PluginTelemetry.ILogger));
             sections = new List<string>();
             trace.Trace(GetAddTime(true, true));
         }
@@ -46,12 +48,14 @@ namespace Rappen.XRM.Helpers.Plugin
         {
             var indent = new string(' ', sections.Count * 2);
             trace.Trace(GetAddTime() + indent + message);
+            logger.LogInformation(message);
         }
 
         public void Log(Exception ex)
         {
             trace.Trace(GetAddTime() + "Error:");
             trace.Trace(ex.Message);
+            logger.LogError(ex, ex.Message);
         }
 
         public void StartSection(string name = null)
