@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -20,20 +21,22 @@ namespace Rappen.XRM.Helpers.FetchXML
             Parent = parent;
             Name = xml.Attribute("name");
             Alias = xml.Attribute("alias");
-            if (xml.Attribute("aggregate") is string aggr)
+            if (Enum.TryParse(xml.Attribute("aggregate"), out AggregateType aggregate))
             {
-                Aggregate = aggr.ToEnum<AggregateType>();
-            };
+                Aggregate = aggregate;
+            }
             GroupBy = xml.AttributeBool("groupby");
             Distinct = xml.AttributeBool("distinct");
             UserTimeZone = xml.AttributeBool("usertimezone");
             if (xml.Attribute("dategrouping") is string group)
             {
-                DateGrouping = group.ToEnum<DateGroupingType>();
-            };
+                //var x = StringToEnum<DateGroupingType>("dfdsf");
+                //DateGrouping = group.ToEnum<DateGroupingType>();
+                DateGrouping = group.StringToEnum<DateGroupingType>();
+            }
         }
 
-        public override string ToString() => Name;
+        public override string ToString() => ToXML().OuterXml;
 
         public static List<Attribute> List(XmlNode xml, Entity parent)
         {
@@ -43,6 +46,22 @@ namespace Rappen.XRM.Helpers.FetchXML
                 return result;
             }
             return null;
+        }
+
+        internal XmlNode ToXML()
+        {
+            var xml = Parent.Parent.Xml.CreateElement("attribute");
+            xml.SetAttribute("name", Name);
+            xml.AddAttribute("alias", Alias);
+            if (Parent.Parent.Aggregate == true)
+            {
+                xml.AddAttribute("aggregate", Aggregate.ToString());
+                if (DateGrouping is DateGroupingType group)
+                {
+                    xml.AddAttribute("dategrouping", group.EnumToString());
+                }
+            }
+            return xml;
         }
     }
 }

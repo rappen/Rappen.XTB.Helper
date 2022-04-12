@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using System.Xml;
+using System.Xml.Serialization;
 
 namespace Rappen.XRM.Helpers.FetchXML
 {
@@ -45,6 +48,59 @@ namespace Rappen.XRM.Helpers.FetchXML
                 catch { }
             }
             return default(T);
+        }
+
+        public static void AddAttribute(this XmlElement xml, string name, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                xml.SetAttribute(name, value.ToString());
+            }
+        }
+
+        public static void AddAttribute(this XmlElement xml, string name, int? value)
+        {
+            if (value != null)
+            {
+                xml.SetAttribute(name, value.ToString());
+            }
+        }
+
+        public static void AddAttribute(this XmlElement xml, string name, bool? value)
+        {
+            if (value != null)
+            {
+                xml.SetAttribute(name, value.ToString().ToLowerInvariant());
+            }
+        }
+
+        public static string EnumToString<T>(this T pEnumVal)
+        {
+            // http://stackoverflow.com/q/3047125/194717
+            var type = pEnumVal.GetType();
+            var info = type.GetField(Enum.GetName(typeof(T), pEnumVal));
+            var xmlattributes = info.GetCustomAttributes(typeof(XmlEnumAttribute), false);
+            var att = (XmlEnumAttribute)xmlattributes.FirstOrDefault(xa => xa is XmlEnumAttribute);
+            if (att != null)
+            {
+                return att.Name;
+            }
+            return pEnumVal.ToString();
+        }
+
+        public static T StringToEnum<T>(this string value)
+        {
+            // http://stackoverflow.com/a/3073272/194717
+            foreach (object o in System.Enum.GetValues(typeof(T)))
+            {
+                T enumValue = (T)o;
+                if (EnumToString<T>(enumValue).Equals(value, StringComparison.OrdinalIgnoreCase))
+                {
+                    return (T)o;
+                }
+            }
+
+            throw new ArgumentException("No XmlEnumAttribute code exists for type " + typeof(T).ToString() + " corresponding to value of " + value);
         }
     }
 }

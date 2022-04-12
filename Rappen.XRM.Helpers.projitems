@@ -22,7 +22,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Enum.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Extensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Fetch.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\FetchXML.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Filter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\LinkEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Order.cs" />

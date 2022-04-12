@@ -4,6 +4,8 @@ namespace Rappen.XRM.Helpers.FetchXML
 {
     public class Fetch
     {
+        internal XmlDocument Xml;
+
         public int? Top;
         public int? PageSize;
         public bool? Distinct;
@@ -15,7 +17,20 @@ namespace Rappen.XRM.Helpers.FetchXML
         public string PagingCookie;
         public Entity Entity;
 
-        public Fetch(XmlNode xml)
+        public Fetch(string fetch)
+        {
+            Xml = new XmlDocument();
+            Xml.LoadXml(fetch);
+            FromXml(Xml.SelectSingleNode("fetch"));
+        }
+
+        public Fetch(XmlNode fetch)
+        {
+            Xml = new XmlDocument();
+            FromXml(fetch);
+        }
+
+        private void FromXml(XmlNode xml)
         {
             if (xml is XmlDocument)
             {
@@ -34,6 +49,29 @@ namespace Rappen.XRM.Helpers.FetchXML
             {
                 Entity = new Entity(this, entity);
             }
+        }
+
+        public override string ToString() => ToXML().OuterXml;
+
+        private XmlDocument ToXML()
+        {
+            Xml = new XmlDocument();
+            var fetch = Xml.CreateElement("fetch");
+            fetch.AddAttribute("top", Top);
+            fetch.AddAttribute("count", PageSize);
+            fetch.AddAttribute("distinct", Distinct);
+            fetch.AddAttribute("no-lock", NoLock);
+            fetch.AddAttribute("latematerialize", LateMaterializy);
+            fetch.AddAttribute("returntotalrecordcount", TotalRecordCount);
+            fetch.AddAttribute("aggregate", Aggregate);
+            fetch.AddAttribute("page", PageNumber);
+            fetch.AddAttribute("paging-cookie", PagingCookie);
+            Xml.AppendChild(fetch);
+            if (Entity != null)
+            {
+                fetch.AppendChild(Entity.ToXML());
+            }
+            return Xml;
         }
     }
 }

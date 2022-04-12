@@ -24,6 +24,18 @@ namespace Rappen.XRM.Helpers.FetchXML
             LinkEntities = LinkEntity.List(xml, parent, this);
         }
 
-        public override string ToString() => Name;
+        public override string ToString() => ToXML().OuterXml;
+
+        internal XmlNode ToXML()
+        {
+            var xml = Parent.Xml.CreateElement("entity");
+            xml.SetAttribute("name", Name);
+            if (AllAttributes)
+            {
+                xml.AppendChild(Parent.Xml.CreateElement("all-attributes"));
+            }
+            Attributes.ForEach(a => xml.AppendChild(a.ToXML()));
+            return xml;
+        }
     }
 }
