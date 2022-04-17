@@ -53,7 +53,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)XTBExtensions\GitHub.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.resx">

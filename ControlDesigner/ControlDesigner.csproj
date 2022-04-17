@@ -71,6 +71,7 @@
     </Compile>
     <Compile Include="..\Controls\XRMColumnLookup.cs">
       <Link>XRMColumnLookup.cs</Link>
+      <SubType>Component</SubType>
     </Compile>
     <Compile Include="..\Controls\XRMColumnLookup.Designer.cs">
       <Link>XRMColumnLookup.Designer.cs</Link>
@@ -105,14 +106,14 @@
     <Compile Include="..\Extensions\EntityExtensions.cs">
       <Link>EntityExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\Extensions\LCGConstsView.cs">
+      <Link>LCGConstsView.cs</Link>
+    </Compile>
     <Compile Include="..\Extensions\MetadataExtensions.cs">
       <Link>MetadataExtensions.cs</Link>
     </Compile>
     <Compile Include="..\Extensions\ServiceExtensions.cs">
       <Link>ServiceExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Extensions\ViewConsts.cs">
-      <Link>ViewConsts.cs</Link>
     </Compile>
     <Compile Include="..\GenericBag.cs">
       <Link>GenericBag.cs</Link>
