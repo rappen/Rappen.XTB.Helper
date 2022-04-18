@@ -175,7 +175,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 throw new Exception("No assigned Service, cannot save.");
             }
-            if (updatedattributes?.Count() < 1)
+            if (updatedattributes == null || updatedattributes?.Count() < 1)
             {
                 return false;
             }
