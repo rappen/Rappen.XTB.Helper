@@ -1,10 +1,10 @@
-﻿namespace Rappen.XTB.Helpers
+﻿namespace Rappen.XRM.Helpers
 {
     using Microsoft.Crm.Sdk.Messages;
     using Microsoft.Xrm.Sdk;
     using Microsoft.Xrm.Sdk.Query;
-    using Rappen.XTB.Helpers.Extensions;
-    using Rappen.XTB.Helpers.Serialization;
+    using Rappen.XRM.Helpers.Extensions;
+    using Rappen.XRM.Helpers.Serialization;
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;

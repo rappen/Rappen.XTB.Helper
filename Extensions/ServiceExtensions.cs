@@ -7,7 +7,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.Xml;
 
-namespace Rappen.XTB.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions
 {
     public static class ServiceExtensions
     {

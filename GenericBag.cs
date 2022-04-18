@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
-using Rappen.XTB.Helpers.Interfaces;
+using Rappen.XRM.Helpers.Interfaces;
 
-namespace Rappen.XTB.Helpers
+namespace Rappen.XRM.Helpers
 {
     public class GenericBag : IBag
     {

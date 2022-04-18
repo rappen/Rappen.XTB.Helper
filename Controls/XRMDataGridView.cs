@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
-using Rappen.XTB.Helpers.Extensions;
-using Rappen.XTB.Helpers.Serialization;
+using Rappen.XRM.Helpers.Extensions;
+using Rappen.XRM.Helpers.Serialization;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

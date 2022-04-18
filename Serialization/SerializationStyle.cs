@@ -1,4 +1,4 @@
-﻿namespace Rappen.XTB.Helpers.Serialization
+﻿namespace Rappen.XRM.Helpers.Serialization
 {
     public enum SerializationStyle
     {

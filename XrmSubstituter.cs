@@ -2,15 +2,15 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
-using Rappen.XTB.Helpers.Extensions;
-using Rappen.XTB.Helpers.Interfaces;
+using Rappen.XRM.Helpers.Extensions;
+using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.ServiceModel;
 using System.Text;
 
-namespace Rappen.XTB.Helpers
+namespace Rappen.XRM.Helpers
 {
     public static class XrmSubstituter
     {

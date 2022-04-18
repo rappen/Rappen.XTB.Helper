@@ -1,4 +1,4 @@
-﻿namespace Rappen.XTB.Helpers.Extensions
+﻿namespace Rappen.XRM.Helpers.Extensions
 {
     public static class Exceptions
     {

@@ -1,5 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers
 {
+    using Rappen.XRM.Helpers.Interfaces;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
     using System.Collections.Generic;

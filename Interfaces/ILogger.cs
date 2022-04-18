@@ -1,4 +1,4 @@
-﻿namespace Rappen.XTB.Helpers.Interfaces
+﻿namespace Rappen.XRM.Helpers.Interfaces
 {
     using System;
 

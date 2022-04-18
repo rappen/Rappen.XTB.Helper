@@ -5,7 +5,7 @@ using Microsoft.Xrm.Sdk.Metadata.Query;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Rappen.XTB.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions
 {
     public static class MetadataExtensions
     {

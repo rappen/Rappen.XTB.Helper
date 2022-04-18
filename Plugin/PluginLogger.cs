@@ -1,5 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
-using Rappen.XTB.Helpers.Interfaces;
+using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 

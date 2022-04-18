@@ -1,7 +1,9 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
     using Microsoft.Xrm.Sdk;
-    using Rappen.XTB.Helpers.Extensions;
+    using Rappen.XRM.Helpers;
+    using Rappen.XRM.Helpers.Extensions;
+    using Rappen.XRM.Helpers.Interfaces;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
 

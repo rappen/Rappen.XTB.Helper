@@ -1,7 +1,7 @@
-﻿using Rappen.XTB.Helpers.Interfaces;
+﻿using Rappen.XRM.Helpers.Interfaces;
 using System;
 
-namespace Rappen.XTB.Helpers
+namespace Rappen.XRM.Helpers
 {
     public class VoidLogger : ILogger
     {

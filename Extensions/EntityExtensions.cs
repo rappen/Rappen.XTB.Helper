@@ -1,13 +1,13 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
-using Rappen.XTB.Helpers.Interfaces;
+using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace Rappen.XTB.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions
 {
     /// <summary>
     /// Light-weight features inspired by CintDynEntity

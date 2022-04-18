@@ -1,13 +1,12 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
-using Rappen.XRM.Helpers.Extensions;
-using Rappen.XTB.Helpers.Interfaces;
+using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Rappen.XTB.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions
 {
     /// <summary>
     /// Extension methods for IContainable classes

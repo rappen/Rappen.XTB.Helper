@@ -1,10 +1,10 @@
 ﻿namespace Rappen.XTB.Helpers.ControlItems
 {
-    using System.Windows.Forms;
     using Microsoft.Xrm.Sdk;
     using Microsoft.Xrm.Sdk.Metadata;
-    using Rappen.XTB.Helpers.Extensions;
+    using Rappen.XRM.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
+    using System.Windows.Forms;
 
     public class AttributeMetadataItem : IXRMControlItem
     {

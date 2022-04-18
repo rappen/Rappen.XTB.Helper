@@ -7,7 +7,7 @@
 // Created    : 2021-01-16 19:30:12
 // *********************************************************************
 
-namespace Rappen.XTB.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions
 {
     /// <summary>DisplayName: Saved View, OwnershipType: UserOwned, IntroducedVersion: 5.0.0.0</summary>
     public static class UserQuery

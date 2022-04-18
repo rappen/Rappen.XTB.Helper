@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 
-namespace Rappen.XTB.Helpers.Interfaces
+namespace Rappen.XRM.Helpers.Interfaces
 {
     /// <summary>
     /// Core object that helps to keep all objects and methods needed for CRM development in
