@@ -93,6 +93,14 @@
       <Link>XRMColumnLookup.Designer.cs</Link>
       <DependentUpon>XRMColumnLookup.cs</DependentUpon>
     </Compile>
+    <Compile Include="..\Controls\XRMColumnNumber.cs">
+      <Link>XRMColumnNumber.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="..\Controls\XRMColumnNumber.designer.cs">
+      <Link>XRMColumnNumber.designer.cs</Link>
+      <DependentUpon>XRMColumnNumber.cs</DependentUpon>
+    </Compile>
     <Compile Include="..\Controls\XRMControlException.cs">
       <Link>XRMControlException.cs</Link>
     </Compile>

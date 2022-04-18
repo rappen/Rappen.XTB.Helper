@@ -13,6 +13,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.designer.cs">
       <DependentUpon>XRMColumnDateTime.cs</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnNumber.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnNumber.designer.cs">
+      <DependentUpon>XRMColumnNumber.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMControlException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.cs" />
