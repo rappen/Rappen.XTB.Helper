@@ -127,50 +127,11 @@
       <Link>XRMRecordHost.cs</Link>
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="..\Extensions\EntityExtensions.cs">
-      <Link>EntityExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Extensions\LCGConstsView.cs">
-      <Link>LCGConstsView.cs</Link>
-    </Compile>
-    <Compile Include="..\Extensions\MetadataExtensions.cs">
-      <Link>MetadataExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\Extensions\ServiceExtensions.cs">
-      <Link>ServiceExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\GenericBag.cs">
-      <Link>GenericBag.cs</Link>
-    </Compile>
-    <Compile Include="..\Interfaces\IBag.cs">
-      <Link>IBag.cs</Link>
-    </Compile>
-    <Compile Include="..\Interfaces\ILogger.cs">
-      <Link>ILogger.cs</Link>
-    </Compile>
     <Compile Include="..\Interfaces\IXRMControlItem.cs">
       <Link>IXRMControlItem.cs</Link>
     </Compile>
     <Compile Include="..\Interfaces\IXRMRecordControl.cs">
       <Link>IXRMRecordControl.cs</Link>
-    </Compile>
-    <Compile Include="..\Serialization\EntityCollectionSerializer.cs">
-      <Link>EntityCollectionSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\Serialization\EntitySerializer.cs">
-      <Link>EntitySerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\Serialization\SerializationStyle.cs">
-      <Link>SerializationStyle.cs</Link>
-    </Compile>
-    <Compile Include="..\Utils.cs">
-      <Link>Utils.cs</Link>
-    </Compile>
-    <Compile Include="..\VoidLogger.cs">
-      <Link>VoidLogger.cs</Link>
-    </Compile>
-    <Compile Include="..\XrmSubstituter.cs">
-      <Link>XrmSubstituter.cs</Link>
     </Compile>
     <Compile Include="Program.cs" />
     <EmbeddedResource Include="..\Controls\XRMDataGridView.resx">
@@ -186,5 +147,6 @@
   <ItemGroup>
     <None Include="README.md" />
   </ItemGroup>
+  <Import Project="..\..\Rappen.XRM.Helpers\Rappen.XRM.Helpers.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
