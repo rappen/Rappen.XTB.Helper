@@ -1,4 +1,5 @@
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -94,6 +95,10 @@ namespace Rappen.XTB.Helpers.Controls
         [Description("Determines if the button Remove Value should be shown.")]
         public bool ShowRemoveButton { get; set; } = true;
 
+        [DefaultValue(false)]
+        [Description("After the selection and closed the dialog, the record(s) will be reloaded with all attributes.")]
+        public bool ReloadWithAllAttributesAfterSelected { get; set; } = false;
+
         /// <summary>
         /// IOrganizationService to use when retrieving metadata, views and records.
         /// </summary>
@@ -155,6 +160,11 @@ namespace Rappen.XTB.Helpers.Controls
 
                 var result = form.ShowDialog(owner);
                 Records = form.GetSelectedRecords();
+                if (ReloadWithAllAttributesAfterSelected)
+                {
+                    var reloadedrecords = Records.Select(r => Service.Retrieve(r.LogicalName, r.Id, new ColumnSet(true)));
+                    Records = reloadedrecords.ToArray();
+                }
                 return result;
             }
         }
