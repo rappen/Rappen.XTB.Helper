@@ -9,6 +9,10 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.designer.cs">
+      <DependentUpon>XRMColumnDateTime.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMControlException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.cs" />

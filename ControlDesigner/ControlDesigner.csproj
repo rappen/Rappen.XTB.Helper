@@ -69,6 +69,22 @@
     <Compile Include="..\ControlItems\EntityMetadataItem.cs">
       <Link>EntityMetadataItem.cs</Link>
     </Compile>
+    <Compile Include="..\Controls\XRMColumnBool.cs">
+      <Link>XRMColumnBool.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="..\Controls\XRMColumnBool.designer.cs">
+      <Link>XRMColumnBool.designer.cs</Link>
+      <DependentUpon>XRMColumnBool.cs</DependentUpon>
+    </Compile>
+    <Compile Include="..\Controls\XRMColumnDateTime.cs">
+      <Link>XRMColumnDateTime.cs</Link>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="..\Controls\XRMColumnDateTime.designer.cs">
+      <Link>XRMColumnDateTime.designer.cs</Link>
+      <DependentUpon>XRMColumnDateTime.cs</DependentUpon>
+    </Compile>
     <Compile Include="..\Controls\XRMColumnLookup.cs">
       <Link>XRMColumnLookup.cs</Link>
       <SubType>Component</SubType>
