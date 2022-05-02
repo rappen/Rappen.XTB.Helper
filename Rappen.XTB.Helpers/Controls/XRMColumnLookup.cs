@@ -303,7 +303,7 @@ namespace Rappen.XTB.Helpers.Controls
                 GetRecordsFromRecordHost();
             }
             var entref = recordhost?[column] as EntityReference;
-            SelectById(entref?.Id);
+            SetSelected(entref?.Id);
             populating = false;
         }
 
@@ -325,10 +325,10 @@ namespace Rappen.XTB.Helpers.Controls
             }
             base.DataSource = ds;
             base.Refresh();
-            SelectById(selected?.Id);
+            SetSelected(selected?.Id);
         }
 
-        private void SelectById(Guid? id)
+        public void SetSelected(Guid? id)
         {
             if (id != null && !id.Equals(Guid.Empty) &&
                 base.DataSource is IEnumerable<EntityItem> ds &&
