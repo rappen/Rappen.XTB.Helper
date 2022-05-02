@@ -660,7 +660,7 @@ namespace Rappen.XRM.Helpers
             }
 
             // Extract "next" attribute in the path
-            var attribute = attributepath.Split('.')[0];
+            var attribute = entity.Contains(attributepath) ? attributepath : attributepath.Split('.')[0];
 
             var value = string.Empty;
             if (entity.Contains(attribute)) // Attribute exists
