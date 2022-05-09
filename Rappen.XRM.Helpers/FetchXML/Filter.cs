@@ -4,17 +4,17 @@ using System.Xml;
 
 namespace Rappen.XRM.Helpers.FetchXML
 {
-    public class Filter
+    public class Filter : FetchXMLBase
     {
         public Entity ParentEntity;
         public Filter ParentFilter;
-        public IEnumerable<Filter> Filters;
-        public IEnumerable<Condition> Conditions;
+        public List<Filter> Filters;
+        public List<Condition> Conditions;
         public bool? Or;
         public bool? IsQuickFind;
         public bool? OverrideRecordLimit;
 
-        public Filter(Entity parententity, Filter parentfilter, XmlNode xml)
+        public Filter(Entity parententity, Filter parentfilter, XmlNode xml) : base(parententity?.Fetch ?? parentfilter?.Fetch, xml)
         {
             ParentEntity = parententity;
             ParentFilter = parentfilter;
@@ -35,6 +35,35 @@ namespace Rappen.XRM.Helpers.FetchXML
                 return result;
             }
             return null;
+        }
+
+        protected override List<string> GetKnownAttributes() => new List<string> { "type", "isquickfindfields", "overridequickfindrecordlimitenabled" };
+
+        protected override List<string> GetKnownNodes() => new List<string> { "filter", "condition" };
+
+        protected override void AddXMLProperties(XmlElement xml)
+        {
+            xml.AddAttribute("type", OrToType);
+            xml.AddAttribute("isquickfindfields", IsQuickFind);
+            xml.AddAttribute("overridequickfindrecordlimitenabled", OverrideRecordLimit);
+            Conditions?.ForEach(c => xml.AppendChild(c.ToXML()));
+            Filters?.ForEach(f => xml.AppendChild(f.ToXML()));
+        }
+
+        private string OrToType
+        {
+            get
+            {
+                if (Or == true)
+                {
+                    return "or";
+                }
+                if (Or == false)
+                {
+                    return "and";
+                }
+                return null;
+            }
         }
     }
 }

@@ -4,14 +4,14 @@ using System.Xml;
 
 namespace Rappen.XRM.Helpers.FetchXML
 {
-    public class Order
+    public class Order : FetchXMLBase
     {
         public Entity Parent;
         public string Name;
         public string Alias;
         public bool? Descending;
 
-        public Order(Entity parent, XmlNode xml)
+        public Order(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
         {
             Parent = parent;
             Name = xml.Attribute("name");
@@ -29,6 +29,17 @@ namespace Rappen.XRM.Helpers.FetchXML
                 return result;
             }
             return null;
+        }
+
+        protected override List<string> GetKnownAttributes() => new List<string> { "name", "alias", "descending" };
+
+        protected override List<string> GetKnownNodes() => new List<string>();
+
+        protected override void AddXMLProperties(XmlElement xml)
+        {
+            xml.AddAttribute("name", Name);
+            xml.AddAttribute("alias", Alias);
+            xml.AddAttribute("descending", Descending);
         }
     }
 }

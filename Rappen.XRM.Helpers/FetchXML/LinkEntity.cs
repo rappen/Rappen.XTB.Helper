@@ -14,9 +14,9 @@ namespace Rappen.XRM.Helpers.FetchXML
         public bool? Intersect;
         public bool? Visible;
 
-        public LinkEntity(Fetch parentfetch, Entity parententity, XmlNode xml) : base(parentfetch, xml)
+        public LinkEntity(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
         {
-            ParentEntity = parententity;
+            ParentEntity = parent;
             From = xml.Attribute("from");
             To = xml.Attribute("to");
             Outer = xml.Attribute("link-type") == "outer";
@@ -25,16 +25,31 @@ namespace Rappen.XRM.Helpers.FetchXML
             Visible = xml.AttributeBool("visible");
         }
 
-        public override string ToString() => ParentEntity.ToString() + "-" + base.ToString();
-
-        public static List<LinkEntity> List(XmlNode xml, Fetch parentfetch, Entity parententity)
+        public static List<LinkEntity> List(XmlNode xml, Entity parententity)
         {
-            var result = new List<LinkEntity>(xml.SelectNodes("link-entity").OfType<XmlNode>().Select(a => new LinkEntity(parentfetch, parententity, a)));
+            var result = new List<LinkEntity>(xml.SelectNodes("link-entity").OfType<XmlNode>().Select(a => new LinkEntity(parententity, a)));
             if (result.Count > 0)
             {
                 return result;
             }
             return null;
+        }
+
+        public override string ToString() => ToXML().OuterXml;
+
+        protected override List<string> GetKnownAttributes() => new List<string> { "name", "from", "to", "link-type", "alias", "intersect", "visible" };
+
+        protected override List<string> GetKnownNodes() => new List<string> { "attribute", "all-attributes", "order", "filter", "link-entity" };
+
+        protected override void AddXMLProperties(XmlElement xml)
+        {
+            xml.AddAttribute("name", Name);
+            xml.AddAttribute("from", From);
+            xml.AddAttribute("to", To);
+            xml.AddAttribute("alias", Alias);
+            xml.AddAttribute("intersect", Intersect);
+            xml.AddAttribute("visible", Visible);
+            ToXMLProperties(xml);
         }
     }
 }

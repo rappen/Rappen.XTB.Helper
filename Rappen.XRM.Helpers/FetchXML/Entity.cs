@@ -3,9 +3,8 @@ using System.Xml;
 
 namespace Rappen.XRM.Helpers.FetchXML
 {
-    public class Entity
+    public class Entity : FetchXMLBase
     {
-        public Fetch Parent;
         public string Name;
         public bool AllAttributes;
         public List<Attribute> Attributes;
@@ -13,29 +12,36 @@ namespace Rappen.XRM.Helpers.FetchXML
         public List<Filter> Filters;
         public List<LinkEntity> LinkEntities;
 
-        public Entity(Fetch parent, XmlNode xml)
+        internal Entity(Fetch parent, XmlNode xml) : base(parent, xml)
         {
-            Parent = parent;
             Name = xml.Attribute("name");
             AllAttributes = xml.SelectSingleNode("all-attributes") != null;
             Attributes = Attribute.List(xml, this);
             Orders = Order.List(xml, this);
             Filters = Filter.List(xml, this, null);
-            LinkEntities = LinkEntity.List(xml, parent, this);
+            LinkEntities = LinkEntity.List(xml, this);
         }
 
-        public override string ToString() => ToXML().OuterXml;
-
-        internal XmlNode ToXML()
+        protected override void AddXMLProperties(XmlElement xml)
         {
-            var xml = Parent.Xml.CreateElement("entity");
-            xml.SetAttribute("name", Name);
+            xml.AddAttribute("name", Name);
+            ToXMLProperties(xml);
+        }
+
+        protected override List<string> GetKnownAttributes() => new List<string> { "name" };
+
+        protected override List<string> GetKnownNodes() => new List<string> { "attribute", "all-attributes", "order", "filter", "link-entity" };
+
+        protected void ToXMLProperties(XmlElement xml)
+        {
             if (AllAttributes)
             {
-                xml.AppendChild(Parent.Xml.CreateElement("all-attributes"));
+                xml.AppendChild(Fetch.Xml.CreateElement("all-attributes"));
             }
-            Attributes.ForEach(a => xml.AppendChild(a.ToXML()));
-            return xml;
+            Attributes?.ForEach(a => xml.AppendChild(a.ToXML()));
+            Orders?.ForEach(o => xml.AppendChild(o.ToXML()));
+            Filters?.ForEach(f => xml.AppendChild(f.ToXML()));
+            LinkEntities?.ForEach(l => xml.AppendChild(l.ToXML()));
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace Rappen.XRM.Helpers.FetchXML
 {
-    public class Attribute
+    public class Attribute : FetchXMLBase
     {
         public Entity Parent;
         public string Name;
@@ -16,7 +16,7 @@ namespace Rappen.XRM.Helpers.FetchXML
         public bool? UserTimeZone;
         public DateGroupingType? DateGrouping;
 
-        public Attribute(Entity parent, XmlNode xml)
+        public Attribute(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
         {
             Parent = parent;
             Name = xml.Attribute("name");
@@ -30,8 +30,6 @@ namespace Rappen.XRM.Helpers.FetchXML
             UserTimeZone = xml.AttributeBool("usertimezone");
             if (xml.Attribute("dategrouping") is string group)
             {
-                //var x = StringToEnum<DateGroupingType>("dfdsf");
-                //DateGrouping = group.ToEnum<DateGroupingType>();
                 DateGrouping = group.StringToEnum<DateGroupingType>();
             }
         }
@@ -48,20 +46,25 @@ namespace Rappen.XRM.Helpers.FetchXML
             return null;
         }
 
-        internal XmlNode ToXML()
+        protected override List<string> GetKnownAttributes() => new List<string> { "name", "alias", "aggregate", "groupby", "distinct", "usertimezone", "dategrouping" };
+
+        protected override List<string> GetKnownNodes() => new List<string>();
+
+        protected override void AddXMLProperties(XmlElement xml)
         {
-            var xml = Parent.Parent.Xml.CreateElement("attribute");
-            xml.SetAttribute("name", Name);
+            xml.AddAttribute("name", Name);
             xml.AddAttribute("alias", Alias);
-            if (Parent.Parent.Aggregate == true)
+            if (Fetch.Aggregate == true)
             {
                 xml.AddAttribute("aggregate", Aggregate.ToString());
+                xml.AddAttribute("groupby", GroupBy);
+                xml.AddAttribute("distinct", Distinct);
+                xml.AddAttribute("usertimezone", UserTimeZone);
                 if (DateGrouping is DateGroupingType group)
                 {
                     xml.AddAttribute("dategrouping", group.EnumToString());
                 }
             }
-            return xml;
         }
     }
 }
