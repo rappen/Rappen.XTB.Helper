@@ -11,15 +11,13 @@ namespace Rappen.XRM.Helpers.FetchXML
         public string Alias;
         public bool? Descending;
 
-        public Order(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
+        internal Order(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
         {
             Parent = parent;
             Name = xml.Attribute("name");
             Alias = xml.Attribute("alias");
             Descending = xml.AttributeBool("descending");
         }
-
-        public override string ToString() => Name;
 
         public static List<Order> List(XmlNode xml, Entity parent)
         {

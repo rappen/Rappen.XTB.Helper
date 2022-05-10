@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Filter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\LinkEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Order.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Value.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenericBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />

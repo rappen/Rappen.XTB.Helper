@@ -10,9 +10,9 @@ namespace Rappen.XRM.Helpers.FetchXML
         public Filter Parent;
         public string Attribute;
         public @operator Operator;
-        public string Value;
+        public string Value_;
         public string ValueOf;
-        public List<string> Values;
+        public List<Value> Values;
 
         public Condition(Filter parent, XmlNode xml) : base(parent.Fetch, xml)
         {
@@ -22,26 +22,14 @@ namespace Rappen.XRM.Helpers.FetchXML
             {
                 Operator = oper.ToEnum<@operator>();
             };
-            Value = xml.Attribute("value");
+            Value_ = xml.Attribute("value");
             ValueOf = xml.Attribute("valueof");
-            Values = Condition.ListValues(xml);
+            Values = Value.List(xml, this);
         }
-
-        public override string ToString() => ToXML().OuterXml;
 
         public static List<Condition> List(XmlNode xml, Filter parent)
         {
             var result = new List<Condition>(xml.SelectNodes("condition").OfType<XmlNode>().Select(a => new Condition(parent, a)));
-            if (result.Count > 0)
-            {
-                return result;
-            }
-            return null;
-        }
-
-        public static List<string> ListValues(XmlNode xml)
-        {
-            var result = new List<string>(xml.SelectNodes("value").OfType<XmlNode>().Select(a => a.InnerText));
             if (result.Count > 0)
             {
                 return result;
@@ -67,9 +55,9 @@ namespace Rappen.XRM.Helpers.FetchXML
             {
                 xml.AddAttribute("operator", oper.EnumToString());
             }
-            xml.AddAttribute("value", Value);
+            xml.AddAttribute("value", Value_);
             xml.AddAttribute("valueof", ValueOf);
-            Values?.ForEach(a => xml.AppendChild(ToXMLValue(a)));
+            Values?.ForEach(a => xml.AppendChild(a.ToXML()));
         }
     }
 }
