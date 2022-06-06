@@ -142,7 +142,7 @@ namespace Rappen.XTB.Helpers.Controls
         {
             if (!string.IsNullOrEmpty(entitylogicalname) &&
                 base.DataSource is IEnumerable<EntityMetadataItem> ds &&
-                ds?.FirstOrDefault(e => e.Metadata.LogicalName.Equals(entitylogicalname)) is EntityMetadataItem newselected)
+                ds?.FirstOrDefault(e => e.Metadata != null && e.Metadata.LogicalName.Equals(entitylogicalname)) is EntityMetadataItem newselected)
             {
                 SelectedItem = newselected;
             }
