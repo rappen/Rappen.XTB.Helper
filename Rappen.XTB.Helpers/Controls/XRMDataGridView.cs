@@ -15,6 +15,7 @@ namespace Rappen.XTB.Helpers.Controls
     public partial class XRMDataGridView : DataGridView
     {
         #region Private properties
+
         private IOrganizationService organizationService;
         private IEnumerable<Entity> entities;
         private bool autoRefresh = true;
@@ -30,9 +31,11 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showAllColumnsInColumnOrder = false;
         private bool showColumnsNotInColumnOrder = true;
         private DataGridViewColumn[] designedColumns;
-        #endregion
+
+        #endregion Private properties
 
         #region Constructor
+
         public XRMDataGridView()
         {
             SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
@@ -50,7 +53,8 @@ namespace Rappen.XTB.Helpers.Controls
             CellMouseEnter += HandleCellMouseEnter;
             CellMouseLeave += HandleCellMouseLeave;
         }
-        #endregion
+
+        #endregion Constructor
 
         #region Published properties
 
@@ -258,7 +262,7 @@ namespace Rappen.XTB.Helpers.Controls
                 if (value != showFriendlyNames)
                 {
                     showFriendlyNames = value;
-                  if (autoRefresh)
+                    if (autoRefresh)
                     {
                         Refresh();
                     }
@@ -308,9 +312,11 @@ namespace Rappen.XTB.Helpers.Controls
         [DefaultValue(false)]
         [Description("Set this to give EntityReference cells a clickable appearance.")]
         public bool EntityReferenceClickable { get; set; } = false;
-        #endregion
+
+        #endregion Published properties
 
         #region Published events
+
         [Category("Rappen XRM")]
         public event XRMRecordEventHandler RecordClick;
 
@@ -328,7 +334,8 @@ namespace Rappen.XTB.Helpers.Controls
 
         [Category("Rappen XRM")]
         public event XRMRecordEventHandler RecordMouseLeave;
-        #endregion
+
+        #endregion Published events
 
         #region Public properties
 
@@ -402,9 +409,11 @@ namespace Rappen.XTB.Helpers.Controls
                 return result;
             }
         }
-        #endregion
+
+        #endregion Public properties
 
         #region Public methods
+
         /// <summary>
         /// Gets the DataSource object as requested type.
         /// For the CRMGridView the primary expected types T are IEnumerable&lt;Entity&gt; or EntityCollection or DataTable.
@@ -441,9 +450,11 @@ namespace Rappen.XTB.Helpers.Controls
             }
             base.Refresh();
         }
-        #endregion
+
+        #endregion Public methods
 
         #region Private event handler methods
+
         private void HandleClick(object sender, DataGridViewCellEventArgs e)
         {
             GetXRMRecordEventArgs(e).OnRecordEvent(this, RecordClick);
@@ -521,14 +532,15 @@ namespace Rappen.XTB.Helpers.Controls
             GetXRMRecordEventArgs(e).OnRecordEvent(this, RecordMouseLeave);
         }
 
-        #endregion
+        #endregion Private event handler methods
 
         #region Private methods
+
         private XRMRecordEventArgs GetXRMRecordEventArgs(DataGridViewCellEventArgs e)
         {
             Entity entity = GetRecordFromCellEvent(e);
             var attribute = e.ColumnIndex >= 0 ? Columns[e.ColumnIndex].Name : string.Empty;
-//            var args = new XRMRecordEventArgs(e.ColumnIndex, e.RowIndex, entity, attribute);
+            //            var args = new XRMRecordEventArgs(e.ColumnIndex, e.RowIndex, entity, attribute);
             var args = new XRMRecordEventArgs(entity, attribute);
             return args;
         }
@@ -881,6 +893,7 @@ namespace Rappen.XTB.Helpers.Controls
                 }
             }
         }
-        #endregion
+
+        #endregion Private methods
     }
 }
