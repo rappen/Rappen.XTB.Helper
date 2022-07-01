@@ -32,6 +32,9 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showColumnsNotInColumnOrder = true;
         private DataGridViewColumn[] designedColumns;
 
+        private const string _extendedMetaAttribute = "MetaAttribute";
+        private const string _extendedMetaEntity = "MetaEntity";
+
         #endregion Private properties
 
         #region Constructor
@@ -644,7 +647,12 @@ namespace Rappen.XTB.Helpers.Controls
             var type = GetValueType(value);
             var dataColumn = new DataColumn(attribute, type);
             var meta = organizationService.GetAttribute(EntityName, attribute, value);
-            dataColumn.ExtendedProperties.Add("Metadata", meta);
+            dataColumn.ExtendedProperties.Add(_extendedMetaAttribute, meta);
+            if (value is AliasedValue aliasvalue && aliasvalue.EntityLogicalName is string aliasentityname && !string.IsNullOrEmpty(aliasentityname))
+            {
+                var aliasentitymeta = organizationService.GetEntity(aliasentityname);
+                dataColumn.ExtendedProperties.Add(_extendedMetaEntity, aliasentitymeta);
+            }
             dataColumn.ExtendedProperties.Add("OriginalType", GetInnerValueType(value));
             if (meta is DateTimeAttributeMetadata && entities.Any(e => e.Contains(attribute) && e[attribute] is DateTime dtvalue && dtvalue.Millisecond > 0))
             {
@@ -693,7 +701,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             if (CreateColumnForAttribute(entities, attribute, force) is DataColumn dataColumn && dataColumn != null)
             {
-                var meta = dataColumn.ExtendedProperties.ContainsKey("Metadata") ? dataColumn.ExtendedProperties["Metadata"] as AttributeMetadata : null;
+                var meta = dataColumn.ExtendedProperties.ContainsKey(_extendedMetaAttribute) ? dataColumn.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata : null;
                 if (meta?.IsPrimaryId == true && (!force || ShowIdColumn && meta.LogicalName == attribute))
                 {
                     // Don't show the primary key column twice. Ignore the primary key column if:
@@ -711,7 +719,14 @@ namespace Rappen.XTB.Helpers.Controls
                     dataColumn.Caption = meta.DisplayName.UserLocalizedLabel.Label;
                     if (attribute.Contains("."))
                     {
-                        dataColumn.Caption = attribute.Split('.')[0] + " " + dataColumn.Caption;
+                        if (dataColumn.ExtendedProperties.ContainsKey(_extendedMetaEntity) && dataColumn.ExtendedProperties[_extendedMetaEntity] is EntityMetadata aliasmeta)
+                        {
+                            dataColumn.Caption += $" ({aliasmeta.DisplayName.UserLocalizedLabel.Label})";
+                        }
+                        else
+                        {
+                            dataColumn.Caption = attribute.Split('.')[0] + " " + dataColumn.Caption;
+                        }
                     }
                 }
                 else
@@ -770,9 +785,9 @@ namespace Rappen.XTB.Helpers.Controls
                             }
                             if (showFriendlyNames)
                             {
-                                if (!ValueTypeIsFriendly(value) && column.ExtendedProperties.ContainsKey("Metadata"))
+                                if (!ValueTypeIsFriendly(value) && column.ExtendedProperties.ContainsKey(_extendedMetaAttribute))
                                 {
-                                    value = EntitySerializer.AttributeToString(value, column.ExtendedProperties["Metadata"] as AttributeMetadata, column.ExtendedProperties["Format"] as string);
+                                    value = EntitySerializer.AttributeToString(value, column.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata, column.ExtendedProperties["Format"] as string);
                                 }
                                 else
                                 {
