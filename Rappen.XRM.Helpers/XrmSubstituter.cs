@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.ServiceModel;
 using System.Text;
+using System.Threading;
 
 namespace Rappen.XRM.Helpers
 {
@@ -80,6 +81,7 @@ namespace Rappen.XRM.Helpers
 
         private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "SubStr", "Replace", "Math" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
+        private static Random random;
 
         private static int ComparePositions(string source, string item1, string item2)
         {
@@ -576,11 +578,14 @@ namespace Rappen.XRM.Helpers
                 characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             }
             var charlength = characters.Length;
-            var rand = new Random();
+            if (random == null)
+            {
+                random = new Random();
+            }
             var result = string.Empty;
             for (int i = 0; i < length; i++)
             {
-                var randval = rand.Next(charlength);
+                var randval = random.Next(charlength);
                 result += characters[randval];
             }
             return result;
@@ -816,7 +821,20 @@ namespace Rappen.XRM.Helpers
 
             bag.Logger.Log($"Replacing <{token}> with {value}");
             bag.Logger.EndSection();
-            return text.Replace("<" + token + ">", value);
+            return text.ReplaceFirstOnly("<" + token + ">", value);
+        }
+
+        private static string ReplaceFirstOnly(this string theString, string oldValue, string newValue)
+        {
+            if (!theString.Contains(oldValue))
+            {
+                return theString;
+            }
+            var pos = theString.IndexOf(oldValue);
+            var newString = theString.Substring(0, pos);
+            newString += newValue;
+            newString += theString.Substring(pos + oldValue.Length);
+            return newString;
         }
 
         private static string ReplaceSequence(string text, int sequence)
