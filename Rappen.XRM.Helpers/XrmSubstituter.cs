@@ -57,6 +57,10 @@ namespace Rappen.XRM.Helpers
                 {
                     text = ReplaceSystem(bag, text, token);
                 }
+                else if (token.ToLowerInvariant().StartsWith(starttag + "random|", StringComparison.Ordinal))
+                {
+                    text = ReplaceRandom(bag, text, token);
+                }
                 else
                 {
                     text = entity.Replace(bag, text, scope, replacepatterns, supressinvalidattributepaths, token);
@@ -311,27 +315,36 @@ namespace Rappen.XRM.Helpers
             var startexpand = "<" + scope + "expand|";
             var startiif = "<" + scope + "iif|";
             var startsystem = "<" + scope + "system|";
+            var startrandom = "<" + scope + "random|";
             if (text.Contains(startkrull) &&
                 ComparePositions(text, startkrull, startexpand) < 0 &&
                 ComparePositions(text, startkrull, startiif) < 0 &&
-                ComparePositions(text, startkrull, startsystem) < 0)
+                ComparePositions(text, startkrull, startsystem) < 0 &&
+                ComparePositions(text, startkrull, startrandom) < 0)
             {
                 token = GetFirstEnclosedPart(text, "{", "", "}", scope);
             }
             else if (text.Contains(startexpand) &&
                 ComparePositions(text, startexpand, startiif) < 0 &&
-                ComparePositions(text, startexpand, startsystem) < 0)
+                ComparePositions(text, startexpand, startsystem) < 0 &&
+                ComparePositions(text, startexpand, startrandom) < 0)
             {
                 token = GetFirstEnclosedPart(text, "<", "expand|", ">", scope);
             }
             else if (text.Contains(startiif) &&
-                ComparePositions(text, startiif, startsystem) < 0)
+                ComparePositions(text, startiif, startsystem) < 0 &&
+                ComparePositions(text, startiif, startrandom) < 0)
             {
                 token = GetFirstEnclosedPart(text, "<", "iif|", ">", scope);
             }
-            else if (text.Contains(startsystem))
+            else if (text.Contains(startsystem) &&
+                ComparePositions(text, startsystem, startrandom) < 0)
             {
                 token = GetFirstEnclosedPart(text, "<", "system|", ">", scope);
+            }
+            else if (text.Contains(startrandom))
+            {
+                token = GetFirstEnclosedPart(text, "<", "random|", ">", scope);
             }
             else
             {
@@ -566,31 +579,6 @@ namespace Rappen.XRM.Helpers
                 .Replace("\\t", "\t");
         }
 
-        private static string SystemRandom(string lengthstring, string characters = null)
-        {
-            int.TryParse(lengthstring, out var length);
-            if (length <= 0)
-            {
-                throw new InvalidPluginExecutionException("Random length must be a positive integer (" + lengthstring + ")");
-            }
-            if (string.IsNullOrWhiteSpace(characters))
-            {
-                characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            }
-            var charlength = characters.Length;
-            if (random == null)
-            {
-                random = new Random();
-            }
-            var result = string.Empty;
-            for (int i = 0; i < length; i++)
-            {
-                var randval = random.Next(charlength);
-                result += characters[randval];
-            }
-            return result;
-        }
-
         private static string EvaluateIif(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, string token)
         {
             bag.Logger.StartSection("EvaluateIif " + token);
@@ -786,7 +774,7 @@ namespace Rappen.XRM.Helpers
 
         private static string ReplaceSystem(IBag bag, string text, string token)
         {
-            bag.Logger.StartSection("ReplaceSystemSystem " + token);
+            bag.Logger.StartSection("ReplaceSystem " + token);
             string systemtoken = GetSeparatedPart(token, "|", 2).ToLowerInvariant();
             string format = GetSeparatedPart(token, "|", 3);
             bag.Logger.Log($"SystemToken: {systemtoken} Format: {format}");
@@ -810,11 +798,6 @@ namespace Rappen.XRM.Helpers
                     value = SystemChars(format);
                     break;
 
-                case "RANDOM":
-                    var chars = GetSeparatedPart(token, "|", 4);
-                    value = SystemRandom(format, chars);
-                    break;
-
                 default:
                     throw new InvalidPluginExecutionException("Unknown system token: " + systemtoken);
             }
@@ -822,6 +805,104 @@ namespace Rappen.XRM.Helpers
             bag.Logger.Log($"Replacing <{token}> with {value}");
             bag.Logger.EndSection();
             return text.ReplaceFirstOnly("<" + token + ">", value);
+        }
+
+        private static string ReplaceRandom(IBag bag, string text, string token)
+        {
+            bag.Logger.StartSection("ReplaceRandom " + token);
+            string type = GetSeparatedPart(token, "|", 2);
+            string param1 = GetSeparatedPart(token, "|", 3);
+            string param2 = GetSeparatedPart(token, "|", 4);
+            bag.Logger.Log($"Random: {type} Params: {param1}, {param2}");
+
+            var value = string.Empty;
+            if (random == null)
+            {
+                random = new Random();
+            }
+            switch (type.ToUpperInvariant())
+            {
+                case "TEXT":
+                    value = RandomText(param1, param2);
+                    break;
+
+                case "NUMBER":
+                    value = RandomNumber(param1, param2);
+                    break;
+
+                case "DATE":
+                    value = RandomDate(param1, param2);
+                    break;
+
+                case "GUID":
+                    value = Guid.NewGuid().ToString();
+                    break;
+
+                default:
+                    throw new InvalidPluginExecutionException($"Invalid random type ({type})");
+            }
+            bag.Logger.Log($"Replacing <{token}> with {value}");
+            bag.Logger.EndSection();
+            return text.ReplaceFirstOnly("<" + token + ">", value);
+        }
+
+        private static string RandomText(string lengthstr, string characters)
+        {
+            int.TryParse(lengthstr, out var length);
+            if (length <= 0)
+            {
+                throw new InvalidPluginExecutionException("Random length must be a positive integer (" + lengthstr + ")");
+            }
+            if (string.IsNullOrWhiteSpace(characters))
+            {
+                characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            }
+            var charlength = characters.Length;
+            var result = string.Empty;
+            for (int i = 0; i < length; i++)
+            {
+                var randval = random.Next(charlength);
+                result += characters[randval];
+            }
+            return result;
+        }
+
+        private static string RandomNumber(string fromstr, string tostr)
+        {
+            if (!int.TryParse(fromstr, out int from))
+            {
+                from = int.MaxValue - 1;
+            }
+            if (!int.TryParse(tostr, out int to))
+            {
+                to = from;
+                from = 0;
+            }
+            if (from > to)
+            {
+                throw new InvalidPluginExecutionException($"Number area is incorrect ({fromstr} - {tostr})");
+            }
+            return random.Next(from, to + 1).ToString();
+        }
+
+        private static string RandomDate(string fromstr, string tostr)
+        {
+            if (!DateTime.TryParse(fromstr, out DateTime from))
+            {
+                from = DateTime.MinValue;
+            }
+            if (!DateTime.TryParse(tostr, out DateTime to))
+            {
+                to = DateTime.MaxValue;
+            }
+            if (from > to)
+            {
+                throw new InvalidPluginExecutionException($"Date area is incorrect ({from} - {to})");
+            }
+            var datearea = (to - from).TotalDays;
+            var days = random.Next((int)datearea);
+            var randomday = from.AddDays(days);
+            return randomday.ToString("d");
         }
 
         private static string ReplaceFirstOnly(this string theString, string oldValue, string newValue)
