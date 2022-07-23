@@ -564,6 +564,28 @@ namespace Rappen.XRM.Helpers
                 .Replace("\\t", "\t");
         }
 
+        private static string SystemRandom(string lengthstring, string characters = null)
+        {
+            int.TryParse(lengthstring, out var length);
+            if (length <= 0)
+            {
+                throw new InvalidPluginExecutionException("Random length must be a positive integer (" + lengthstring + ")");
+            }
+            if (string.IsNullOrWhiteSpace(characters))
+            {
+                characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            }
+            var charlength = characters.Length;
+            var rand = new Random();
+            var result = string.Empty;
+            for (int i = 0; i < length; i++)
+            {
+                var randval = rand.Next(charlength);
+                result += characters[randval];
+            }
+            return result;
+        }
+
         private static string EvaluateIif(this Entity entity, IBag bag, string text, string scope, Dictionary<string, string> replacepatterns, string token)
         {
             bag.Logger.StartSection("EvaluateIif " + token);
@@ -781,6 +803,11 @@ namespace Rappen.XRM.Helpers
 
                 case "CHAR":
                     value = SystemChars(format);
+                    break;
+
+                case "RANDOM":
+                    var chars = GetSeparatedPart(token, "|", 4);
+                    value = SystemRandom(format, chars);
                     break;
 
                 default:
