@@ -5,6 +5,7 @@ using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 
 namespace Rappen.XRM.Helpers.Extensions
@@ -74,6 +75,10 @@ namespace Rappen.XRM.Helpers.Extensions
             else if (attribute is OptionSetValue osv)
             {
                 return osv.Value;
+            }
+            else if (attribute is OptionSetValueCollection copt)
+            {
+                return copt.Select(c => c.Value);
             }
             else if (attribute is Money money)
             {
@@ -504,7 +509,14 @@ namespace Rappen.XRM.Helpers.Extensions
                 }
                 else if (hasValueFormat)
                 {
-                    result = oAttrValue.ToString();
+                    if (oAttrValue is IEnumerable<int> manyint)
+                    {
+                        result = string.Join(";", manyint.Select(m => m.ToString()));
+                    }
+                    else
+                    {
+                        result = oAttrValue.ToString();
+                    }
                 }
                 else
                 {
