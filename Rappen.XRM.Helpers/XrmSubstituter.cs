@@ -7,6 +7,7 @@ using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
@@ -727,7 +728,15 @@ namespace Rappen.XRM.Helpers
                         bag.Logger.Log($"Retrieved related {deRef.LogicalName}");
                         if (format == "<value>")
                         {
-                            value = deRef.PropertyAsBaseType(finalattribute, "", true).ToString();// "2010-05-14T..."
+                            var basevalue = deRef.PropertyAsBaseType(finalattribute, "", true);
+                            if (basevalue is IEnumerable<int> manyint)
+                            {
+                                value = string.Join(";", manyint.Select(n => n.ToString()));
+                            }
+                            else
+                            {
+                                value = basevalue.ToString();// "2010-05-14T..."
+                            }
                         }
                         else if (finalattribute.StartsWith("<expand|"))
                         {
