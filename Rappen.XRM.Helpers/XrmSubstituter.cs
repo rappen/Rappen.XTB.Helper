@@ -84,7 +84,7 @@ namespace Rappen.XRM.Helpers
             return text;
         }
 
-        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "SubStr", "Replace", "Math" };
+        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
         private static Random random;
 
@@ -125,6 +125,75 @@ namespace Rappen.XRM.Helpers
                 text = text.Substring(0, len);
             }
             return text;
+        }
+
+        private static string FormatRight(string text, string formatTag)
+        {
+            var lenstr = GetSeparatedPart(formatTag, "|", 2);
+            int len;
+            if (!int.TryParse(lenstr, out len))
+            {
+                throw new InvalidPluginExecutionException("Substitute right length must be a positive integer (" + lenstr + ")");
+            }
+            if (text.Length > len)
+            {
+                text = text.Substring(text.Length - len);
+            }
+            return text;
+        }
+
+        private static string FormatTrim(string text, string formatTag)
+        {
+            var trim = GetSeparatedPart(formatTag, "|", 1);
+            var trimtext = GetSeparatedPart(formatTag, "|", 2);
+            switch (trim)
+            {
+                case "Trim":
+                    if (string.IsNullOrEmpty(trimtext))
+                    {
+                        return text.Trim();
+                    }
+                    else
+                    {
+                        if (text.StartsWith(trimtext, StringComparison.OrdinalIgnoreCase))
+                        {
+                            text = text.Substring(trimtext.Length);
+                        }
+                        if (text.EndsWith(trimtext, StringComparison.OrdinalIgnoreCase))
+                        {
+                            text = text.Substring(0, text.Length - trimtext.Length);
+                        }
+                        return text;
+                    }
+                case "TrimStart":
+                    if (string.IsNullOrEmpty(trimtext))
+                    {
+                        return text.TrimStart();
+                    }
+                    else
+                    {
+                        if (text.StartsWith(trimtext, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return text.Substring(trimtext.Length);
+                        }
+                        return text;
+                    }
+                case "TrimEnd":
+                    if (string.IsNullOrEmpty(trimtext))
+                    {
+                        return text.TrimEnd();
+                    }
+                    else
+                    {
+                        if (text.EndsWith(trimtext, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return text.Substring(0, text.Length - trimtext.Length);
+                        }
+                        return text;
+                    }
+                default:
+                    throw new InvalidPluginExecutionException($"Incorrect Trim: {trim}");
+            }
         }
 
         private static string FormatMath(string text, string formatTag)
@@ -226,21 +295,6 @@ namespace Rappen.XRM.Helpers
             }
             var newText = GetSeparatedPart(formatTag, "|", 3);
             text = text.Replace(oldText, newText);
-            return text;
-        }
-
-        private static string FormatRight(string text, string formatTag)
-        {
-            var lenstr = GetSeparatedPart(formatTag, "|", 2);
-            int len;
-            if (!int.TryParse(lenstr, out len))
-            {
-                throw new InvalidPluginExecutionException("Substitute right length must be a positive integer (" + lenstr + ")");
-            }
-            if (text.Length > len)
-            {
-                text = text.Substring(text.Length - len);
-            }
             return text;
         }
 
@@ -988,6 +1042,10 @@ namespace Rappen.XRM.Helpers
             else if (formatTag.StartsWith("Right", StringComparison.Ordinal))
             {
                 text = FormatRight(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Trim", StringComparison.Ordinal))
+            {
+                text = FormatTrim(text, formatTag);
             }
             else if (formatTag.StartsWith("SubStr", StringComparison.Ordinal))
             {
