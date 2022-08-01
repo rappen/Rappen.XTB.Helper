@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Metadata.Query;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -172,7 +173,14 @@ namespace Rappen.XRM.Helpers.Extensions
                 EntityFilters = EntityFilters.All,
                 LogicalName = entity
             };
-            return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
+            try
+            {
+                return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
         /// <summary>
