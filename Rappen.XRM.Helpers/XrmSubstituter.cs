@@ -1030,6 +1030,12 @@ namespace Rappen.XRM.Helpers
 
         internal static string ExtractExtraFormatTags(string format, List<string> extraFormats)
         {
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return format;
+            }
+            var originalformat = format;
+            var formats = new Dictionary<int, string>();
             while (ContainsAnyTag(format))
             {
                 var pos = int.MaxValue;
@@ -1045,11 +1051,11 @@ namespace Rappen.XRM.Helpers
                 }
                 if (!string.IsNullOrEmpty(nextFormat))
                 {
-                    extraFormats.Add(nextFormat);
+                    formats.Add(originalformat.IndexOf("<" + nextFormat + ">"), nextFormat);
                     format = format.Replace("<" + nextFormat + ">", "");
                 }
             }
-
+            extraFormats.AddRange(formats.OrderBy(t => t.Key).Select(t => t.Value));
             return format;
         }
 
