@@ -107,6 +107,10 @@ namespace Rappen.XRM.Helpers
                     {
                         return true;
                     }
+                    if (format.Contains("<" + tag + ">"))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -325,8 +329,8 @@ namespace Rappen.XRM.Helpers
 
         private static string GetFirstEnclosedPart(string source, string starttag, string keyword, string endtag, string scope)
         {
-            var startidentifier = starttag + scope + keyword;
-            if (!source.Contains(startidentifier) || !source.Contains(endtag))
+            var result = GetFirstEnclosedPartStartString(source, starttag, keyword, endtag, scope);
+            if (string.IsNullOrEmpty(result) || !source.Contains(endtag))
             {   // Felaktiga start/end eller keyword
                 return "";
             }
@@ -338,7 +342,6 @@ namespace Rappen.XRM.Helpers
             {   // Det finns ett kolon som avser namespace, men inget namespace var angivet
                 return "";
             }
-            string result = source.Substring(source.IndexOf(startidentifier, StringComparison.Ordinal) + 1);
             int tagcount = 1;
             int pos = 0;
             while (pos < result.Length && tagcount > 0)
@@ -361,6 +364,27 @@ namespace Rappen.XRM.Helpers
 
             result = result.Substring(0, pos - 1);
             return result;
+        }
+
+        private static string GetFirstEnclosedPartStartString(string source, string starttag, string keyword, string endtag, string scope)
+        {   // Do this to have or haven't a pipe
+            var startidentifier = starttag + scope + keyword;
+            if (starttag == "<" && !keyword.EndsWith("|"))
+            {
+                if (source.Contains(startidentifier + endtag))
+                {
+                    startidentifier += ">";
+                }
+                else if (source.Contains(startidentifier + "|"))
+                {
+                    startidentifier += "|";
+                }
+            }
+            if (source.Contains(startidentifier))
+            {
+                return source.Substring(source.IndexOf(startidentifier, StringComparison.Ordinal) + 1);
+            }
+            return null;
         }
 
         private static string GetNextToken(string text, string scope)
