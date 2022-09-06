@@ -69,7 +69,10 @@ namespace Rappen.XTB.Helpers.Extensions
                     {
                         plugin.ShowErrorDialog(completedargs.Error, "Load Entities");
                     }
-                    loadedentities?.Invoke(completedargs.Result as IEnumerable<EntityMetadata>);
+                    else
+                    {
+                        loadedentities?.Invoke(completedargs.Result as IEnumerable<EntityMetadata>);
+                    }
                 }
             });
         }
