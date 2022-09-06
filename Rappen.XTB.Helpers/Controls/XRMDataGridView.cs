@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Query;
 using Rappen.XRM.Helpers.Extensions;
 using Rappen.XRM.Helpers.Serialization;
 using System;
@@ -9,6 +10,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace Rappen.XTB.Helpers.Controls
 {
@@ -31,6 +33,7 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showAllColumnsInColumnOrder = false;
         private bool showColumnsNotInColumnOrder = true;
         private DataGridViewColumn[] designedColumns;
+        private Dictionary<string, int> cellsFromLayoutXML;
 
         private const string _extendedMetaAttribute = "MetaAttribute";
         private const string _extendedMetaEntity = "MetaEntity";
@@ -450,8 +453,43 @@ namespace Rappen.XTB.Helpers.Controls
                 var data = GetDataTable(entities, cols);
                 BindData(data);
                 ArrangeColumns();
+                FixColumnsFromLayout();
             }
             base.Refresh();
+        }
+
+        /// <summary>
+        /// If you have a fetchxml (and maybe layoutxml too) you can set the DataSource by just call this method
+        /// and send the fetchxml (and maybe layoutxml) which is automatically retrieved and displaying.
+        /// </summary>
+        /// <param name="fetchxml">FetchXML must be added, or just null the DataSource.</param>
+        /// <param name="layoutxml">If this is added, it will show like layout in the Maker Portal (or in FXB)</param>
+        /// <exception cref="Exception"></exception>
+        /// <remarks>Remember that the Service must be set before calling this.</remarks>
+        public void SetDataSource(string fetchxml, string layoutxml = null)
+        {
+            if (Service == null)
+            {
+                throw new Exception("Service is not specified.");
+            }
+            if (string.IsNullOrEmpty(fetchxml))
+            {
+                return;
+            }
+            cellsFromLayoutXML = GetCellsFromLayoutXML(layoutxml);
+            var result = Service.RetrieveMultiple(new FetchExpression(fetchxml));
+            MethodInvoker mi = delegate
+            {
+                DataSource = result;
+            };
+            if (InvokeRequired)
+            {
+                Invoke(mi);
+            }
+            else
+            {
+                mi();
+            }
         }
 
         #endregion Public methods
@@ -573,7 +611,7 @@ namespace Rappen.XTB.Helpers.Controls
                     Columns.CopyTo(designedColumns, 0);
                 }
             }
-            if (designedColumnsUsed)
+            if (designedColumnsUsed && cellsFromLayoutXML == null)
             {
                 PopulateColumnsFromDesign(entities, columns);
             }
@@ -905,6 +943,68 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     Columns[attribute].DisplayIndex = pos;
                     pos++;
+                }
+            }
+        }
+
+        private Dictionary<string, int> GetCellsFromLayoutXML(string layoutxml)
+        {
+            string GetCellName(XmlNode node)
+            {
+                if (node != null && node.Attributes != null && node.Attributes["name"] is XmlAttribute attr)
+                {
+                    return attr.Value;
+                }
+                return string.Empty;
+            }
+            int GetCellWidth(XmlNode node)
+            {
+                if (node != null && node.Attributes != null && node.Attributes["width"] is XmlAttribute attr)
+                {
+                    if (int.TryParse(attr.Value, out int width))
+                    {
+                        return width;
+                    }
+                }
+                return 0;
+            }
+
+            if (!string.IsNullOrEmpty(layoutxml))
+            {
+                var doc = new XmlDocument();
+                doc.LoadXml(layoutxml);
+                if (doc.SelectSingleNode("grid") is XmlElement grid)
+                {
+                    var cells = grid.SelectSingleNode("row")?
+                        .ChildNodes.Cast<XmlNode>()
+                        .Where(n => n.Name == "cell")
+                        .Select(c => new KeyValuePair<string, int>(GetCellName(c), GetCellWidth(c)))
+                        .ToDictionary(c => c.Key, c => c.Value);
+                    return cells?.Count > 0 ? cells : null;
+                }
+            }
+            return null;
+        }
+
+        private void FixColumnsFromLayout()
+        {
+            if (cellsFromLayoutXML != null)
+            {
+                var cellnames = cellsFromLayoutXML.Keys.ToList();
+                cellnames.Where(c => !Columns.Contains(c)).ToList().ForEach(c => Columns.Add(c, c));
+                foreach (var column in Columns?.Cast<DataGridViewColumn>())
+                {
+                    if (cellsFromLayoutXML.ContainsKey(column.Name))
+                    {
+                        var cell = cellsFromLayoutXML[column.Name];
+                        column.DisplayIndex = Math.Min(cellnames.IndexOf(column.Name), Columns.Count - 1);
+                        column.Width = cell;
+                        column.Visible = cell > 0;
+                    }
+                    else
+                    {
+                        column.Visible = false;
+                    }
                 }
             }
         }
