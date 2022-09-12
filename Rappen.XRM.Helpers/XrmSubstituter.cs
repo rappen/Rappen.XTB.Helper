@@ -16,6 +16,8 @@ namespace Rappen.XRM.Helpers
 {
     public static class XrmSubstituter
     {
+        #region Public extensions methods
+
         public static string Substitute(this Entity entity, IOrganizationService service, string text) => Substitute(entity, new GenericBag(service), text);
 
         public static string Substitute(this Entity entity, IBag bag, string text) => Substitute(entity, bag, text, 0, string.Empty);
@@ -25,6 +27,10 @@ namespace Rappen.XRM.Helpers
         public static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope) => Substitute(entity, bag, text, sequence, scope, false);
 
         public static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths) => Substitute(entity, bag, text, sequence, scope, null, supressinvalidattributepaths);
+
+        #endregion Public extensions methods
+
+        #region Private extensions methods
 
         private static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
         {
@@ -84,9 +90,17 @@ namespace Rappen.XRM.Helpers
             return text;
         }
 
+        #endregion Private extensions methods
+
+        #region Private static properties
+
         private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
         private static Random random;
+
+        #endregion Private static properties
+
+        #region Private static methods
 
         private static int ComparePositions(string source, string item1, string item2)
         {
@@ -1028,6 +1042,10 @@ namespace Rappen.XRM.Helpers
             return text;
         }
 
+        #endregion Private static methods
+
+        #region Internal static methods
+
         internal static string ExtractExtraFormatTags(string format, List<string> extraFormats)
         {
             if (string.IsNullOrWhiteSpace(format))
@@ -1096,5 +1114,7 @@ namespace Rappen.XRM.Helpers
 
             return text;
         }
+
+        #endregion Internal static methods
     }
 }
