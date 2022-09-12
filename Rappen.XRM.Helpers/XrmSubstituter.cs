@@ -30,6 +30,87 @@ namespace Rappen.XRM.Helpers
 
         #endregion Public extensions methods
 
+        #region Internal static methods
+
+        internal static string ExtractExtraFormatTags(string format, List<string> extraFormats)
+        {
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return format;
+            }
+            var originalformat = format;
+            var formats = new Dictionary<int, string>();
+            while (ContainsAnyTag(format))
+            {
+                var pos = int.MaxValue;
+                var nextFormat = string.Empty;
+                foreach (var tag in extraFormatTags)
+                {
+                    var extraFormat = GetFirstEnclosedPart(format, "<", tag, ">", "");
+                    if (!string.IsNullOrEmpty(extraFormat) && format.IndexOf(extraFormat, StringComparison.Ordinal) < pos)
+                    {
+                        nextFormat = extraFormat;
+                        pos = format.IndexOf(extraFormat, StringComparison.Ordinal);
+                    }
+                }
+                if (!string.IsNullOrEmpty(nextFormat))
+                {
+                    formats.Add(originalformat.IndexOf("<" + nextFormat + ">"), nextFormat);
+                    format = format.Replace("<" + nextFormat + ">", "");
+                }
+            }
+            extraFormats.AddRange(formats.OrderBy(t => t.Key).Select(t => t.Value));
+            return format;
+        }
+
+        internal static string FormatByTag(string text, string formatTag)
+        {
+            if (formatTag.StartsWith("MaxLen", StringComparison.Ordinal))
+            {
+                text = FormatLeft(text, formatTag.Replace("MaxLen", "Left").Replace("Left:", "Left|"));   // A few replace for backward compatibility
+            }
+            else if (formatTag.StartsWith("Left", StringComparison.Ordinal))
+            {
+                text = FormatLeft(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Right", StringComparison.Ordinal))
+            {
+                text = FormatRight(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Trim", StringComparison.Ordinal))
+            {
+                text = FormatTrim(text, formatTag);
+            }
+            else if (formatTag.StartsWith("SubStr", StringComparison.Ordinal))
+            {
+                text = FormatSubStr(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Math", StringComparison.Ordinal))
+            {
+                text = FormatMath(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Pad", StringComparison.Ordinal))
+            {
+                text = FormatPad(text, formatTag);
+            }
+            else if (formatTag.StartsWith("Replace", StringComparison.Ordinal))
+            {
+                text = FormatReplace(text, formatTag);
+            }
+
+            return text;
+        }
+
+        #endregion Internal static methods
+
+        #region Private static properties
+
+        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
+        private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
+        private static Random random;
+
+        #endregion Private static properties
+
         #region Private extensions methods
 
         private static string Substitute(this Entity entity, IBag bag, string text, int sequence, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
@@ -91,14 +172,6 @@ namespace Rappen.XRM.Helpers
         }
 
         #endregion Private extensions methods
-
-        #region Private static properties
-
-        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
-        private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
-        private static Random random;
-
-        #endregion Private static properties
 
         #region Private static methods
 
@@ -1043,78 +1116,5 @@ namespace Rappen.XRM.Helpers
         }
 
         #endregion Private static methods
-
-        #region Internal static methods
-
-        internal static string ExtractExtraFormatTags(string format, List<string> extraFormats)
-        {
-            if (string.IsNullOrWhiteSpace(format))
-            {
-                return format;
-            }
-            var originalformat = format;
-            var formats = new Dictionary<int, string>();
-            while (ContainsAnyTag(format))
-            {
-                var pos = int.MaxValue;
-                var nextFormat = string.Empty;
-                foreach (var tag in extraFormatTags)
-                {
-                    var extraFormat = GetFirstEnclosedPart(format, "<", tag, ">", "");
-                    if (!string.IsNullOrEmpty(extraFormat) && format.IndexOf(extraFormat, StringComparison.Ordinal) < pos)
-                    {
-                        nextFormat = extraFormat;
-                        pos = format.IndexOf(extraFormat, StringComparison.Ordinal);
-                    }
-                }
-                if (!string.IsNullOrEmpty(nextFormat))
-                {
-                    formats.Add(originalformat.IndexOf("<" + nextFormat + ">"), nextFormat);
-                    format = format.Replace("<" + nextFormat + ">", "");
-                }
-            }
-            extraFormats.AddRange(formats.OrderBy(t => t.Key).Select(t => t.Value));
-            return format;
-        }
-
-        internal static string FormatByTag(string text, string formatTag)
-        {
-            if (formatTag.StartsWith("MaxLen", StringComparison.Ordinal))
-            {
-                text = FormatLeft(text, formatTag.Replace("MaxLen", "Left").Replace("Left:", "Left|"));   // A few replace for backward compatibility
-            }
-            else if (formatTag.StartsWith("Left", StringComparison.Ordinal))
-            {
-                text = FormatLeft(text, formatTag);
-            }
-            else if (formatTag.StartsWith("Right", StringComparison.Ordinal))
-            {
-                text = FormatRight(text, formatTag);
-            }
-            else if (formatTag.StartsWith("Trim", StringComparison.Ordinal))
-            {
-                text = FormatTrim(text, formatTag);
-            }
-            else if (formatTag.StartsWith("SubStr", StringComparison.Ordinal))
-            {
-                text = FormatSubStr(text, formatTag);
-            }
-            else if (formatTag.StartsWith("Math", StringComparison.Ordinal))
-            {
-                text = FormatMath(text, formatTag);
-            }
-            else if (formatTag.StartsWith("Pad", StringComparison.Ordinal))
-            {
-                text = FormatPad(text, formatTag);
-            }
-            else if (formatTag.StartsWith("Replace", StringComparison.Ordinal))
-            {
-                text = FormatReplace(text, formatTag);
-            }
-
-            return text;
-        }
-
-        #endregion Internal static methods
     }
 }
