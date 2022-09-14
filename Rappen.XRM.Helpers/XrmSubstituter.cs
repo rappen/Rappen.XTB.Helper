@@ -105,6 +105,10 @@ namespace Rappen.XRM.Helpers
 
         #region Private static properties
 
+        private const string prevent_recursion_start = "~~PRERECCURLYSTART~~";
+        private const string prevent_recursion_end = "~~PRERECCURLYEND~~";
+        private const string special_chars_curly_start = "~~SPECIALCHARCURLYSTART~~";
+        private const string special_chars_curly_end = "~~SPECIALCHARCURLYEND~~";
         private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
         private static Random random;
@@ -120,7 +124,13 @@ namespace Rappen.XRM.Helpers
             {
                 text = string.Empty;
             }
-            // Halvdan lösning för att hantera taggar som enkodats...
+
+            // Half-smart solution to handle system chars for { and }, without breaking the tokens
+            text = text
+                .Replace("<system|char|{>", special_chars_curly_start)
+                .Replace("<system|char|}>", special_chars_curly_end);
+
+            // Half-stupid solution to handle tags that have been encoded...
             if (text.Contains("&lt;expand|") || text.Contains("&lt;iif|") || text.Contains("&lt;system|"))
             {
                 text = text.Replace("&lt;", "<").Replace("&gt;", ">");
@@ -157,10 +167,11 @@ namespace Rappen.XRM.Helpers
                 token = GetNextToken(text, starttag);
             }
 
-            if (text.Contains("%STARTKRULL_%") && text.Contains("%SLUTKRULL_%"))
-            {
-                text = text.Replace("%STARTKRULL_%", "{").Replace("%SLUTKRULL_%", "}");
-            }
+            // ReReplace curly things in the result to not rerun token replaces
+            text = text.Replace(prevent_recursion_start, "{").Replace(prevent_recursion_end, "}");
+
+            // Half-smart replacing those { and } handling just before returning the result
+            text = text.Replace(special_chars_curly_start, "{").Replace(special_chars_curly_end, "}");
 
             if (sequence > 0)
             {
@@ -926,12 +937,8 @@ namespace Rappen.XRM.Helpers
 
             if (!string.IsNullOrEmpty(value))
             {
-                if (value.Contains(string.Concat("{", token, "}")))
-                {   // Prevents recursion within this token, if its value contains the token
-                    value = value.Replace(
-                        string.Concat("{", token, "}"),
-                        string.Concat("%STARTKRULL_%", token, "%SLUTKRULL_%"));
-                }
+                // Replace curly things in the result to not rerun token replaces
+                value = value.Replace("{", prevent_recursion_start).Replace("}", prevent_recursion_end);
             }
 
             // Only replace first (current) occurrence of ph, that is why we don't use string.Replace.
