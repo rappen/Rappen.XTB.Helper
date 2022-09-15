@@ -33,6 +33,7 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showAllColumnsInColumnOrder = false;
         private bool showColumnsNotInColumnOrder = true;
         private DataGridViewColumn[] designedColumns;
+        private string layoutxml;
         private Dictionary<string, int> cellsFromLayoutXML;
 
         private const string _extendedMetaAttribute = "MetaAttribute";
@@ -126,6 +127,22 @@ namespace Rappen.XTB.Helpers.Controls
                         }
                     }
                 }
+                if (entities != null && autoRefresh)
+                {
+                    Refresh();
+                }
+            }
+        }
+
+        [Category("Rappen XRM")]
+        [Browsable(false)]
+        public string LayoutXML
+        {
+            get { return layoutxml; }
+            set
+            {
+                layoutxml = value;
+                cellsFromLayoutXML = GetCellsFromLayoutXML(layoutxml);
                 if (entities != null && autoRefresh)
                 {
                     Refresh();
@@ -476,10 +493,10 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return;
             }
-            cellsFromLayoutXML = GetCellsFromLayoutXML(layoutxml);
             var result = Service.RetrieveMultiple(new FetchExpression(fetchxml));
             MethodInvoker mi = delegate
             {
+                LayoutXML = layoutxml;
                 DataSource = result;
             };
             if (InvokeRequired)
