@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
@@ -12,6 +13,41 @@ namespace Rappen.XRM.Helpers.Extensions
     public static class ServiceExtensions
     {
         private const int ViewType_QuickFind = 4;
+
+        #region Public Methods
+
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null)
+        {
+            EntityCollection resultCollection = null;
+            EntityCollection tmpResult;
+            do
+            {
+                tmpResult = service.RetrieveMultiple(query);
+                if (resultCollection == null)
+                {
+                    resultCollection = tmpResult;
+                }
+                else
+                {
+                    resultCollection.Entities.AddRange(tmpResult.Entities);
+                    resultCollection.MoreRecords = tmpResult.MoreRecords;
+                    resultCollection.PagingCookie = tmpResult.PagingCookie;
+                    resultCollection.TotalRecordCount = tmpResult.TotalRecordCount;
+                    resultCollection.TotalRecordCountLimitExceeded = tmpResult.TotalRecordCountLimitExceeded;
+                }
+                if (query is QueryExpression qex && tmpResult.MoreRecords)
+                {
+                    qex.PageInfo.PageNumber++;
+                    qex.PageInfo.PagingCookie = tmpResult.PagingCookie;
+                }
+                worker?.ReportProgress(0, $"Retrieving records... ({resultCollection.Entities.Count})");
+            }
+            while (query is QueryExpression && tmpResult.MoreRecords);
+            return resultCollection;
+        }
+
+        #endregion Public Methods
+
         #region Internal Methods
 
         /// <summary>
@@ -108,6 +144,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             condition.Attributes["value"].Value = searchTerm.Replace("*", "%") + "%";
                         }
                         break;
+
                     case AttributeTypeCode.Boolean:
                         {
                             if (searchTerm != "0" && searchTerm != "1")
@@ -119,6 +156,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             condition.Attributes["value"].Value = (searchTerm == "1").ToString();
                         }
                         break;
+
                     case AttributeTypeCode.Customer:
                     case AttributeTypeCode.Lookup:
                     case AttributeTypeCode.Owner:
@@ -132,11 +170,11 @@ namespace Rappen.XRM.Helpers.Extensions
                                 continue;
                             }
 
-
                             condition.Attributes["attribute"].Value += "name";
                             condition.Attributes["value"].Value = searchTerm.Replace("*", "%") + "%";
                         }
                         break;
+
                     case AttributeTypeCode.DateTime:
                         {
                             DateTime dt;
@@ -150,6 +188,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             }
                         }
                         break;
+
                     case AttributeTypeCode.Decimal:
                     case AttributeTypeCode.Double:
                     case AttributeTypeCode.Money:
@@ -165,6 +204,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             }
                         }
                         break;
+
                     case AttributeTypeCode.Integer:
                         {
                             int d;
@@ -178,6 +218,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             }
                         }
                         break;
+
                     case AttributeTypeCode.Picklist:
                         {
                             var opt = ((PicklistAttributeMetadata)attr).OptionSet.Options.FirstOrDefault(
@@ -193,6 +234,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             }
                         }
                         break;
+
                     case AttributeTypeCode.State:
                         {
                             var opt = ((StateAttributeMetadata)attr).OptionSet.Options.FirstOrDefault(
@@ -208,6 +250,7 @@ namespace Rappen.XRM.Helpers.Extensions
                             }
                         }
                         break;
+
                     case AttributeTypeCode.Status:
                         {
                             var opt = ((StatusAttributeMetadata)attr).OptionSet.Options.FirstOrDefault(
@@ -225,7 +268,7 @@ namespace Rappen.XRM.Helpers.Extensions
                         break;
                 }
 
-                #endregion
+                #endregion Manage each attribute type
             }
 
             foreach (XmlNode filter in node.SelectNodes("filter"))
