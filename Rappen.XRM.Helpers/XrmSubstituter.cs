@@ -97,7 +97,15 @@ namespace Rappen.XRM.Helpers
             {
                 text = FormatReplace(text, formatTag);
             }
-
+            else if (formatTag.StartsWith("Upper", StringComparison.Ordinal))
+            {
+                text = FormatUpper(text);
+            }
+            else if (formatTag.StartsWith("Lower", StringComparison.Ordinal))
+            {
+                text = FormatLower(text);
+            }
+   
             return text;
         }
 
@@ -109,7 +117,7 @@ namespace Rappen.XRM.Helpers
         private const string prevent_recursion_end = "~~PRERECCURLYEND~~";
         private const string special_chars_curly_start = "~~SPECIALCHARCURLYSTART~~";
         private const string special_chars_curly_end = "~~SPECIALCHARCURLYEND~~";
-        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math" };
+        private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math", "Upper", "Lower" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
         private static Random random;
 
@@ -423,6 +431,16 @@ namespace Rappen.XRM.Helpers
                 text = text.Substring(start);
             }
             return text;
+        }
+
+        private static string FormatUpper(string text)
+        {
+            return text.ToUpper();
+        }
+
+        private static string FormatLower(string text)
+        {
+            return text.ToLower();
         }
 
         private static string GetFirstEnclosedPart(string source, string starttag, string keyword, string endtag, string scope)
