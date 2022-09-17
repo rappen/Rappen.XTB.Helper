@@ -1,7 +1,10 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Organization;
 using Microsoft.Xrm.Sdk.Query;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -12,9 +15,34 @@ namespace Rappen.XRM.Helpers.Extensions
 {
     public static class ServiceExtensions
     {
+        private static Dictionary<IOrganizationService, OrganizationDetail> organizations = new Dictionary<IOrganizationService, OrganizationDetail>();
         private const int ViewType_QuickFind = 4;
+        private const string url_form_template = "{0}/main.aspx?pagetype=entityrecord&etn={1}&id={2}";
 
         #region Public Methods
+
+        public static OrganizationDetail GetOrganizationDetail(this IOrganizationService service)
+        {
+            if (!organizations.TryGetValue(service, out var orgdetail))
+            {
+                orgdetail = ((RetrieveCurrentOrganizationResponse)service.Execute(new RetrieveCurrentOrganizationRequest())).Detail;
+                organizations.Add(service, orgdetail);
+            }
+            return orgdetail;
+        }
+
+        public static string GetOrganizationUrl(this IOrganizationService service)
+        {
+            var orgdetail = GetOrganizationDetail(service);
+            return orgdetail.Endpoints[EndpointType.WebApplication];
+        }
+
+        public static string GetEntityUrl(this IOrganizationService service, EntityReference entity)
+        {
+            var webapp = service.GetOrganizationUrl();
+            var result = string.Format(url_form_template, webapp, entity.LogicalName, entity.Id);
+            return result;
+        }
 
         public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null)
         {
