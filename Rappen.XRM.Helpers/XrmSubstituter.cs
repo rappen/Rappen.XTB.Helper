@@ -105,7 +105,7 @@ namespace Rappen.XRM.Helpers
             {
                 text = FormatLower(text);
             }
-   
+
             return text;
         }
 
@@ -930,6 +930,13 @@ namespace Rappen.XRM.Helpers
                             else
                             {
                                 value = basevalue.ToString();// "2010-05-14T..."
+                            }
+                        }
+                        else if (format == "<recordurl>")
+                        {
+                            if (deRef.Contains(finalattribute) && deRef[finalattribute] is EntityReference entref)
+                            {
+                                value = bag.Service.GetEntityUrl(entref);
                             }
                         }
                         else if (finalattribute.StartsWith("<expand|"))

@@ -486,7 +486,18 @@ namespace Rappen.XRM.Helpers.Extensions
                     oAttrValue = AttributeToBaseType(((AliasedValue)oAttrValue).Value);
                 }
 
-                if (oAttrValue is Money)
+                if (format == "<recordurl>")
+                {
+                    if (oAttrValue is EntityReference entref)
+                    {
+                        result = bag.Service.GetEntityUrl(entref);
+                    }
+                    else if (oAttrValue is Guid guid)
+                    {
+                        result = bag.Service.GetEntityUrl(new EntityReference(entity.LogicalName, guid));
+                    }
+                }
+                else if (oAttrValue is Money)
                 {
                     decimal dAttrValue = ((Money)oAttrValue).Value;
                     result = dAttrValue.ToString(format);
