@@ -936,7 +936,7 @@ namespace Rappen.XRM.Helpers
                         {
                             if (deRef.Contains(finalattribute) && deRef[finalattribute] is EntityReference entref)
                             {
-                                value = bag.Service.GetEntityUrl(entref);
+                                value = bag.Service.GetEntityFormUrl(entref);
                             }
                         }
                         else if (finalattribute.StartsWith("<expand|"))

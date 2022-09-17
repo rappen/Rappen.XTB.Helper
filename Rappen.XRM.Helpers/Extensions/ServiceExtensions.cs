@@ -37,7 +37,7 @@ namespace Rappen.XRM.Helpers.Extensions
             return orgdetail.Endpoints[EndpointType.WebApplication];
         }
 
-        public static string GetEntityUrl(this IOrganizationService service, EntityReference entity)
+        public static string GetEntityFormUrl(this IOrganizationService service, EntityReference entity)
         {
             var webapp = service.GetOrganizationUrl();
             if (webapp.EndsWith("/"))

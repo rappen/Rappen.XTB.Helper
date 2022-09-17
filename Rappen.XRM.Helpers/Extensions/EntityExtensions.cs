@@ -490,11 +490,11 @@ namespace Rappen.XRM.Helpers.Extensions
                 {
                     if (oAttrValue is EntityReference entref)
                     {
-                        result = bag.Service.GetEntityUrl(entref);
+                        result = bag.Service.GetEntityFormUrl(entref);
                     }
                     else if (oAttrValue is Guid guid)
                     {
-                        result = bag.Service.GetEntityUrl(new EntityReference(entity.LogicalName, guid));
+                        result = bag.Service.GetEntityFormUrl(new EntityReference(entity.LogicalName, guid));
                     }
                 }
                 else if (oAttrValue is Money)
