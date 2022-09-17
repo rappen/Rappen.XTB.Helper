@@ -40,6 +40,10 @@ namespace Rappen.XRM.Helpers.Extensions
         public static string GetEntityUrl(this IOrganizationService service, EntityReference entity)
         {
             var webapp = service.GetOrganizationUrl();
+            if (webapp.EndsWith("/"))
+            {
+                webapp = webapp.Substring(0, webapp.Length - 1);
+            }
             var result = string.Format(url_form_template, webapp, entity.LogicalName, entity.Id);
             return result;
         }
