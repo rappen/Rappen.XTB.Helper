@@ -1,8 +1,9 @@
 # XrmSubstituter
 
-Code implement the `XRM Tokens`.
+Code implements the `XRM Tokens` feature.
 
-Check all code!
+Check all code right here:
+[XrmSubstituter.cs](https://github.com/rappen/Rappen.XTB.Helper/blob/main/Rappen.XRM.Helpers/XrmSubstituter.cs)
 
 Easiest way to use it:
 `public static string Substitute(this Entity entity, IOrganizationService service, string text)`
