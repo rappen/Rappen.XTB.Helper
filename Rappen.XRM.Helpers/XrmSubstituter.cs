@@ -315,7 +315,7 @@ namespace Rappen.XRM.Helpers
             }
             var oper = GetSeparatedPart(formatTag, "|", 2).ToUpperInvariant();
             decimal value = 0;
-            if (oper != "round" && oper != "abs")
+            if (oper != "ROUND" && oper != "ABS")
             {
                 var valuestr = GetSeparatedPart(formatTag, "|", 3);
                 if (!decimal.TryParse(valuestr, out value))
