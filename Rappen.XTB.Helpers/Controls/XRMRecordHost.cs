@@ -41,10 +41,6 @@ namespace Rappen.XTB.Helpers.Controls
             get => EntityItem?.Entity;
             set
             {
-                if (EntityItem?.Entity?.Id == value?.Id)
-                {
-                    return;
-                }
                 EntityItem = value != null ? new EntityItem(value, organizationService) : null;
                 logicalName = value?.LogicalName;
                 id = value?.Id ?? Guid.Empty;
