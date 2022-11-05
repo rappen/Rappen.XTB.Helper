@@ -1,16 +1,17 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.PowerFx;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Query;
 using Rappen.XRM.Helpers.Extensions;
 using Rappen.XRM.Helpers.Interfaces;
+using Rappen.XRM.Helpers.PowerFx;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
-using System.Threading;
 
 namespace Rappen.XRM.Helpers
 {
@@ -120,6 +121,7 @@ namespace Rappen.XRM.Helpers
         private static List<string> extraFormatTags = new List<string>() { "MaxLen", "Pad", "Left", "Right", "Trim", "TrimStart", "TrimEnd", "SubStr", "Replace", "Math", "Upper", "Lower" };
         private static Dictionary<string, string> xmlReplacePatterns = new Dictionary<string, string>() { { "&", "&amp;" }, { "<", "&lt;" }, { ">", "&gt;" }, { "\"", "&quot;" }, { "'", "&apos;" } };
         private static Random random;
+        private static RecalcEngine powerfxengine;
 
         #endregion Private static properties
 
@@ -151,7 +153,17 @@ namespace Rappen.XRM.Helpers
             while (!string.IsNullOrWhiteSpace(token))
             {
                 bag.Logger.Log($"Found token: {token}");
-                if (token.StartsWith(starttag + "expand|", StringComparison.Ordinal))
+                if (token.StartsWith(starttag + "PowerFx|", StringComparison.Ordinal))
+                {
+                    if (powerfxengine == null)
+                    {
+                        powerfxengine = new RecalcEngine();
+                    }
+                    var subsubstitute = entity.Substitute(bag, token.Substring(8), sequence, scope, replacepatterns, supressinvalidattributepaths);
+                    var pfxvalue = PowerFxHelpers.Eval(subsubstitute, powerfxengine);
+                    text = text.ReplaceFirstOnly("<" + token + ">", pfxvalue);
+                }
+                else if (token.StartsWith(starttag + "expand|", StringComparison.Ordinal))
                 {
                     text = entity.Expand(bag, text, replacepatterns, token);
                 }
@@ -507,17 +519,27 @@ namespace Rappen.XRM.Helpers
         {
             string token;
             var startkrull = "{" + scope;
+            var startpowerfx = "<" + scope + "PowerFx|";
             var startexpand = "<" + scope + "expand|";
             var startiif = "<" + scope + "iif|";
             var startsystem = "<" + scope + "system|";
             var startrandom = "<" + scope + "random|";
             if (text.Contains(startkrull) &&
+                ComparePositions(text, startkrull, startpowerfx) < 0 &&
                 ComparePositions(text, startkrull, startexpand) < 0 &&
                 ComparePositions(text, startkrull, startiif) < 0 &&
                 ComparePositions(text, startkrull, startsystem) < 0 &&
                 ComparePositions(text, startkrull, startrandom) < 0)
             {
                 token = GetFirstEnclosedPart(text, "{", "", "}", scope);
+            }
+            else if (text.Contains(startpowerfx) &&
+                ComparePositions(text, startpowerfx, startexpand) < 0 &&
+                ComparePositions(text, startpowerfx, startiif) < 0 &&
+                ComparePositions(text, startpowerfx, startsystem) < 0 &&
+                ComparePositions(text, startpowerfx, startrandom) < 0)
+            {
+                token = GetFirstEnclosedPart(text, "<", "PowerFx|", ">", scope);
             }
             else if (text.Contains(startexpand) &&
                 ComparePositions(text, startexpand, startiif) < 0 &&
