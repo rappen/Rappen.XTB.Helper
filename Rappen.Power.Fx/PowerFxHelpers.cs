@@ -17,11 +17,12 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Rappen.XRM.Helpers.PowerFx
+namespace Rappen.Power.Fx
 {
     public class PowerFxHelpers
     {
         private const bool FormatTable = false;
+        private static RecalcEngine engine;
 
         /// <summary>
         /// Power Fx Eval method
@@ -31,8 +32,12 @@ namespace Rappen.XRM.Helpers.PowerFx
         /// <param name="engine">The engine used to Eval.</param>
         /// <returns>Text after Eval.</returns>
         /// <exception cref="InvalidPluginExecutionException">Any handled errors throws as InvalidPluginExecutionException.</exception>
-        public static string Eval(string expr, RecalcEngine engine)
+        public static string Eval(string expr)
         {
+            if (engine == null)
+            {
+                engine = new RecalcEngine();
+            }
             Match match;
             if ((match = Regex.Match(expr, @"^\s*Set\(\s*(?<ident>\w+)\s*,\s*(?<expr>.*)\)", RegexOptions.Singleline)).Success)
             {

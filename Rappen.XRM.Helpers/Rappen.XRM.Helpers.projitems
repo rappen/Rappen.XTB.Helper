@@ -35,7 +35,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PowerFx\PowerFxHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
