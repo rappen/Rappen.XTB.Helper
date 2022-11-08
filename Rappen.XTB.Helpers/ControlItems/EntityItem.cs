@@ -4,6 +4,7 @@
     using Rappen.XRM.Helpers;
     using Rappen.XRM.Helpers.Extensions;
     using Rappen.XRM.Helpers.Interfaces;
+    using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
 
@@ -82,7 +83,7 @@
             {
                 format = "{" + format + "}";
             }
-            return Entity.Substitute(Bag, format);
+            return Entity.SimplyTokens(Bag, format);
         }
 
         #endregion Public Methods

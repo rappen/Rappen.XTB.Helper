@@ -466,7 +466,7 @@ namespace Rappen.XRM.Helpers.Extensions
 
             // Extrahera eventuella egna implementerade formatsträngar, t.ex. "<MaxLen=20>"
             var extraFormats = new List<string>();
-            format = XrmSubstituter.ExtractExtraFormatTags(format, extraFormats);
+            format = format.ExtractExtraFormatTags(extraFormats);
 
             string result = null;
             object oAttrValue = entity.Contains(name) ? entity[name] : null;
@@ -564,7 +564,7 @@ namespace Rappen.XRM.Helpers.Extensions
             // Applicera eventuella egna implementerade formatsträngar
             foreach (var extraFormat in extraFormats)
             {
-                result = XrmSubstituter.FormatByTag(result, extraFormat);
+                result = result.FormatByTag(extraFormat);
             }
             return result;
         }
