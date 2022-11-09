@@ -21,7 +21,7 @@ namespace Rappen.Power.Fx
 {
     public class PowerFxHelpers
     {
-        private const bool FormatTable = false;
+        //private const bool FormatTable = false;
         private static RecalcEngine engine;
 
         /// <summary>
@@ -145,31 +145,31 @@ namespace Rappen.Power.Fx
                         resultString += "]";
                     }
                     // otherwise a full table treatment is needed
-                    else if (FormatTable)
-                    {
-                        resultString = "\n ";
-                        var column = 0;
-                        foreach (var field in table.Rows.First().Value.Fields)
-                        {
-                            columnWidth[column] = Math.Max(columnWidth[column], field.Name.Length);
-                            resultString += " " + field.Name.PadLeft(columnWidth[column]) + "  ";
-                            column++;
-                        }
-                        resultString += "\n ";
-                        foreach (var width in columnWidth)
-                            resultString += new string('=', width + 2) + " ";
+                    //else if (FormatTable)
+                    //{
+                    //    resultString = "\n ";
+                    //    var column = 0;
+                    //    foreach (var field in table.Rows.First().Value.Fields)
+                    //    {
+                    //        columnWidth[column] = Math.Max(columnWidth[column], field.Name.Length);
+                    //        resultString += " " + field.Name.PadLeft(columnWidth[column]) + "  ";
+                    //        column++;
+                    //    }
+                    //    resultString += "\n ";
+                    //    foreach (var width in columnWidth)
+                    //        resultString += new string('=', width + 2) + " ";
 
-                        foreach (var row in table.Rows)
-                        {
-                            column = 0;
-                            resultString += "\n ";
-                            foreach (var field in row.Value.Fields)
-                            {
-                                resultString += " " + PrintResult(field.Value, true).PadLeft(columnWidth[column]) + "  ";
-                                column++;
-                            }
-                        }
-                    }
+                    //    foreach (var row in table.Rows)
+                    //    {
+                    //        column = 0;
+                    //        resultString += "\n ";
+                    //        foreach (var field in row.Value.Fields)
+                    //        {
+                    //            resultString += " " + PrintResult(field.Value, true).PadLeft(columnWidth[column]) + "  ";
+                    //            column++;
+                    //        }
+                    //    }
+                    //}
                     // table without formatting
                     else
                     {

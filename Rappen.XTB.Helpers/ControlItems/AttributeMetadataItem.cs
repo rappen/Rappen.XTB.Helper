@@ -29,7 +29,7 @@
             var result = FriendlyNames ? DisplayName : Metadata.LogicalName;
             if (ShowTypes)
             {
-                result += $" ({GetType()})";
+                result += $" ({GetAttributeType()})";
             }
             return result;
         }
@@ -50,7 +50,7 @@
             return result;
         }
 
-        public string GetType()
+        public string GetAttributeType()
         {
             var result = Metadata.AttributeTypeName?.Value;
             if (string.IsNullOrEmpty(result))

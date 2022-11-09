@@ -5,9 +5,6 @@ using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.PeerToPeer.Collaboration;
-using System.ServiceModel;
-using System.Text;
 
 namespace Rappen.XTB.Helpers.Extensions
 {
@@ -79,29 +76,21 @@ namespace Rappen.XTB.Helpers.Extensions
                         tmp = attributepath.GetSeparatedPart(".", attributepos);
                     }
                     Entity deRef = null;
-                    try
+                    if (format == "<value>" && attributepath.IndexOf('.') < 0)
                     {
-                        if (format == "<value>" && attributepath.IndexOf('.') < 0)
-                        {
-                            deRef = entity;
-                            bag.Logger.Log($"Get attribute off current entity (token = {token})");
-                        }
-                        else
-                        {
-                            var cols = new ColumnSet();
-                            if (!finalattribute.StartsWith("<") && !finalattribute.StartsWith("&lt;"))
-                            {
-                                cols.AddColumn(finalattribute);
-                            }
-
-                            var strAttributeRelated = attributepath.Replace("." + finalattribute, "");
-                            deRef = entity.GetRelated(bag, strAttributeRelated, cols);
-                        }
+                        deRef = entity;
+                        bag.Logger.Log($"Get attribute off current entity (token = {token})");
                     }
-                    catch (FaultException<OrganizationServiceFault> ex)
+                    else
                     {
-                        throw;
-                        bag.Logger.Log($"Invalid path '{token}' is supressed: {ex.Message}");
+                        var cols = new ColumnSet();
+                        if (!finalattribute.StartsWith("<") && !finalattribute.StartsWith("&lt;"))
+                        {
+                            cols.AddColumn(finalattribute);
+                        }
+
+                        var strAttributeRelated = attributepath.Replace("." + finalattribute, "");
+                        deRef = entity.GetRelated(bag, strAttributeRelated, cols);
                     }
                     if (deRef != null)
                     {

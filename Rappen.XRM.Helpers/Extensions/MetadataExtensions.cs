@@ -177,7 +177,7 @@ namespace Rappen.XRM.Helpers.Extensions
             {
                 return ((RetrieveEntityResponse)service.Execute(request)).EntityMetadata;
             }
-            catch (Exception ex)
+            catch
             {
                 return null;
             }

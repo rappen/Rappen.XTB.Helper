@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\Exception.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimplyTokensExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
