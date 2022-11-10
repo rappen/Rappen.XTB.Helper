@@ -81,7 +81,7 @@ namespace Rappen.XRM.Tokens
             {
                 var user = bag.Service.Retrieve("systemuser", userid, new ColumnSet(true));
                 bag.Logger.Log($"Retrieved user: {user.ToStringExt(bag.Service)}");
-                value = user.Tokens(bag, token);
+                value = XRMTokens.Tokens(user, bag, token, 0, string.Empty, false, null);
             }
             return value;
         }

@@ -11,19 +11,19 @@ namespace Rappen.XRM.Tokens
     {
         #region Public extensions methods
 
-        public static string Tokens(this IOrganizationService service, Entity entity, string text) => Tokens(entity, service, text);
+        public static string Tokens(this IOrganizationService service, Entity entity, string text) => Tokens(entity, new GenericBag(service), text, 0, string.Empty, false, null);
 
-        public static string Tokens(this Entity entity, IOrganizationService service, string text) => Tokens(entity, new GenericBag(service), text);
+        public static string Tokens(this Entity entity, IOrganizationService service, string text) => Tokens(entity, new GenericBag(service), text, 0, string.Empty, false, null);
 
-        public static string Tokens(this Entity entity, IBag bag, string text) => Tokens(entity, bag, text, 0, string.Empty);
+        public static string Tokens(this Entity entity, IBag bag, string text) => Tokens(entity, bag, text, 0, string.Empty, false, null);
 
-        public static string Tokens(this IBag bag, Entity entity, string text, int sequence) => Tokens(entity, bag, text, sequence);
+        public static string Tokens(this IBag bag, Entity entity, string text, int sequence) => Tokens(entity, bag, text, sequence, string.Empty, false, null);
 
-        public static string Tokens(this Entity entity, IBag bag, string text, int sequence) => Tokens(entity, bag, text, sequence, string.Empty);
+        public static string Tokens(this Entity entity, IBag bag, string text, int sequence) => Tokens(entity, bag, text, sequence, string.Empty, false, null);
 
-        public static string Tokens(this Entity entity, IBag bag, string text, int sequence, string scope) => Tokens(entity, bag, text, sequence, scope, false);
+        public static string Tokens(this Entity entity, IBag bag, string text, int sequence, string scope) => Tokens(entity, bag, text, sequence, scope, false, null);
 
-        public static string Tokens(this Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths) => Tokens(entity, bag, text, sequence, scope, null, supressinvalidattributepaths);
+        public static string Tokens(this Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths) => Tokens(entity, bag, text, sequence, scope, supressinvalidattributepaths, null);
 
         #endregion Public extensions methods
 
@@ -38,7 +38,7 @@ namespace Rappen.XRM.Tokens
 
         #region Private static methods
 
-        private static string Tokens(Entity entity, IBag bag, string text, int sequence, string scope, Dictionary<string, string> replacepatterns, bool supressinvalidattributepaths)
+        internal static string Tokens(Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths, Dictionary<string, string> replacepatterns)
         {
             bag.Logger.StartSection("XRM Tokens " + scope);
             if (text == null)

@@ -34,7 +34,7 @@ namespace Rappen.XRM.Tokens
             var formulatotoken = token.GetSeparatedPart("|", 2);
             var extraformats = new List<string>();
             token.ExtractExtraFormatTags(extraformats);
-            var formulatopowerfx = entity.Tokens(bag, formulatotoken, sequence, scope, supressinvalidattributepaths);
+            var formulatopowerfx = XRMTokens.Tokens(entity, bag, formulatotoken, sequence, scope, supressinvalidattributepaths, null);
             var pfxvalue = Eval(formulatopowerfx);
             foreach (var extraFormat in extraformats)
             {

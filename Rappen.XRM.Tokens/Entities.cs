@@ -107,7 +107,7 @@ namespace Rappen.XRM.Tokens
                         }
                         else if (finalattribute.StartsWith("<expand|"))
                         {
-                            value = deRef.Tokens(bag, finalattribute, 0, scope);
+                            value = XRMTokens.Tokens(deRef, bag, finalattribute, 0, scope, false, null);
                         }
                         else
                         {

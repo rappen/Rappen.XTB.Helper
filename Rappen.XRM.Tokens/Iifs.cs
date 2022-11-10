@@ -20,8 +20,8 @@ namespace Rappen.XRM.Tokens
             var value2 = token.GetSeparatedPart("|", 4);
             var trueresult = token.GetSeparatedPart("|", 5);
             var falseresult = token.GetSeparatedPart("|", 6);
-            value1 = entity.Tokens(bag, value1, 0, scope);
-            value2 = entity.Tokens(bag, value2, 0, scope);
+            value1 = XRMTokens.Tokens(entity, bag, value1, 0, scope, false, null);
+            value2 = XRMTokens.Tokens(entity, bag, value2, 0, scope, false, null);
             decimal decValue1;
             bool numeric;
             // Sometimes empty string is passed as a value, in this case it should be interpreted as 0
@@ -77,7 +77,7 @@ namespace Rappen.XRM.Tokens
                 default:
                     throw new InvalidPluginExecutionException("Invalid operator \"" + oper + "\"");
             }
-            var result = entity.Tokens(bag, evaluation ? trueresult : falseresult, 0, scope, false);
+            var result = XRMTokens.Tokens(entity, bag, evaluation ? trueresult : falseresult, 0, scope, false, null);
             bag.Logger.EndSection();
             return text.Replace("<" + token + ">", result);
         }

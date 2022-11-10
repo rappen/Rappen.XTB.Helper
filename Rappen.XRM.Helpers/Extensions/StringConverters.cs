@@ -5,10 +5,16 @@ using System.Globalization;
 
 namespace Rappen.XRM.Helpers.Extensions
 {
-    public static class StringParses
+    public static class StringConverters
     {
-        public static object TryParseTo(this string text, AttributeTypeCode attributetypecode, AttributeMetadata metadata = null)
+        public static object ConvertTo(this string text, AttributeMetadata metadata) => ConvertTo(text, metadata?.AttributeType, metadata);
+
+        public static object ConvertTo(this string text, AttributeTypeCode? attributetypecode, AttributeMetadata metadata = null)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                return null;
+            }
             var textdecimal = text.Replace(".", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator).Replace(",", CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator);
             switch (attributetypecode)
             {

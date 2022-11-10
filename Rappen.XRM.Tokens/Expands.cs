@@ -74,7 +74,7 @@ namespace Rappen.XRM.Tokens
             var nIndex = 1;
             foreach (var expanded in cExpanded.Entities)
             {
-                var subvalue = expanded.Tokens(bag, format, nIndex, string.Empty, false);
+                var subvalue = XRMTokens.Tokens(expanded, bag, format, nIndex, string.Empty, false, null);
                 if (!string.IsNullOrWhiteSpace(subvalue) && (!distinct.Equals("true", StringComparison.OrdinalIgnoreCase) || !subValues.Contains(subvalue)))
                 {
                     subValues.Add(subvalue.Replace("##", nIndex.ToString()));
