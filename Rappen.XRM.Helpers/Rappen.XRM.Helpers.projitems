@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringParses.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Attribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Condition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Entity.cs" />

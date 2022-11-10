@@ -1,9 +1,12 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XRM.Helpers;
 using Rappen.XRM.Helpers.Extensions;
 using Rappen.XRM.Helpers.Interfaces;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Rappen.XRM.Tokens
 {
