@@ -70,7 +70,7 @@ namespace Rappen.Power.Fx
                     if (result is ErrorValue errorValue)
                         throw new InvalidPluginExecutionException($"PowerFx: {expr} Error: {errorValue.Errors.FirstOrDefault().Message}");
                     else
-                        return PrintResult(result);
+                        return PrintResult(result, true);
                 }
                 catch (Exception ex)
                 {
@@ -85,16 +85,16 @@ namespace Rappen.Power.Fx
         }
 
         // Exact copy from https://github.com/microsoft/power-fx-host-samples/blob/84cf538bd7ea451c002c898e98cb6a3be344b5ff/Samples/ConsoleREPL/ConsoleREPL.cs#L221-L327
-        private static string PrintResult(object value, Boolean minimal = false)
+        private static string PrintResult(object value, bool minimal = false)
         {
             string resultString = "";
 
             if (value is BlankValue)
                 resultString = (minimal ? "" : "Blank()");
             else if (value is ErrorValue errorValue)
-                resultString = (minimal ? "<error>" : "<Error: " + errorValue.Errors[0].Message + ">");
+                resultString = (/*minimal ? "<error>" :*/ "<Error: " + errorValue.Errors[0].Message + ">");
             else if (value is UntypedObjectValue)
-                resultString = (minimal ? "<untyped>" : "<Untyped: Use Value, Text, Boolean, or other functions to establish the type>");
+                resultString = (/*minimal ? "<untyped>" :*/ "<Untyped: Use Value, Text, Boolean, or other functions to establish the type>");
             else if (value is StringValue str)
                 resultString = (minimal ? str.ToObject().ToString() : "\"" + str.ToObject().ToString().Replace("\"", "\"\"") + "\"");
             else if (value is RecordValue record)
