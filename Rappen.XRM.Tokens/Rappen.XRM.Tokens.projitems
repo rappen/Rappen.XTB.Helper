@@ -9,8 +9,12 @@
     <Import_RootNamespace>Rappen.XRM.Tokens</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Entities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Expands.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Iifs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PowerFxHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Randoms.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Sequences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Systems.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XRMTokens.cs" />
   </ItemGroup>

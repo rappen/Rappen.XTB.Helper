@@ -1,5 +1,7 @@
 ﻿/* Note!
  *
+ * Read about it: https://github.com/rappen/Rappen.XTB.Helper/wiki/XRM-Tokens#how-to-install-it
+ *
  * To use these, you need to reach these files:
  *
  * Microsoft.PowerFx.Core.dll                  0.2.3.0
@@ -13,16 +15,34 @@
 using Microsoft.PowerFx;
 using Microsoft.PowerFx.Types;
 using Microsoft.Xrm.Sdk;
+using Rappen.XRM.Helpers.Extensions;
+using Rappen.XRM.Helpers.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Rappen.Power.Fx
+namespace Rappen.XRM.Tokens
 {
-    public class PowerFxHelpers
+    public static class PowerFxHelpers
     {
         //private const bool FormatTable = false;
         private static RecalcEngine engine;
+
+        public static string ReplacePowerFx(this Entity entity, IBag bag, string text, int sequence, string scope, bool supressinvalidattributepaths, string token)
+        {
+            var formulatotoken = token.GetSeparatedPart("|", 2);
+            var extraformats = new List<string>();
+            token.ExtractExtraFormatTags(extraformats);
+            var formulatopowerfx = entity.Tokens(bag, formulatotoken, sequence, scope, supressinvalidattributepaths);
+            var pfxvalue = Eval(formulatopowerfx);
+            foreach (var extraFormat in extraformats)
+            {
+                pfxvalue = pfxvalue.FormatByTag(extraFormat);
+            }
+            var powerfxresult = text.ReplaceFirstOnly("<" + token + ">", pfxvalue);
+            return powerfxresult;
+        }
 
         /// <summary>
         /// Power Fx Eval method
