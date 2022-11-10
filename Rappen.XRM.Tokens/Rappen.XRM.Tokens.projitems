@@ -12,7 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)PowerFxHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Randoms.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Systems.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XRMTokens.cs" />
   </ItemGroup>
 </Project>
