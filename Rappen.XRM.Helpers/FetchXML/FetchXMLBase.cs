@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -41,8 +40,8 @@ namespace Rappen.XRM.Helpers.FetchXML
             if (IncludeUnknown)
             {
                 unknowsAttributes?.ToList().ForEach(u => xml.AddAttribute(u.Key, u.Value));
-           // More works is needed...
-           //     unknowsNodes?.ToList().ForEach(u => xml.AppendChild(u.Value.CloneNode(true)));
+                // More works is needed...
+                //     unknowsNodes?.ToList().ForEach(u => xml.AppendChild(u.Value.CloneNode(true)));
             }
             return xml;
         }
@@ -70,12 +69,15 @@ namespace Rappen.XRM.Helpers.FetchXML
                 case ControlValidationMessage.IsRequired:
                     Message = string.Format(IsRequired, control);
                     break;
+
                 case ControlValidationMessage.InValid:
                     Message = string.Format(InValid, control);
                     break;
+
                 case ControlValidationMessage.NotInMetadata:
                     Message = string.Format(NotInMetadata, control);
                     break;
+
                 case ControlValidationMessage.NotShowingNow:
                     Message = string.Format(NotShowingNow, control);
                     break;

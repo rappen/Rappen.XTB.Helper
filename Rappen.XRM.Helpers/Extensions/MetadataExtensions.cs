@@ -66,24 +66,8 @@ namespace Rappen.XRM.Helpers.Extensions
             return GetAttribute(service, entity, attribute);
         }
 
-        public static AttributeMetadata GetAttribute(this IOrganizationService service, string entity, string attribute)
-        {
-            var entitymeta = GetEntity(service, entity);
-            if (entitymeta != null)
-            {
-                if (entitymeta.Attributes != null)
-                {
-                    foreach (var metaattribute in entitymeta.Attributes)
-                    {
-                        if (metaattribute.LogicalName == attribute)
-                        {
-                            return metaattribute;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
+        public static AttributeMetadata GetAttribute(this IOrganizationService service, string entity, string attribute) =>
+            GetEntity(service, entity)?.Attributes?.FirstOrDefault(a => a.LogicalName.Equals(attribute));
 
         public static EntityMetadata GetEntity(this IOrganizationService service, string entity)
         {
@@ -108,24 +92,8 @@ namespace Rappen.XRM.Helpers.Extensions
             return null;
         }
 
-        public static AttributeMetadata GetPrimaryAttribute(this IOrganizationService service, string entity)
-        {
-            var entitymeta = GetEntity(service, entity);
-            if (entitymeta != null)
-            {
-                if (entitymeta.Attributes != null)
-                {
-                    foreach (var metaattribute in entitymeta.Attributes)
-                    {
-                        if (metaattribute.IsPrimaryName == true)
-                        {
-                            return metaattribute;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
+        public static AttributeMetadata GetPrimaryAttribute(this IOrganizationService service, string entity) =>
+            GetEntity(service, entity)?.Attributes?.FirstOrDefault(a => a.IsPrimaryName == true);
 
         public static RetrieveMetadataChangesResponse LoadEntities(this IOrganizationService service, int orgMajorVer = 0, int orgMinorVer = 0)
         {

@@ -593,30 +593,21 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="entity">Entity containing the attribute</param>
         /// <param name="attributename">Name of the attribute</param>
         /// <returns>String value of the attribute. If the attribute is nussing, null is returned.</returns>
-        public static string AttributeToString(this Entity entity, string attributename)
-        {
-            return AttributeToString(entity, attributename, null, null);
-        }
+        public static string AttributeToString(this Entity entity, string attributename) => AttributeToString(entity, attributename, null, null);
 
         /// <summary>Gets a readable string representation of given attribute</summary>
         /// <param name="entity">Entity containing the attribute</param>
         /// <param name="attributename">Name of the attribute</param>
         /// <param name="service">Service to use for optionset/entityreference value retrieval</param>
         /// <returns>String value of the attribute. If the attribute is nussing, null is returned.</returns>
-        public static string AttributeToString(this Entity entity, string attributename, IOrganizationService service)
-        {
-            return AttributeToString(entity, attributename, null, service);
-        }
+        public static string AttributeToString(this Entity entity, string attributename, IOrganizationService service) => AttributeToString(entity, attributename, null, service);
 
         /// <summary>Gets a readable string representation of given attribute</summary>
         /// <param name="entity">Entity containing the attribute</param>
         /// <param name="attributename">Name of the attribute</param>
         /// <param name="def">Default value if attribute is missing</param>
         /// <returns>String value of the attribute. If the attribute is nussing, default is returned.</returns>
-        public static string AttributeToString(this Entity entity, string attributename, string def)
-        {
-            return AttributeToString(entity, attributename, def, null);
-        }
+        public static string AttributeToString(this Entity entity, string attributename, string def) => AttributeToString(entity, attributename, def, null);
 
         /// <summary>Gets a readable string representation of given attribute</summary>
         /// <param name="entity">Entity containing the attribute</param>
