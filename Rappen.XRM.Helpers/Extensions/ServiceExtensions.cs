@@ -52,6 +52,10 @@ namespace Rappen.XRM.Helpers.Extensions
         {
             EntityCollection resultCollection = null;
             EntityCollection tmpResult;
+            if (query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0)
+            {
+                queryex.PageInfo.PageNumber = 1;
+            }
             do
             {
                 tmpResult = service.RetrieveMultiple(query);
