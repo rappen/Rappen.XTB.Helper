@@ -48,10 +48,15 @@ namespace Rappen.XRM.Helpers.Extensions
             return result;
         }
 
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null)
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null, string message = null)
         {
             EntityCollection resultCollection = null;
             EntityCollection tmpResult;
+            if (string.IsNullOrEmpty(message))
+            {
+                message = "Retrieving records... ({0})";
+            }
+            worker?.ReportProgress(0, string.Format(message, 0));
             if (query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0)
             {
                 queryex.PageInfo.PageNumber = 1;
@@ -76,7 +81,7 @@ namespace Rappen.XRM.Helpers.Extensions
                     qex.PageInfo.PageNumber++;
                     qex.PageInfo.PagingCookie = tmpResult.PagingCookie;
                 }
-                worker?.ReportProgress(0, $"Retrieving records... ({resultCollection.Entities.Count})");
+                worker?.ReportProgress(0, string.Format(message, resultCollection.Entities.Count));
             }
             while (query is QueryExpression && tmpResult.MoreRecords);
             return resultCollection;
