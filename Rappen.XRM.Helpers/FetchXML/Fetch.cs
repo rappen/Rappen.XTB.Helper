@@ -15,11 +15,12 @@ namespace Rappen.XRM.Helpers.FetchXML
         public bool? Aggregate;
         public int? PageNumber;
         public string PagingCookie;
+        public string DataSource;
         public Entity Entity;
 
         internal XmlDocument Xml;
 
-        protected override List<string> GetKnownAttributes() => new List<string> { "top", "count", "distinct", "no-lock", "latematerialize", "returntotalrecordcount", "aggregate", "page", "paging-cookie" };
+        protected override List<string> GetKnownAttributes() => new List<string> { "top", "count", "distinct", "no-lock", "latematerialize", "returntotalrecordcount", "aggregate", "page", "paging-cookie", "datasource" };
 
         protected override List<string> GetKnownNodes() => new List<string> { "entity" };
 
@@ -42,6 +43,7 @@ namespace Rappen.XRM.Helpers.FetchXML
             Aggregate = xml.AttributeBool("aggregate");
             PageNumber = xml.AttributeInt("page");
             PagingCookie = xml.Attribute("paging-cookie");
+            DataSource = xml.Attribute("datasource");
             if (xml?.SelectSingleNode("entity") is XmlNode entity)
             {
                 Entity = new Entity(this, entity);
@@ -59,6 +61,7 @@ namespace Rappen.XRM.Helpers.FetchXML
             xml.AddAttribute("aggregate", Aggregate);
             xml.AddAttribute("page", PageNumber);
             xml.AddAttribute("paging-cookie", PagingCookie);
+            xml.AddAttribute("datasource", DataSource);
             if (Entity != null)
             {
                 xml.AppendChild(Entity.ToXML());
