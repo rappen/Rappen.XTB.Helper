@@ -9,11 +9,20 @@ namespace Rappen.XTB.Helpers.Extensions
 {
     public static class MetadataExtensions
     {
-        public static void GetAllEntityMetadatas(this PluginControlBase plugin, Action<IEnumerable<EntityMetadata>> loadedentities, bool TryMetadataCache = true, bool WaitUntilMetadataLoaded = true)
+        /// <summary>
+        /// Generic way to load metadatas using XTB cache or old style.
+        /// Can be called like this: this.GetAllEntityMetadatas(resulthandling, trycache, waittobedone, dontforce)
+        /// </summary>
+        /// <param name="plugin">The Plugin</param>
+        /// <param name="loadedentities">Method taking EntityMetadata[] and a manuallycalled bool</param>
+        /// <param name="TryMetadataCache">If we should try to use the XTB cache</param>
+        /// <param name="WaitUntilMetadataLoaded">True to wait for the cache, false if doing it underhood</param>
+        /// <param name="ForceReload">Set this to force get it from the Dataverse, not loaded cache</param>
+        public static void GetAllEntityMetadatas(this PluginControlBase plugin, Action<IEnumerable<EntityMetadata>, bool> loadedentities, bool TryMetadataCache = true, bool WaitUntilMetadataLoaded = true, bool ForceReload = false)
         {
             if (plugin == null || plugin.Service == null || plugin.ConnectionDetail == null)
             {
-                loadedentities?.Invoke(null);
+                loadedentities?.Invoke(null, ForceReload);
                 return;
             }
             plugin.WorkAsync(new WorkAsyncInfo
@@ -23,6 +32,11 @@ namespace Rappen.XTB.Helpers.Extensions
                 {
                     if (TryMetadataCache && plugin.ConnectionDetail.MetadataCacheLoader != null)
                     {   // Try cache metadata
+                        if (ForceReload)
+                        {
+                            worker.ReportProgress(0, "Reloading Metadata...");
+                            plugin.ConnectionDetail.UpdateMetadataCache(true).ConfigureAwait(false).GetAwaiter();
+                        }
                         if (plugin.ConnectionDetail.MetadataCache != null)
                         {   // Already cached
                             worker.ReportProgress(0, "Get Metadata from cache...");
@@ -40,7 +54,7 @@ namespace Rappen.XTB.Helpers.Extensions
                             {   // Waiting for loaded
                                 MethodInvoker mi = delegate
                                 {
-                                    loadedentities?.Invoke(task.Result?.EntityMetadata);
+                                    loadedentities?.Invoke(task.Result?.EntityMetadata, ForceReload);
                                 };
                                 if (plugin.InvokeRequired)
                                 {
@@ -71,7 +85,7 @@ namespace Rappen.XTB.Helpers.Extensions
                     }
                     else
                     {
-                        loadedentities?.Invoke(completedargs.Result as IEnumerable<EntityMetadata>);
+                        loadedentities?.Invoke(completedargs.Result as IEnumerable<EntityMetadata>, ForceReload);
                     }
                 }
             });
