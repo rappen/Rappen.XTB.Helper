@@ -35,7 +35,7 @@ namespace Rappen.XTB.Helpers.Extensions
                         if (ForceReload)
                         {
                             worker.ReportProgress(0, "Reloading Metadata...");
-                            plugin.ConnectionDetail.UpdateMetadataCache(true).ConfigureAwait(false).GetAwaiter();
+                            plugin.ConnectionDetail.UpdateMetadataCache(true).ConfigureAwait(false).GetAwaiter().GetResult();
                         }
                         if (plugin.ConnectionDetail.MetadataCache != null)
                         {   // Already cached
