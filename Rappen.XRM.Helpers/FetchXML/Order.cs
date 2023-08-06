@@ -14,7 +14,7 @@ namespace Rappen.XRM.Helpers.FetchXML
         internal Order(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
         {
             Parent = parent;
-            Name = xml.Attribute("name");
+            Name = xml.Attribute("attribute");
             Alias = xml.Attribute("alias");
             Descending = xml.AttributeBool("descending");
         }
@@ -35,7 +35,7 @@ namespace Rappen.XRM.Helpers.FetchXML
 
         protected override void AddXMLProperties(XmlElement xml)
         {
-            xml.AddAttribute("name", Name);
+            xml.AddAttribute("attribute", Name);
             xml.AddAttribute("alias", Alias);
             xml.AddAttribute("descending", Descending);
         }
