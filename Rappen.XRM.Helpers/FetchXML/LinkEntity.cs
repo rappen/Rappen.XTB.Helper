@@ -49,6 +49,10 @@ namespace Rappen.XRM.Helpers.FetchXML
             xml.AddAttribute("alias", Alias);
             xml.AddAttribute("intersect", Intersect);
             xml.AddAttribute("visible", Visible);
+            if (Outer is bool outer)
+            {
+                xml.AddAttribute("link-type", outer ? "outer" : "inner");
+            }
             ToXMLProperties(xml);
         }
     }
