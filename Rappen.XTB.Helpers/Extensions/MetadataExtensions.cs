@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk.Metadata;
+﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
@@ -89,6 +90,34 @@ namespace Rappen.XTB.Helpers.Extensions
                     }
                 }
             });
+        }
+
+        internal static bool GetFriendlyAttributeIsNotAsRawValue(this IOrganizationService service, string entity, string attribute)
+        => service.GetAttribute(entity, attribute).GetFriendlyAttributeIsNotAsRawValue();
+
+        internal static bool GetFriendlyAttributeIsNotAsRawValue(this AttributeMetadata meta)
+        {
+            switch (meta?.AttributeType)
+            {
+                case AttributeTypeCode.Boolean:
+                case AttributeTypeCode.Customer:
+                case AttributeTypeCode.DateTime:
+                case AttributeTypeCode.Lookup:
+                case AttributeTypeCode.Owner:
+                case AttributeTypeCode.PartyList:
+                case AttributeTypeCode.Picklist:
+                case AttributeTypeCode.State:
+                case AttributeTypeCode.Status:
+                    return true;
+
+                case AttributeTypeCode.Virtual:
+                    if (meta is MultiSelectPicklistAttributeMetadata)
+                    {
+                        return true;
+                    }
+                    break;
+            }
+            return false;
         }
     }
 }

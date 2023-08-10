@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Rappen.XRM.Helpers.Extensions;
 using Rappen.XRM.Helpers.Serialization;
+using Rappen.XTB.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,6 +23,7 @@ namespace Rappen.XTB.Helpers.Controls
         private IEnumerable<Entity> entities;
         private bool autoRefresh = true;
         private bool showFriendlyNames = false;
+        private bool showBothNames = false;
         private bool showIdColumn = true;
         private bool showIndexColumn = true;
         private bool showLocalTimes = false;
@@ -293,6 +295,24 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        [Category("Rappen XRM")]
+        [DefaultValue(false)]
+        [Description("True to show both friendly and technical names (when needed).")]
+        public bool ShowBothNames
+        {
+            get { return showBothNames; }
+            set
+            {
+                if (value != showBothNames)
+                {
+                    showBothNames = value;
+                    if (autoRefresh)
+                    {
+                        Refresh();
+                    }
+                }
+            }
+        }
         [Category("Rappen XRM")]
         [DefaultValue(true)]
         [Description("Set this to show the id of each record first in the grid.")]
@@ -652,7 +672,11 @@ namespace Rappen.XTB.Helpers.Controls
                     // all the listed columns or it contains data
                     var force = columnOrder.Contains(a) && (showAllColumnsInColumnOrder || entities.Any(e => e.Contains(a)));
 
-                    AddColumnForAttribute(entities, columns, a, force);
+                    AddColumnForAttribute(entities, columns, a, force, showFriendlyNames);
+                    if (showBothNames && organizationService.GetFriendlyAttributeIsNotAsRawValue(EntityName, a))
+                    {
+                        AddColumnForAttribute(entities, columns, a, force, !showFriendlyNames);
+                    }
                 });
             }
             if (!columns.Any(c => c.ColumnName.Equals("#entity")))
@@ -675,7 +699,7 @@ namespace Rappen.XTB.Helpers.Controls
                     viewcol.DataPropertyName = viewcol.Name;
                 }
                 var attribute = viewcol.DataPropertyName;
-                var dataColumn = CreateColumnForAttribute(entities, attribute, true);
+                var dataColumn = CreateColumnForAttribute(entities, attribute, true, showFriendlyNames);
                 if (!string.IsNullOrEmpty(viewcol.DefaultCellStyle.Format))
                 {
                     if (dataColumn.ExtendedProperties.Contains("Format"))
@@ -692,15 +716,16 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
-        private DataColumn CreateColumnForAttribute(IEnumerable<Entity> entities, string attribute, bool force)
+        private DataColumn CreateColumnForAttribute(IEnumerable<Entity> entities, string attribute, bool force, bool friendlyname)
         {
             var value = GetFirstValueForAttribute(entities, attribute);
             if (value == null && !force)
             {
                 return null;
             }
-            var type = GetValueType(value);
-            var dataColumn = new DataColumn(attribute, type);
+            var type = GetValueType(value, friendlyname);
+            var dataColumn = new DataColumn(attribute + (friendlyname != showFriendlyNames ? "|both" : ""), type);
+            dataColumn.SetFriendly(friendlyname);
             var meta = organizationService.GetAttribute(EntityName, attribute, value);
             dataColumn.ExtendedProperties.Add(_extendedMetaAttribute, meta);
             if (value is AliasedValue aliasvalue && aliasvalue.EntityLogicalName is string aliasentityname && !string.IsNullOrEmpty(aliasentityname))
@@ -725,13 +750,13 @@ namespace Rappen.XTB.Helpers.Controls
             return value != null ? value.GetType() : null;
         }
 
-        private Type GetValueType(object value)
+        private Type GetValueType(object value, bool friendly)
         {
             if (value == null)
             {
                 return typeof(string);
             }
-            if (showFriendlyNames || !ValueTypeIsFriendly(value))
+            if (friendly || !ValueTypeIsFriendly(value))
             {
                 return typeof(string);
             }
@@ -748,13 +773,13 @@ namespace Rappen.XTB.Helpers.Controls
             return value is Int32 || value is decimal || value is double || value is string || value is Money || value is DateTime;
         }
 
-        private void AddColumnForAttribute(IEnumerable<Entity> entities, List<DataColumn> columns, string attribute, bool force)
+        private void AddColumnForAttribute(IEnumerable<Entity> entities, List<DataColumn> columns, string attribute, bool force, bool friendlyname)
         {
-            if (columns.Any(c => c.ColumnName.Equals(attribute)))
+            if (columns.Any(c => c.ColumnName.Equals(attribute) && c.GetFriendly() == friendlyname))
             {   // Column already added for some reason
                 return;
             }
-            if (CreateColumnForAttribute(entities, attribute, force) is DataColumn dataColumn && dataColumn != null)
+            if (CreateColumnForAttribute(entities, attribute, force, friendlyname) is DataColumn dataColumn && dataColumn != null)
             {
                 var meta = dataColumn.ExtendedProperties.ContainsKey(_extendedMetaAttribute) ? dataColumn.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata : null;
                 if (meta?.IsPrimaryId == true && (!force || ShowIdColumn && meta.LogicalName == attribute))
@@ -766,7 +791,7 @@ namespace Rappen.XTB.Helpers.Controls
                     //   as a different column to the ID of the record.
                     return;
                 }
-                if (showFriendlyNames &&
+                if (friendlyname &&
                    meta != null &&
                    meta.DisplayName != null &&
                    meta.DisplayName.UserLocalizedLabel != null)
@@ -815,7 +840,7 @@ namespace Rappen.XTB.Helpers.Controls
                 var dRow = dTable.NewRow();
                 foreach (DataColumn column in dTable.Columns)
                 {
-                    var col = column.ColumnName;
+                    var col = column.ColumnName.Split('|')[0];
                     try
                     {
                         object value = null;
@@ -838,7 +863,7 @@ namespace Rappen.XTB.Helpers.Controls
                             {
                                 value = dtvalue.ToLocalTime();
                             }
-                            if (showFriendlyNames)
+                            if (column.GetFriendly())
                             {
                                 if (!ValueTypeIsFriendly(value) && column.ExtendedProperties.ContainsKey(_extendedMetaAttribute))
                                 {
@@ -904,7 +929,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     type = datacolumn.ExtendedProperties["OriginalType"] as Type;
                 }
-                if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !showFriendlyNames))
+                if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
                 {
                     col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                 }
@@ -961,6 +986,11 @@ namespace Rappen.XTB.Helpers.Controls
                     Columns[attribute].DisplayIndex = pos;
                     pos++;
                 }
+                if (Columns.Contains(attribute + "|both"))
+                {
+                    Columns[attribute + "|both"].DisplayIndex = pos;
+                    pos++;
+                }
             }
         }
 
@@ -1007,20 +1037,24 @@ namespace Rappen.XTB.Helpers.Controls
         {
             if (cellsFromLayoutXML != null)
             {
-                var cellnames = cellsFromLayoutXML.Keys.ToList();
+                var cellnames = cellsFromLayoutXML.Where(c => c.Value > 0).Select(c => c.Key);
                 cellnames.Where(c => !Columns.Contains(c)).ToList().ForEach(c => Columns.Add(c, c));
-                foreach (var column in Columns?.Cast<DataGridViewColumn>())
+                // First hidden all columns
+                Columns.Cast<DataGridViewColumn>().ToList().ForEach(c => c.Visible = false);
+                var display = 0;
+                foreach (var cell in cellsFromLayoutXML.Where(c => c.Value > 0))
                 {
-                    if (cellsFromLayoutXML.ContainsKey(column.Name))
+                    if (Columns.Cast<DataGridViewColumn>().FirstOrDefault(c => c.Name == cell.Key) is DataGridViewColumn column)
                     {
-                        var cell = cellsFromLayoutXML[column.Name];
-                        column.DisplayIndex = Math.Min(cellnames.IndexOf(column.Name), Columns.Count - 1);
-                        column.Width = cell;
-                        column.Visible = cell > 0;
+                        column.DisplayIndex = display++;
+                        column.Width = cell.Value;
+                        column.Visible = cell.Value > 0;
                     }
-                    else
+                    if (showBothNames && Columns.Cast<DataGridViewColumn>().FirstOrDefault(c => c.Name == cell.Key + "|both") is DataGridViewColumn columnboth)
                     {
-                        column.Visible = false;
+                        columnboth.DisplayIndex = display++;
+                        columnboth.Width = cell.Value;
+                        columnboth.Visible = cell.Value > 0;
                     }
                 }
             }
