@@ -1018,9 +1018,7 @@ namespace Rappen.XTB.Helpers.Controls
 
             if (!string.IsNullOrEmpty(layoutxml))
             {
-                var doc = new XmlDocument();
-                doc.LoadXml(layoutxml);
-                if (doc.SelectSingleNode("grid") is XmlElement grid)
+                if (layoutxml.ToXml().SelectSingleNode("grid") is XmlElement grid)
                 {
                     var cells = grid.SelectSingleNode("row")?
                         .ChildNodes.Cast<XmlNode>()

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Rappen.XRM.Helpers.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -26,8 +27,7 @@ namespace Rappen.XRM.Helpers.FetchXML
 
         public static Fetch FromString(string fetch)
         {
-            var doc = new XmlDocument();
-            doc.LoadXml(fetch);
+            var doc = fetch.ToXml();
             return new Fetch(doc.SelectSingleNode("fetch"));
         }
 

@@ -105,8 +105,7 @@ namespace Rappen.XRM.Helpers.Extensions
             {
                 return null;
             }
-            var fetchDoc = new XmlDocument();
-            fetchDoc.LoadXml(view.GetAttributeValue<string>(Savedquery.Fetchxml));
+            var fetchDoc = view.GetAttributeValue<string>(Savedquery.Fetchxml).ToXml();
             var filterNodes = fetchDoc.SelectNodes("fetch/entity/filter");
             var metadata = service.GetEntity(logicalName);
             foreach (XmlNode filterNode in filterNodes)

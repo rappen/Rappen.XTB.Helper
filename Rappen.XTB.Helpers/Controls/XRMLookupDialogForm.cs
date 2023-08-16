@@ -138,9 +138,7 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 Cursor = Cursors.Arrow;
             }
-            var layout = new XmlDocument();
-            layout.LoadXml(view["layoutxml"].ToString());
-            gridResults.ColumnOrder = String.Join(",", layout.SelectNodes("//cell/@name").OfType<XmlAttribute>().Select(a => a.Value));
+            gridResults.ColumnOrder = String.Join(",", view["layoutxml"].ToString().ToXml().SelectNodes("//cell/@name").OfType<XmlAttribute>().Select(a => a.Value));
             gridResults.ShowAllColumnsInColumnOrder = true;
             gridResults.ShowColumnsNotInColumnOrder = false;
             gridSelection.ColumnOrder = gridResults.ColumnOrder;
