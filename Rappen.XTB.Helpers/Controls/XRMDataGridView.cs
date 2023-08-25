@@ -978,18 +978,18 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return;
             }
+            var maxpos = Columns.Cast<DataGridViewColumn>().Count(c => c.Visible) + 1;
             var pos = 2;
             foreach (var attribute in columnOrder)
             {
+                pos = Math.Min(pos, maxpos);
                 if (Columns.Contains(attribute))
                 {
-                    Columns[attribute].DisplayIndex = pos;
-                    pos++;
+                    Columns[attribute].DisplayIndex = pos++;
                 }
                 if (Columns.Contains(attribute + "|both"))
                 {
-                    Columns[attribute + "|both"].DisplayIndex = pos;
-                    pos++;
+                    Columns[attribute + "|both"].DisplayIndex = pos++;
                 }
             }
         }
