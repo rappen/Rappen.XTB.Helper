@@ -87,6 +87,59 @@ namespace Rappen.XRM.Helpers.Extensions
             return resultCollection;
         }
 
+        /// <summary>
+        /// Detect whether a specified message is supported for the specified table.
+        /// </summary>
+        /// <param name="service">The IOrganizationService instance.</param>
+        /// <param name="entityLogicalName">The logical name of the table.</param>
+        /// <param name="messageName">The name of the message.</param>
+        /// <returns>True/False</returns>
+        /// <remarks>Example code from: https://learn.microsoft.com/en-us/power-apps/developer/data-platform/bulk-operations?tabs=sdk#availability-with-standard-tables</remarks>
+        public static bool IsMessageAvailable(this IOrganizationService service, string entityLogicalName, string messageName, BackgroundWorker worker = null)
+        {
+            var query = new QueryExpression("sdkmessagefilter")
+            {
+                ColumnSet = new ColumnSet("sdkmessagefilterid"),
+                Criteria = new FilterExpression(LogicalOperator.And)
+                {
+                    Conditions = {
+                        new ConditionExpression(
+                            attributeName:"primaryobjecttypecode",
+                            conditionOperator: ConditionOperator.Equal,
+                            value: entityLogicalName)
+                    }
+                },
+                LinkEntities = {
+                    new LinkEntity(
+                        linkFromEntityName:"sdkmessagefilter",
+                        linkToEntityName:"sdkmessage",
+                        linkFromAttributeName:"sdkmessageid",
+                        linkToAttributeName:"sdkmessageid",
+                        joinOperator: JoinOperator.Inner)
+                    {
+                        LinkCriteria = new FilterExpression(LogicalOperator.And){
+                        Conditions = {
+                            new ConditionExpression(
+                                attributeName:"name",
+                                conditionOperator: ConditionOperator.Equal,
+                                value: messageName)
+                            }
+                        }
+                    }
+                }
+            };
+            worker?.ReportProgress(0, $"Checking message {messageName} on {entityLogicalName}...");
+            try
+            {
+                var entityCollection = service.RetrieveMultiple(query);
+                return entityCollection.Entities.Count.Equals(1);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         #endregion Public Methods
 
         #region Internal Methods
