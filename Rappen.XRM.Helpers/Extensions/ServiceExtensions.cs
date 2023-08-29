@@ -117,13 +117,13 @@ namespace Rappen.XRM.Helpers.Extensions
                         linkToAttributeName:"sdkmessageid",
                         joinOperator: JoinOperator.Inner)
                     {
-                        LinkCriteria = new FilterExpression(LogicalOperator.And){
-                        Conditions = {
-                            new ConditionExpression(
-                                attributeName:"name",
-                                conditionOperator: ConditionOperator.Equal,
-                                value: messageName)
-                            }
+                        LinkCriteria = new FilterExpression(LogicalOperator.And) {
+                            Conditions = {
+                                new ConditionExpression(
+                                    attributeName:"name",
+                                    conditionOperator: ConditionOperator.Equal,
+                                    value: messageName)
+                                }
                         }
                     }
                 }
@@ -137,6 +137,37 @@ namespace Rappen.XRM.Helpers.Extensions
             catch
             {
                 return false;
+            }
+        }
+
+        public static IEnumerable<string> MessagesByEntity(this IOrganizationService service, string entityLogicalName, BackgroundWorker worker = null)
+        {
+            var query = new QueryExpression("sdkmessage")
+            {
+                ColumnSet = new ColumnSet("name"),
+                LinkEntities =
+                {
+                    new LinkEntity("sdkmessage", "sdkmessagefilter", "sdkmessageid", "sdkmessageid", JoinOperator.Inner)
+                    {
+                        LinkCriteria =
+                        {
+                            Conditions =
+                            {
+                                new ConditionExpression("primaryobjecttypecode", ConditionOperator.Equal, entityLogicalName)
+                            }
+                        }
+                    }
+                }
+            };
+            worker?.ReportProgress(0, $"Checking messages on {entityLogicalName}...");
+            try
+            {
+                var entityCollection = service.RetrieveMultiple(query);
+                return entityCollection.Entities.Select(e => e.TryGetAttributeValue("name", out string message) ? message : null).Where(m => !string.IsNullOrEmpty(m)).ToArray();
+            }
+            catch
+            {
+                return null;
             }
         }
 
