@@ -4,12 +4,12 @@
  *
  * To use these, you need to reach these files:
  *
- * Microsoft.PowerFx.Core.dll                  0.2.3.0
- * Microsoft.PowerFx.Interpreter.dll           0.2.3.0
- * Microsoft.PowerFx.Transport.Attributes.dll  0.2.3.0
- * en-US\Microsoft.PowerFx.Core.resources.dll  0.2.3.0
+ * Microsoft.PowerFx.Core.dll                  1.1.0
+ * Microsoft.PowerFx.Interpreter.dll           1.1.0
+ * Microsoft.PowerFx.Transport.Attributes.dll  1.1.0
+ * en-US\Microsoft.PowerFx.Core.resources.dll  1.1.0
  * System.Runtime.CompilerServices.Unsafe.dll  4.6.28619.1  For XrmToolBox might need ILMerge
- * System.Collections.Immutable.dll            5.0.20.51904
+ * System.Collections.Immutable.dll            6.0.0
 */
 
 using Microsoft.PowerFx;
@@ -75,9 +75,10 @@ namespace Rappen.XRM.Tokens
             //                      <ident>( <ident> : <type>, ... ) : <type> { <formula>; <formula>; ... }
             else if (Regex.IsMatch(expr, @"^\s*\w+\((\s*\w+\s*\:\s*\w+\s*,?)*\)\s*\:\s*\w+\s*(\=|\{).*$", RegexOptions.Singleline))
             {
-                var res = engine.DefineFunctions(expr);
-                if (res.Errors.Count() > 0)
-                    throw new InvalidPluginExecutionException($"PowerFx: {expr} Error: {res.Errors.FirstOrDefault().Message}");
+                throw new NotImplementedException("Preview function RecalcEngine.DefineFunctions has been removed. Will fix it, one day. /Jonas");
+                //var res = engine.DefineFunctions(expr);
+                //if (res.Errors.Count() > 0)
+                //    throw new InvalidPluginExecutionException($"PowerFx: {expr} Error: {res.Errors.FirstOrDefault().Message}");
             }
 
             // eval and print everything else
