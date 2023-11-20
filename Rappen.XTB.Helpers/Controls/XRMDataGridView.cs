@@ -37,6 +37,8 @@ namespace Rappen.XTB.Helpers.Controls
         private DataGridViewColumn[] designedColumns;
         private string layoutxml;
         private Dictionary<string, int> cellsFromLayoutXML;
+        private string sortColumn;
+        private ListSortDirection sortDirection = ListSortDirection.Ascending;
 
         private const string _extendedMetaAttribute = "MetaAttribute";
         private const string _extendedMetaEntity = "MetaEntity";
@@ -545,6 +547,25 @@ namespace Rappen.XTB.Helpers.Controls
             else
             {
                 mi();
+            }
+        }
+
+        public override void Sort(DataGridViewColumn dataGridViewColumn, ListSortDirection direction)
+        {
+            if (dataGridViewColumn != null && DataSource is IEnumerable<Entity> data)
+            {
+                sortDirection = dataGridViewColumn.Name == sortColumn && sortDirection == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending;
+                data = data.OrderBy(d => d.PropertyAsBaseType(dataGridViewColumn.DataPropertyName, null, true));
+                DataSource = sortDirection == ListSortDirection.Descending ? data.Reverse() : data;
+                if (Columns.Contains(dataGridViewColumn.Name))
+                {
+                    Columns[dataGridViewColumn.Name].HeaderCell.SortGlyphDirection = sortDirection == ListSortDirection.Descending ? SortOrder.Descending : SortOrder.Ascending;
+                }
+                sortColumn = dataGridViewColumn.Name;
+            }
+            else
+            {
+                base.Sort(dataGridViewColumn, direction);
             }
         }
 
