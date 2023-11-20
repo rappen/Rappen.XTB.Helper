@@ -40,6 +40,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private const string _extendedMetaAttribute = "MetaAttribute";
         private const string _extendedMetaEntity = "MetaEntity";
+        private const string _originalType = "OriginalType";
 
         #endregion Private properties
 
@@ -120,7 +121,7 @@ namespace Rappen.XTB.Helpers.Controls
 
                 if (designedColumnsDetermined && designedColumnsUsed && designedColumns != null)
                 {
-                    foreach (DataGridViewColumn col in designedColumns)
+                    foreach (var col in designedColumns)
                     {
                         if (!Columns.Contains(col.Name))
                         {
@@ -479,6 +480,24 @@ namespace Rappen.XTB.Helpers.Controls
             return (T)base.DataSource;
         }
 
+        public Entity GetXRMEntity(int RowIndex)
+        {
+            if (RowIndex == -1 || !Columns.Contains("#entity"))
+            {
+                return null;
+            }
+            var row = Rows[RowIndex];
+            var entity = row.Cells["#entity"]?.Value as Entity;
+            return entity;
+        }
+
+        public object GetXRMValue(int RowIndex, int ColumnIndex)
+        {
+            var entity = GetXRMEntity(RowIndex);
+            var attribute = ColumnIndex >= 0 ? Columns[ColumnIndex].Name : string.Empty;
+            return entity != null && entity.Contains(attribute) ? entity[attribute] : null;
+        }
+
         /// <summary>
         /// Refresh the contents of the gridview based on associated Entities and flags
         /// </summary>
@@ -564,7 +583,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     return;
                 }
-                var entity = GetRecordFromCellEvent(e);
+                var entity = GetXRMEntity(e.RowIndex);
                 var row = Rows[e.RowIndex];
                 var col = Columns[e.ColumnIndex];
                 if (!entity.Contains(col.Name))
@@ -591,7 +610,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     return;
                 }
-                var entity = GetRecordFromCellEvent(e);
+                var entity = GetXRMEntity(e.RowIndex);
                 var row = Rows[e.RowIndex];
                 var col = Columns[e.ColumnIndex];
                 if (!entity.Contains(col.Name))
@@ -616,23 +635,11 @@ namespace Rappen.XTB.Helpers.Controls
 
         private XRMRecordEventArgs GetXRMRecordEventArgs(DataGridViewCellEventArgs e)
         {
-            Entity entity = GetRecordFromCellEvent(e);
+            var entity = GetXRMEntity(e.RowIndex);
             var attribute = e.ColumnIndex >= 0 ? Columns[e.ColumnIndex].Name : string.Empty;
             //            var args = new XRMRecordEventArgs(e.ColumnIndex, e.RowIndex, entity, attribute);
             var args = new XRMRecordEventArgs(entity, attribute);
             return args;
-        }
-
-        private Entity GetRecordFromCellEvent(DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex == -1 || !Columns.Contains("#entity"))
-            {
-                return null;
-            }
-            var rowno = e.RowIndex;
-            var row = Rows[rowno];
-            var entity = row.Cells["#entity"]?.Value as Entity;
-            return entity;
         }
 
         private List<DataColumn> GetTableColumns(IEnumerable<Entity> entities)
@@ -733,7 +740,7 @@ namespace Rappen.XTB.Helpers.Controls
                 var aliasentitymeta = organizationService.GetEntity(aliasentityname);
                 dataColumn.ExtendedProperties.Add(_extendedMetaEntity, aliasentitymeta);
             }
-            dataColumn.ExtendedProperties.Add("OriginalType", GetInnerValueType(value));
+            dataColumn.ExtendedProperties.Add(_originalType, GetInnerValueType(value));
             if (meta is DateTimeAttributeMetadata && entities.Any(e => e.Contains(attribute) && e[attribute] is DateTime dtvalue && dtvalue.Millisecond > 0))
             {
                 dataColumn.ExtendedProperties.Add("Format", "yyyy-MM-dd HH:mm:ss.fff");
@@ -768,6 +775,17 @@ namespace Rappen.XTB.Helpers.Controls
             return basevalue.GetType();
         }
 
+        private Type GetOriginalType(DataGridViewColumn dataGridViewColumn)
+        {
+            if (base.DataSource is DataTable table &&
+                table.Columns.Contains(dataGridViewColumn.DataPropertyName) &&
+                table.Columns[dataGridViewColumn.DataPropertyName] is DataColumn dataColumn)
+            {
+                return dataColumn.ExtendedProperties.ContainsValue(_originalType) ? dataColumn.ExtendedProperties[_originalType] as Type : null;
+            }
+            return null;
+        }
+
         private bool ValueTypeIsFriendly(object value)
         {
             return value is Int32 || value is decimal || value is double || value is string || value is Money || value is DateTime;
@@ -781,7 +799,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             if (CreateColumnForAttribute(entities, attribute, force, friendlyname) is DataColumn dataColumn && dataColumn != null)
             {
-                var meta = dataColumn.ExtendedProperties.ContainsKey(_extendedMetaAttribute) ? dataColumn.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata : null;
+                var meta = GetAttributeMetadata(dataColumn);
                 if (meta?.IsPrimaryId == true && (!force || ShowIdColumn && meta.LogicalName == attribute))
                 {
                     // Don't show the primary key column twice. Ignore the primary key column if:
@@ -815,6 +833,22 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 columns.Add(dataColumn);
             }
+        }
+
+        private AttributeMetadata GetAttributeMetadata(DataGridViewColumn dataGridViewColumn)
+        {
+            if (base.DataSource is DataTable table &&
+                table.Columns.Contains(dataGridViewColumn.DataPropertyName) &&
+                table.Columns[dataGridViewColumn.DataPropertyName] is DataColumn dataColumn)
+            {
+                return GetAttributeMetadata(dataColumn);
+            }
+            return null;
+        }
+
+        private static AttributeMetadata GetAttributeMetadata(DataColumn dataColumn)
+        {
+            return dataColumn.ExtendedProperties.ContainsKey(_extendedMetaAttribute) ? dataColumn.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata : null;
         }
 
         private object GetFirstValueForAttribute(IEnumerable<Entity> entities, string attribute)
@@ -865,9 +899,9 @@ namespace Rappen.XTB.Helpers.Controls
                             }
                             if (column.GetFriendly())
                             {
-                                if (!ValueTypeIsFriendly(value) && column.ExtendedProperties.ContainsKey(_extendedMetaAttribute))
+                                if (!ValueTypeIsFriendly(value) && GetAttributeMetadata(column) is AttributeMetadata meta)
                                 {
-                                    value = EntitySerializer.AttributeToString(value, column.ExtendedProperties[_extendedMetaAttribute] as AttributeMetadata, column.ExtendedProperties["Format"] as string);
+                                    value = EntitySerializer.AttributeToString(value, meta, column.ExtendedProperties["Format"] as string);
                                 }
                                 else
                                 {
@@ -925,9 +959,9 @@ namespace Rappen.XTB.Helpers.Controls
                 var datacolumn = dTable.Columns[col.DataPropertyName];
                 col.HeaderText = datacolumn.Caption;
                 var type = datacolumn.DataType;
-                if (datacolumn.ExtendedProperties.ContainsKey("OriginalType"))
+                if (datacolumn.ExtendedProperties.ContainsKey(_originalType))
                 {
-                    type = datacolumn.ExtendedProperties["OriginalType"] as Type;
+                    type = datacolumn.ExtendedProperties[_originalType] as Type;
                 }
                 if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
                 {
