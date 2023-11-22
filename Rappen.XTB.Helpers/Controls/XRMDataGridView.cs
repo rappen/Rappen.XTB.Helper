@@ -557,6 +557,10 @@ namespace Rappen.XTB.Helpers.Controls
                 sortDirection = dataGridViewColumn.Name == sortColumn && sortDirection == ListSortDirection.Ascending ? ListSortDirection.Descending : ListSortDirection.Ascending;
                 data = data.OrderBy(d => d.PropertyAsBaseType(dataGridViewColumn.DataPropertyName, null, true));
                 DataSource = sortDirection == ListSortDirection.Descending ? data.Reverse() : data;
+                if (!autoRefresh)
+                {
+                    Refresh();
+                }
                 if (Columns.Contains(dataGridViewColumn.Name))
                 {
                     Columns[dataGridViewColumn.Name].HeaderCell.SortGlyphDirection = sortDirection == ListSortDirection.Descending ? SortOrder.Descending : SortOrder.Ascending;
