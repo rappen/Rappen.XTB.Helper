@@ -47,6 +47,7 @@ namespace Rappen.XTB.Helpers.Controls
                 id = value?.Id ?? Guid.Empty;
                 updatedattributes = null;
                 Refresh();
+                AnnounceColumnChange(string.Empty);
             }
         }
 
@@ -66,6 +67,10 @@ namespace Rappen.XTB.Helpers.Controls
             get => logicalName;
             set => SetLogicalName(value);
         }
+
+        [Category("Rappen XRM")]
+        [Description("DisplayName of the entity type to bind.")]
+        public string EntityDisplayName => Metadata?.DisplayName?.UserLocalizedLabel?.Label ?? string.Empty;
 
         [DefaultValue(false)]
         [Category("Rappen XRM")]
