@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.ServiceModel;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
@@ -65,6 +66,11 @@ namespace Rappen.XTB.Helpers.Controls
             get => logicalName;
             set => SetLogicalName(value);
         }
+
+        [DefaultValue(false)]
+        [Category("Rappen XRM")]
+        [Description("Don't throw exception if LogicalName + Id doesn't exist in Dataverse.")]
+        public bool NoExceptionByNonexistingId { get; set; } = false;
 
         [Browsable(false)]
         public IOrganizationService Service
@@ -251,8 +257,22 @@ namespace Rappen.XTB.Helpers.Controls
             updatedattributes = null;
             if (organizationService != null && !string.IsNullOrWhiteSpace(logicalName) && !Guid.Empty.Equals(id))
             {
-                var record = organizationService.Retrieve(logicalName, id, new ColumnSet(true));
-                EntityItem = new EntityItem(record, organizationService);
+                try
+                {
+                    var record = organizationService.Retrieve(logicalName, id, new ColumnSet(true));
+                    EntityItem = new EntityItem(record, organizationService);
+                }
+                catch (FaultException<OrganizationServiceFault> ex)
+                {
+                    if (NoExceptionByNonexistingId && ex.HResult == -2146233087)
+                    {
+                        Id = Guid.Empty;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
             else
             {
