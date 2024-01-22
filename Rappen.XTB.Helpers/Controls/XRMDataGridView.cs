@@ -924,13 +924,14 @@ namespace Rappen.XTB.Helpers.Controls
                             }
                             if (column.GetFriendly())
                             {
+                                var format = column.ExtendedProperties["Format"] as string;
                                 if (!ValueTypeIsFriendly(value) && GetAttributeMetadata(column) is AttributeMetadata meta)
                                 {
-                                    value = EntitySerializer.AttributeToString(value, meta, column.ExtendedProperties["Format"] as string);
+                                    value = EntitySerializer.AttributeToString(value, meta, format);
                                 }
                                 else
                                 {
-                                    value = EntitySerializer.AttributeToBaseType(value).ToString();
+                                    value = string.Format("{0:" + format + "}", EntitySerializer.AttributeToBaseType(value));
                                 }
                             }
                             else
