@@ -48,6 +48,8 @@ namespace Rappen.XRM.Helpers.Extensions
             return result;
         }
 
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, string fetch, BackgroundWorker worker = null, string message = null) => RetrieveMultipleAll(service, new FetchExpression(fetch), worker, message);
+
         public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null, string message = null)
         {
             EntityCollection resultCollection = null;
@@ -57,7 +59,7 @@ namespace Rappen.XRM.Helpers.Extensions
                 message = "Retrieving records... ({0})";
             }
             worker?.ReportProgress(0, string.Format(message, 0));
-            if (query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0)
+            if (query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0 && queryex.TopCount == null)
             {
                 queryex.PageInfo.PageNumber = 1;
             }
