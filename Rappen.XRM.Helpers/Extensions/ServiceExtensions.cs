@@ -48,12 +48,22 @@ namespace Rappen.XRM.Helpers.Extensions
             return result;
         }
 
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, string fetch, BackgroundWorker worker = null, string message = null) => RetrieveMultipleAll(service, new FetchExpression(fetch), worker, message);
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, string fetch, BackgroundWorker worker, DoWorkEventArgs eventargs, string message) => RetrieveMultipleAll(service, new FetchExpression(fetch), worker, eventargs, message);
 
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker = null, string message = null)
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query) => RetrieveMultipleAll(service, query, null, null, null);
+
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker) => RetrieveMultipleAll(service, query, worker, null, null);
+
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, string message) => RetrieveMultipleAll(service, query, worker, null, message);
+
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message)
         {
+            if (!(query is FetchExpression || query is QueryExpression))
+            {
+                throw new ArgumentException($"Query has to be FetchExpression or QueryExpression. Type is now: {query.GetType()}");
+            }
             EntityCollection resultCollection = null;
-            EntityCollection tmpResult;
+            EntityCollection tmpResult = null;
             if (string.IsNullOrEmpty(message))
             {
                 message = "Retrieving records... ({0})";
@@ -65,6 +75,15 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             do
             {
+                if (worker?.CancellationPending == true && eventargs != null)
+                {
+                    eventargs.Cancel = true;
+                    break;
+                }
+                if (tmpResult?.MoreRecords == true)
+                {
+                    query.NavigatePage(tmpResult.PagingCookie);
+                }
                 tmpResult = service.RetrieveMultiple(query);
                 if (resultCollection == null)
                 {
@@ -78,14 +97,9 @@ namespace Rappen.XRM.Helpers.Extensions
                     resultCollection.TotalRecordCount = tmpResult.TotalRecordCount;
                     resultCollection.TotalRecordCountLimitExceeded = tmpResult.TotalRecordCountLimitExceeded;
                 }
-                if (query is QueryExpression qex && tmpResult.MoreRecords)
-                {
-                    qex.PageInfo.PageNumber++;
-                    qex.PageInfo.PagingCookie = tmpResult.PagingCookie;
-                }
                 worker?.ReportProgress(0, string.Format(message, resultCollection.Entities.Count));
             }
-            while (query is QueryExpression && tmpResult.MoreRecords);
+            while (tmpResult.MoreRecords && eventargs?.Cancel != true);
             return resultCollection;
         }
 
@@ -133,7 +147,7 @@ namespace Rappen.XRM.Helpers.Extensions
             worker?.ReportProgress(0, $"Checking message {messageName} on {entityLogicalName}...");
             try
             {
-                var entityCollection = service.RetrieveMultiple(query);
+                var entityCollection = service.RetrieveMultipleAll(query);
                 return entityCollection.Entities.Count.Equals(1);
             }
             catch
@@ -164,7 +178,7 @@ namespace Rappen.XRM.Helpers.Extensions
             worker?.ReportProgress(0, $"Checking messages on {entityLogicalName}...");
             try
             {
-                var entityCollection = service.RetrieveMultiple(query);
+                var entityCollection = service.RetrieveMultipleAll(query);
                 return entityCollection.Entities.Select(e => e.TryGetAttributeValue("name", out string message) ? message : null).Where(m => !string.IsNullOrEmpty(m)).ToArray();
             }
             catch
@@ -198,7 +212,7 @@ namespace Rappen.XRM.Helpers.Extensions
             {
                 ProcessFilter(metadata, filterNode, search);
             }
-            return service.RetrieveMultiple(new FetchExpression(fetchDoc.OuterXml));
+            return service.RetrieveMultipleAll(new FetchExpression(fetchDoc.OuterXml));
         }
 
         internal static EntityCollection RetrieveSystemViews(this IOrganizationService service, string logicalname, bool quickfind)
@@ -215,7 +229,7 @@ namespace Rappen.XRM.Helpers.Extensions
             qe.Criteria.AddCondition(Savedquery.QueryType, quickfind ? ConditionOperator.Equal : ConditionOperator.NotEqual, ViewType_QuickFind);
             try
             {
-                var newviews = service.RetrieveMultiple(qe);
+                var newviews = service.RetrieveMultipleAll(qe);
                 return newviews;
             }
             catch (FaultException<OrganizationServiceFault>)
@@ -237,7 +251,7 @@ namespace Rappen.XRM.Helpers.Extensions
             qe.Criteria.AddCondition(UserQuery.ReturnedTypeCode, ConditionOperator.Equal, logicalname);
             try
             {
-                var newviews = service.RetrieveMultiple(qe);
+                var newviews = service.RetrieveMultipleAll(qe);
                 return newviews;
             }
             catch (FaultException<OrganizationServiceFault>)
