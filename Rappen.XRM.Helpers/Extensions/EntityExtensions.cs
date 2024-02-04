@@ -486,7 +486,18 @@ namespace Rappen.XRM.Helpers.Extensions
                     oAttrValue = AttributeToBaseType(((AliasedValue)oAttrValue).Value);
                 }
 
-                if (format == "<recordurl>")
+                if (format == "<entity>")
+                {
+                    if (oAttrValue is EntityReference entref)
+                    {
+                        result = entref.LogicalName;
+                    }
+                    else if (oAttrValue is Guid guid)
+                    {
+                        result = entity.LogicalName;
+                    }
+                }
+                else if (format == "<recordurl>")
                 {
                     if (oAttrValue is EntityReference entref)
                     {

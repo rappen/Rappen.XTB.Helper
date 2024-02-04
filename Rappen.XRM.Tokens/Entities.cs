@@ -98,9 +98,16 @@ namespace Rappen.XRM.Tokens
                                 value = basevalue.ToString();// "2010-05-14T..."
                             }
                         }
+                        else if (format == "<entity>")
+                        {
+                            if (deRef.Contains(finalattribute) && deRef[finalattribute] is EntityReference entref && entref != null)
+                            {
+                                value = entref.LogicalName;
+                            }
+                        }
                         else if (format == "<recordurl>")
                         {
-                            if (deRef.Contains(finalattribute) && deRef[finalattribute] is EntityReference entref)
+                            if (deRef.Contains(finalattribute) && deRef[finalattribute] is EntityReference entref && entref != null)
                             {
                                 value = bag.Service.GetEntityFormUrl(entref);
                             }
