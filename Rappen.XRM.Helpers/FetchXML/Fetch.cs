@@ -1,6 +1,7 @@
-﻿using Rappen.XRM.Helpers.Extensions;
+﻿using Microsoft.Xrm.Sdk.Query;
+using Rappen.XRM.Helpers.Extensions;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 
 namespace Rappen.XRM.Helpers.FetchXML
@@ -29,6 +30,19 @@ namespace Rappen.XRM.Helpers.FetchXML
         {
             var doc = fetch.ToXml();
             return new Fetch(doc.SelectSingleNode("fetch"));
+        }
+
+        public static Fetch FromQuery(QueryBase query)
+        {
+            if (query is FetchExpression fex)
+            {
+                return FromString(fex.Query);
+            }
+            if (query is QueryExpression qex)
+            {
+                throw new NotImplementedException("Fetch class from QueryExpression is not yet implemented.");
+            }
+            throw new ArgumentException("Unknown type of QueryBase", "query");
         }
 
         public Fetch(XmlNode xml) : base(null, xml)
