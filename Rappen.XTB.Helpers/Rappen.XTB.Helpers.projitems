@@ -19,6 +19,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DataGridExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\QueryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMControlException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.cs" />

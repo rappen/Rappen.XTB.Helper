@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ServiceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsView.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringConverters.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\QueryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\XmlExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Attribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FetchXML\Condition.cs" />
