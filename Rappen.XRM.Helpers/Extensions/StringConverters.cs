@@ -30,6 +30,7 @@ namespace Rappen.XRM.Helpers.Extensions
                     throw new Exception("Not valid format [True|False] or [1|0]");
                 case AttributeTypeCode.Customer:
                 case AttributeTypeCode.Lookup:
+                case AttributeTypeCode.Owner:
                     var entity = string.Empty;
                     var id = Guid.Empty;
                     if (Guid.TryParse(text, out id))
@@ -88,6 +89,8 @@ namespace Rappen.XRM.Helpers.Extensions
                     break;
 
                 case AttributeTypeCode.Picklist:
+                case AttributeTypeCode.State:
+                case AttributeTypeCode.Status:
                     if (int.TryParse(text, out int pickvalue))
                     {
                         return new OptionSetValue(pickvalue);
@@ -123,10 +126,7 @@ namespace Rappen.XRM.Helpers.Extensions
                     }
                     break;
 
-                case AttributeTypeCode.Owner:
                 case AttributeTypeCode.PartyList:
-                case AttributeTypeCode.State:
-                case AttributeTypeCode.Status:
                 case AttributeTypeCode.CalendarRules:
                 case AttributeTypeCode.EntityName:
                 case AttributeTypeCode.ManagedProperty:
