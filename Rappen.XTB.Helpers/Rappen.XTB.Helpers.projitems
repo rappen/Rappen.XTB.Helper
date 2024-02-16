@@ -9,6 +9,10 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\TriCheckBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\TriCheckBox.Designer.cs" >
+      <DependentUpon>TriCheckBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.designer.cs">
       <DependentUpon>XRMColumnDateTime.cs</DependentUpon>
