@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk.Workflow;
+using OrderedPropertyGrid;
 using System.ComponentModel;
 using System.Windows.Forms;
 
@@ -14,22 +15,39 @@ namespace Rappen.XTB.Helpers.Controls
         {
             InitializeComponent();
             base.ThreeState = true;
-            base.Text = GetText();
+            base.Text = Text;
             CheckStateChanged += TriCheckBox_CheckStateChanged;
         }
 
         private void TriCheckBox_CheckStateChanged(object sender, System.EventArgs e)
         {
-            base.Text = GetText();
+            base.Text = Text;
         }
 
-        [Category("Rappen")]
         [ReadOnly(true)]
+        [Browsable(false)]
         public new bool ThreeState => true;
 
-        [Category("Rappen")]
         [ReadOnly(true)]
-        public new string Text { get { return GetText(); } set { } }
+        [Browsable(false)]
+        public new string Text
+        {
+            get
+            {
+                switch (CheckState)
+                {
+                    case CheckState.Unchecked:
+                        return TextUnchecked;
+
+                    case CheckState.Checked:
+                        return TextChecked;
+
+                    default:
+                        return TextIndeterminate;
+                }
+            }
+            set { }
+        }
 
         [Category("Rappen")]
         [Default("False")]
@@ -64,21 +82,6 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 textIndeterminate = value;
                 TriCheckBox_CheckStateChanged(null, null);
-            }
-        }
-
-        private string GetText()
-        {
-            switch (CheckState)
-            {
-                case CheckState.Unchecked:
-                    return TextUnchecked;
-
-                case CheckState.Checked:
-                    return TextChecked;
-
-                default:
-                    return TextIndeterminate;
             }
         }
     }
