@@ -37,5 +37,28 @@ namespace Rappen.XRM.Helpers.Extensions
                 throw new Exception($"Unable to retrieve more pages, unexpected query: {query.GetType()}");
             }
         }
+
+        public static int PageSize(this QueryBase query)
+        {
+            if (query is QueryExpression qex)
+            {
+                if (qex.PageInfo?.Count is int count)
+                {
+                    return count;
+                }
+            }
+            else if (query is FetchExpression fex)
+            {
+                var pagedoc = fex.Query.ToXml();
+                if (pagedoc.SelectSingleNode("fetch") is XmlElement fetchnode)
+                {
+                    if (int.TryParse(fetchnode.GetAttribute("count"), out int count))
+                    {
+                        return count;
+                    }
+                }
+            }
+            return 5000;
+        }
     }
 }
