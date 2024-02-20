@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Xml;
 
 namespace Rappen.XRM.Helpers.Serialization
@@ -12,6 +11,19 @@ namespace Rappen.XRM.Helpers.Serialization
     public class EntitySerializer
     {
         private static string guidtemplate = "FFFFEEEEDDDDCCCCBBBBAAAA99998888";
+        private enum AccessRightsMask
+        {
+            None = 0,
+            Read = 1,
+            Write = 2,
+            Append = 4,
+            AppendTo = 16,
+            Create = 32,
+            Delete = 65536,
+            Share = 262144,
+            Assign = 524288,
+            Inherited = 134217728
+        }
 
         public static XmlDocument Serialize(Entity entity, XmlNode parent, SerializationStyle style)
         {
@@ -447,6 +459,47 @@ namespace Rappen.XRM.Helpers.Serialization
             else if (attribute is bool boolValue)
             {
                 return (GetBooleanLabel(meta, boolValue));
+            }
+            else if (meta.EntityLogicalName == "principalobjectaccess" && meta.LogicalName == "accessrightsmask" && attribute is int accessmask)
+            {
+                var listaccess = new List<string>();
+                if ((accessmask & (int)AccessRightsMask.Read) == (int)AccessRightsMask.Read)
+                {
+                    listaccess.Add(AccessRightsMask.Read.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Create) == (int)AccessRightsMask.Create)
+                {
+                    listaccess.Add(AccessRightsMask.Create.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Write) == (int)AccessRightsMask.Write)
+                {
+                    listaccess.Add(AccessRightsMask.Write.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Delete) == (int)AccessRightsMask.Delete)
+                {
+                    listaccess.Add(AccessRightsMask.Delete.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Append) == (int)AccessRightsMask.Append)
+                {
+                    listaccess.Add(AccessRightsMask.Append.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.AppendTo) == (int)AccessRightsMask.AppendTo)
+                {
+                    listaccess.Add(AccessRightsMask.AppendTo.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Share) == (int)AccessRightsMask.Share)
+                {
+                    listaccess.Add(AccessRightsMask.Share.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Assign) == (int)AccessRightsMask.Assign)
+                {
+                    listaccess.Add(AccessRightsMask.Assign.ToString());
+                }
+                if ((accessmask & (int)AccessRightsMask.Inherited) == (int)AccessRightsMask.Inherited)
+                {
+                    listaccess.Add(AccessRightsMask.Inherited.ToString());
+                }
+                return string.Join(", ", listaccess);
             }
             return string.Format("{0:" + format + "}", attribute);
         }
