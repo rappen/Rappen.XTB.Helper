@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\Exception.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimplyTokensExtensions.cs" />
@@ -37,6 +38,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\CanaryTracer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\EntityType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\EntityTypeCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginLogger.cs" />
