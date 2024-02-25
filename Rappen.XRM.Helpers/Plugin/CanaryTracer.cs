@@ -295,5 +295,11 @@ namespace Rappen.Dataverse.Canary
         {
             tracer.Trace(DateTime.Now.ToString("HH:mm:ss.fff  ") + text);
         }
+
+        public static void TraceError(this IServiceProvider serviceprovider, Exception exception)
+        {
+            var tracer = (ITracingService)serviceprovider.GetService(typeof(ITracingService));
+            tracer.Write(exception.ToString());
+        }
     }
 }
