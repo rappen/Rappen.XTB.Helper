@@ -14,8 +14,8 @@ namespace Rappen.XRM.Helpers.Plugin
 
         public IOrganizationService Service { get; }
         public IPluginExecutionContext5 Context { get; }
-        public EntityType EntityType { get; }
-        public EntityTypeCollection EntityTypeCollection { get; }
+        public ContextEntity ContextEntity { get; }
+        public ContextEntityCollection ContextEntityCollection { get; }
 
         public PluginBag(IServiceProvider serviceProvider)
         {
@@ -23,14 +23,8 @@ namespace Rappen.XRM.Helpers.Plugin
             Context = (IPluginExecutionContext5)serviceProvider.GetService(typeof(IPluginExecutionContext5));
             var serviceFactory = (IOrganizationServiceFactory)serviceProvider.GetService(typeof(IOrganizationServiceFactory));
             Service = serviceFactory.CreateOrganizationService(Context.InitiatingUserId);
-            if (Context.InputParameters.TryGetValue(ParameterName.Target, out var _))
-            {
-                EntityType = new EntityType(this);
-            }
-            if (Context.InputParameters.TryGetValue(ParameterName.Targets, out var _))
-            {
-                EntityTypeCollection = new Lazy<EntityTypeCollection>(() => new EntityTypeCollection(this)).Value;
-            }
+            ContextEntity = new ContextEntity(Context);
+            ContextEntityCollection = new ContextEntityCollection(Context);
         }
 
         public void Dispose()

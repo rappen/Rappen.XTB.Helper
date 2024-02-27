@@ -38,8 +38,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IDefinitionSavable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\CanaryTracer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Plugin\EntityType.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Plugin\EntityTypeCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\ContextEntity.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Plugin\ContextEntityCollection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBase.cs" />
