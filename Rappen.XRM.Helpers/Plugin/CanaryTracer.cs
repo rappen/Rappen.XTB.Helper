@@ -167,8 +167,14 @@ namespace Rappen.Dataverse.Canary
                 tracingservice.TraceAndAlign("PostEntityImages", context.PostEntityImages, attributetypes, convertqueries, expandcollections, service);
                 if (plugincontext4 != null)
                 {
-                    tracingservice.TraceAndAlign("PreEntityImagesCollection", plugincontext4.PreEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
-                    tracingservice.TraceAndAlign("PostEntityImagesCollection", plugincontext4.PostEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
+                    if (plugincontext4.PreEntityImagesCollection.Length != 1 || context.PreEntityImages == null)
+                    {
+                        tracingservice.TraceAndAlign("PreEntityImagesCollection", plugincontext4.PreEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
+                    }
+                    if (plugincontext4.PostEntityImagesCollection.Length != 1 || context.PostEntityImages == null)
+                    {
+                        tracingservice.TraceAndAlign("PostEntityImagesCollection", plugincontext4.PostEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
+                    }
                 }
                 tracingservice.Trace("--- Context {0} Trace End ---", depth);
             }
