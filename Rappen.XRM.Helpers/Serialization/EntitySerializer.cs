@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
+using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -460,7 +461,7 @@ namespace Rappen.XRM.Helpers.Serialization
             {
                 return (GetBooleanLabel(meta, boolValue));
             }
-            else if (meta.EntityLogicalName == "principalobjectaccess" && meta.LogicalName == "accessrightsmask" && attribute is int accessmask)
+            else if (meta.IsPOAAttribute() && attribute is int accessmask)
             {
                 var listaccess = new List<string>();
                 if ((accessmask & (int)AccessRightsMask.Read) == (int)AccessRightsMask.Read)

@@ -150,6 +150,10 @@ namespace Rappen.XRM.Helpers.Extensions
             }
         }
 
+        public static bool IsPOAAttribute(this AttributeMetadata attribute) => IsPOAAttribute(attribute?.LogicalName);
+
+        public static bool IsPOAAttribute(this string attribute) => attribute?.EndsWith("accessrightsmask") == true;
+
         /// <summary>
         /// Don't try to retrieve properties when this version don't have it.
         /// Got the info from https://github.com/albanian-xrm/PackageHistoryBuilder

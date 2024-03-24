@@ -925,7 +925,7 @@ namespace Rappen.XTB.Helpers.Controls
                             if (column.GetFriendly())
                             {
                                 var format = column.ExtendedProperties["Format"] as string;
-                                if (!ValueTypeIsFriendly(value) && GetAttributeMetadata(column) is AttributeMetadata meta)
+                                if ((!ValueTypeIsFriendly(value) || col.IsPOAAttribute()) && GetAttributeMetadata(column) is AttributeMetadata meta)
                                 {
                                     value = EntitySerializer.AttributeToString(value, meta, format);
                                 }
@@ -989,9 +989,12 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     type = datacolumn.ExtendedProperties[_originalType] as Type;
                 }
-                if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
+                if (datacolumn.ColumnName.IsPOAAttribute() != true || !datacolumn.GetFriendly())
                 {
-                    col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                    if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
+                    {
+                        col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+                    }
                 }
                 if (datacolumn.ExtendedProperties.ContainsKey("Format"))
                 {
