@@ -219,20 +219,21 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="bag"></param>
         /// <param name="onlyId"></param>
         /// <returns></returns>
-        public static Entity Clone(this Entity entity, IBag bag, bool onlyId)
+        public static Entity Clone(this Entity entity, bool onlyId, IBag bag)
         {
+            if (entity == null)
+            {
+                return null;
+            }
             var clone = new Entity(entity.LogicalName, entity.Id);
+
             if (!onlyId)
             {
-                foreach (var attribute in entity.Attributes)
-                {
-                    if (!clone.Attributes.Contains(attribute.Key))
-                    {
-                        clone.Attributes.Add(attribute);
-                    }
-                }
+                // Preparing all attributes except the one in which entity id is stored
+                var attributes = entity.Attributes.Where(x => x.Key.ToLowerInvariant() != $"{clone.LogicalName}id".ToLowerInvariant() || (Guid)x.Value != clone.Id);
+                clone.Attributes.AddRange(attributes.Where(a => !clone.Attributes.Contains(a.Key)));
             }
-            bag.Logger.Log($"Cloned {entity.LogicalName} {entity.Id} with {entity.Attributes.Count} attributes");
+            bag?.Logger.Log($"Cloned {entity.LogicalName} {entity.Id} with {entity.Attributes.Count} attributes");
             return clone;
         }
 
@@ -244,6 +245,15 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="notnull"></param>
         /// <returns></returns>
         public static bool Contains(this Entity entity, string name, bool notnull) => entity.Attributes.Contains(name) && (!notnull || entity.Attributes[name] != null);
+
+        public static T GetAttributeValue<T>(this Entity entity, string attribute, T def)
+        {
+            if (entity.Contains(attribute) && entity[attribute] is T result)
+            {
+                return result;
+            }
+            return def;
+        }
 
         /// <summary>
         ///
@@ -391,19 +401,22 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="bag"></param>
         /// <param name="entity2"></param>
         /// <returns></returns>
-        public static Entity Merge(this Entity entity1, IBag bag, Entity entity2)
+        public static Entity Merge(this Entity entity1, Entity entity2, IBag bag = null)
         {
-            bag.Logger.StartSection($"Merge {entity1.LogicalName} {entity1.ToStringExt(bag.Service)} with {entity2.LogicalName} {entity2.ToStringExt(bag.Service)}");
-            var merge = entity1.Clone(bag, false);
-            foreach (var prop in entity2.Attributes)
+            if (bag != null)
             {
-                if (!merge.Attributes.Contains(prop.Key))
-                {
-                    merge.Attributes.Add(prop);
-                }
+                bag.Logger.StartSection($"Merge {entity1?.LogicalName} {entity1?.ToStringExt(bag.Service)} with {entity2?.LogicalName} {entity2?.ToStringExt(bag.Service)}");
             }
-            bag.Logger.Log($"Base entity had {entity1.Attributes.Count} attributes. Second entity {entity2.Attributes.Count}. Merged entity has {merge.Attributes.Count}");
-            bag.Logger.EndSection();
+            var merge = entity1.Clone(false, bag) ?? entity2.Clone(false, bag);
+            if (entity1 != null && entity2 != null)
+            {
+                merge.Attributes.AddRange(entity2.Attributes.Where(a => !merge.Attributes.Contains(a.Key)));
+            }
+            if (bag != null)
+            {
+                bag.Logger.Log($"Base entity had {entity1?.Attributes?.Count} attributes. Second entity {entity2?.Attributes?.Count}. Merged entity has {merge.Attributes.Count}");
+                bag.Logger.EndSection();
+            }
             return merge;
         }
 

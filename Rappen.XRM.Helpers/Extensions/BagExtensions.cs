@@ -16,7 +16,7 @@ namespace Rappen.XRM.Helpers.Extensions
         #region Public Methods
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -28,7 +28,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -44,7 +44,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entityName"></param>
@@ -61,14 +61,14 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="query"></param>
         /// <returns></returns>
         public static EntityCollection RetrieveMultiple(this IBag bag, QueryBase query)
         {
-            var name = query is QueryExpression qex ? qex.EntityName : query.ToString();
+            var name = query is QueryExpression qex ? qex.EntityName : query is FetchExpression fex ? fex.Query : query.ToString();
             bag.Logger.StartSection($"RetrieveMultiple");
             var cEntities = bag.Service.RetrieveMultiple(query);
             bag.Logger.Log($"Retrieved {cEntities.Entities.Count} {name}");
@@ -94,7 +94,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -105,7 +105,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -118,7 +118,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -132,7 +132,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -173,7 +173,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -186,7 +186,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -200,7 +200,7 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="bag"></param>
         /// <param name="entity"></param>
@@ -265,6 +265,7 @@ namespace Rappen.XRM.Helpers.Extensions
             container.Logger.EndSection();
             return result;
         }
+
         #endregion Public Methods
     }
 }

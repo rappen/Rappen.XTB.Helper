@@ -12,7 +12,7 @@ namespace Rappen.XRM.Helpers.Plugin
         private List<string> sections;
         public bool AddTimes { get; set; } = false;
 
-        private string GetAddTime(bool force = false, bool fulldate = false) => AddTimes || force ? fulldate ? DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss.fff") + "\t" : DateTime.Now.ToString("HH:mm:ss.fff") + "\t" : "";
+        private string GetAddTime(bool force = false, bool fulldate = false) => AddTimes || force ? fulldate ? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "\t" : DateTime.Now.ToString("HH:mm:ss.fff") + "\t" : "";
 
         public PluginLogger(IServiceProvider serviceProvider)
         {
