@@ -68,7 +68,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// </param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, string fetch, BackgroundWorker worker, DoWorkEventArgs eventargs, string message) => RetrieveMultipleAll(service, new FetchExpression(fetch), worker, eventargs, message);
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, string fetch, BackgroundWorker worker, DoWorkEventArgs eventargs, string message) => RetrieveMultipleAll(service, new FetchExpression(fetch), worker, eventargs, message, false);
 
         /// <summary>
         /// Retrieving ALL records from Dataverse
@@ -77,7 +77,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="query"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query) => RetrieveMultipleAll(service, query, null, null, null);
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query) => RetrieveMultipleAll(service, query, null, null, null, false);
 
         /// <summary>
         /// Retrieving ALL records from Dataverse
@@ -87,7 +87,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="worker"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker) => RetrieveMultipleAll(service, query, worker, null, null);
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker) => RetrieveMultipleAll(service, query, worker, null, null, false);
 
         /// <summary>
         /// Retrieving ALL records from Dataverse
@@ -107,7 +107,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// </param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, string message) => RetrieveMultipleAll(service, query, worker, null, message);
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, string message) => RetrieveMultipleAll(service, query, worker, null, message, false);
 
         /// <summary>
         /// Retrieving ALL records from Dataverse
@@ -128,7 +128,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// </param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message)
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message, bool showMessageOnFirstPage)
         {
             if (!(query is FetchExpression || query is QueryExpression))
             {
@@ -150,7 +150,10 @@ namespace Rappen.XRM.Helpers.Extensions
             do
             {
                 page++;
-                worker?.ReportProgress(0, GetProgress(message, resultCollection?.Entities?.Count ?? 0, pagesize, page, sw));
+                if (page != 1 || showMessageOnFirstPage)
+                {
+                    worker?.ReportProgress(0, GetProgress(message, resultCollection?.Entities?.Count ?? 0, pagesize, page, sw));
+                }
                 if (worker?.CancellationPending == true && eventargs != null)
                 {
                     eventargs.Cancel = true;
