@@ -150,9 +150,9 @@ namespace Rappen.XRM.Helpers.Extensions
             }
         }
 
-        public static bool IsPOAAttribute(this AttributeMetadata attribute) => IsPOAAttribute(attribute?.LogicalName);
+        public static bool IsPOA(this AttributeMetadata attribute) => IsPOA(attribute?.LogicalName);
 
-        public static bool IsPOAAttribute(this string attribute) => attribute?.EndsWith("accessrightsmask") == true;
+        public static bool IsPOA(this string attribute) => attribute?.EndsWith("accessrightsmask") == true;
 
         /// <summary>
         /// Don't try to retrieve properties when this version don't have it.

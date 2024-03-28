@@ -111,7 +111,7 @@ namespace Rappen.XTB.Helpers.Extensions
                     return true;
 
                 case AttributeTypeCode.Integer:
-                    return meta.IsPOAAttribute();
+                    return meta.IsPOA();
 
                 case AttributeTypeCode.Virtual:
                     if (meta is MultiSelectPicklistAttributeMetadata)

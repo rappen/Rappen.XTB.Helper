@@ -925,7 +925,7 @@ namespace Rappen.XTB.Helpers.Controls
                             if (column.GetFriendly())
                             {
                                 var format = column.ExtendedProperties["Format"] as string;
-                                if ((!ValueTypeIsFriendly(value) || col.IsPOAAttribute()) && GetAttributeMetadata(column) is AttributeMetadata meta)
+                                if ((!ValueTypeIsFriendly(value) || col.IsPOA()) && GetAttributeMetadata(column) is AttributeMetadata meta)
                                 {
                                     value = EntitySerializer.AttributeToString(value, meta, format);
                                 }
@@ -989,7 +989,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     type = datacolumn.ExtendedProperties[_originalType] as Type;
                 }
-                if (datacolumn.ColumnName.IsPOAAttribute() != true || !datacolumn.GetFriendly())
+                if (datacolumn.ColumnName.IsPOA() != true || !datacolumn.GetFriendly())
                 {
                     if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
                     {

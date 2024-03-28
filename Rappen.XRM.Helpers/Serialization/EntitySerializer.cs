@@ -461,7 +461,7 @@ namespace Rappen.XRM.Helpers.Serialization
             {
                 return (GetBooleanLabel(meta, boolValue));
             }
-            else if (meta.IsPOAAttribute() && attribute is int accessmask)
+            else if (meta.IsPOA() && attribute is int accessmask)
             {
                 var listaccess = new List<AccessRightsMask>();
                 if ((accessmask & (int)AccessRightsMask.Read) == (int)AccessRightsMask.Read)
