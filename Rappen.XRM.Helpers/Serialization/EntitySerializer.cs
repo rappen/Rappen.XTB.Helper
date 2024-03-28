@@ -463,44 +463,54 @@ namespace Rappen.XRM.Helpers.Serialization
             }
             else if (meta.IsPOAAttribute() && attribute is int accessmask)
             {
-                var listaccess = new List<string>();
+                var listaccess = new List<AccessRightsMask>();
                 if ((accessmask & (int)AccessRightsMask.Read) == (int)AccessRightsMask.Read)
                 {
-                    listaccess.Add(AccessRightsMask.Read.ToString());
+                    listaccess.Add(AccessRightsMask.Read);
                 }
                 if ((accessmask & (int)AccessRightsMask.Create) == (int)AccessRightsMask.Create)
                 {
-                    listaccess.Add(AccessRightsMask.Create.ToString());
+                    listaccess.Add(AccessRightsMask.Create);
                 }
                 if ((accessmask & (int)AccessRightsMask.Write) == (int)AccessRightsMask.Write)
                 {
-                    listaccess.Add(AccessRightsMask.Write.ToString());
+                    listaccess.Add(AccessRightsMask.Write);
                 }
                 if ((accessmask & (int)AccessRightsMask.Delete) == (int)AccessRightsMask.Delete)
                 {
-                    listaccess.Add(AccessRightsMask.Delete.ToString());
+                    listaccess.Add(AccessRightsMask.Delete);
                 }
                 if ((accessmask & (int)AccessRightsMask.Append) == (int)AccessRightsMask.Append)
                 {
-                    listaccess.Add(AccessRightsMask.Append.ToString());
+                    listaccess.Add(AccessRightsMask.Append);
                 }
                 if ((accessmask & (int)AccessRightsMask.AppendTo) == (int)AccessRightsMask.AppendTo)
                 {
-                    listaccess.Add(AccessRightsMask.AppendTo.ToString());
+                    listaccess.Add(AccessRightsMask.AppendTo);
                 }
                 if ((accessmask & (int)AccessRightsMask.Share) == (int)AccessRightsMask.Share)
                 {
-                    listaccess.Add(AccessRightsMask.Share.ToString());
+                    listaccess.Add(AccessRightsMask.Share);
                 }
                 if ((accessmask & (int)AccessRightsMask.Assign) == (int)AccessRightsMask.Assign)
                 {
-                    listaccess.Add(AccessRightsMask.Assign.ToString());
+                    listaccess.Add(AccessRightsMask.Assign);
                 }
                 if ((accessmask & (int)AccessRightsMask.Inherited) == (int)AccessRightsMask.Inherited)
                 {
-                    listaccess.Add(AccessRightsMask.Inherited.ToString());
+                    listaccess.Add(AccessRightsMask.Inherited);
                 }
-                return string.Join(", ", listaccess);
+                var result = string.Join(", ", listaccess.Select(m => m.ToString()));
+                var knownmasksum = listaccess.Select(m => (int)m).Sum();
+                if (knownmasksum != accessmask)
+                {
+                    if (!string.IsNullOrEmpty(result))
+                    {
+                        result += ", ";
+                    }
+                    result += $"{accessmask - knownmasksum}";
+                }
+                return result;
             }
             return string.Format("{0:" + format + "}", attribute);
         }
