@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -6,28 +7,26 @@ namespace Rappen.XRM.Helpers.FetchXML
 {
     public class LinkEntity : Entity
     {
-        public Entity ParentEntity;
         public string From;
         public string To;
-        public bool? Outer;
+        public LinkType Type;
         public string Alias;
         public bool? Intersect;
         public bool? Visible;
 
-        public LinkEntity(Entity parent, XmlNode xml) : base(parent.Fetch, xml)
+        public LinkEntity(Entity parententity, Filter parentfilter, XmlNode xml) : base(parententity?.Fetch ?? parentfilter?.Fetch, xml)
         {
-            ParentEntity = parent;
             From = xml.Attribute("from");
             To = xml.Attribute("to");
-            Outer = xml.Attribute("link-type") == "outer";
+            Enum.TryParse(xml.Attribute("link-type") ?? "inner", out Type);
             Alias = xml.Attribute("alias");
             Intersect = xml.AttributeBool("intersect");
             Visible = xml.AttributeBool("visible");
         }
 
-        public static List<LinkEntity> List(XmlNode xml, Entity parententity)
+        public static List<LinkEntity> List(XmlNode xml, Entity parententity, Filter parentfilter)
         {
-            var result = new List<LinkEntity>(xml.SelectNodes("link-entity").OfType<XmlNode>().Select(a => new LinkEntity(parententity, a)));
+            var result = new List<LinkEntity>(xml.SelectNodes("link-entity").OfType<XmlNode>().Select(a => new LinkEntity(parententity, parentfilter, a)));
             if (result.Count > 0)
             {
                 return result;
@@ -49,9 +48,9 @@ namespace Rappen.XRM.Helpers.FetchXML
             xml.AddAttribute("alias", Alias);
             xml.AddAttribute("intersect", Intersect);
             xml.AddAttribute("visible", Visible);
-            if (Outer is bool outer)
+            if (Type != LinkType.inner)
             {
-                xml.AddAttribute("link-type", outer ? "outer" : "inner");
+                xml.AddAttribute("link-type", Type.ToString());
             }
             ToXMLProperties(xml);
         }

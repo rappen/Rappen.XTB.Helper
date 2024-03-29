@@ -320,7 +320,6 @@
 
     public enum AggregateType
     {
-
         /// <remarks/>
         count,
 
@@ -344,7 +343,6 @@
     [System.SerializableAttribute()]
     public enum DateGroupingType
     {
-
         /// <remarks/>
         day,
 
@@ -367,5 +365,21 @@
         /// <remarks/>
         [System.Xml.Serialization.XmlEnumAttribute("fiscal-year")]
         fiscalyear,
+    }
+
+    public enum LinkType
+    {
+        inner,
+        outer,
+        any,
+        [System.Xml.Serialization.XmlEnumAttribute("not any")]
+        notany,
+        all,
+        [System.Xml.Serialization.XmlEnumAttribute("not all")]
+        notall,
+        exists,
+        [System.Xml.Serialization.XmlEnumAttribute("in")]
+        in_,
+        matchfirstrowusingcrossapply
     }
 }

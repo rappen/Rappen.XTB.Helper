@@ -19,7 +19,7 @@ namespace Rappen.XRM.Helpers.FetchXML
             Attributes = Attribute.List(xml, this);
             Orders = Order.List(xml, this);
             Filters = Filter.List(xml, this, null);
-            LinkEntities = LinkEntity.List(xml, this);
+            LinkEntities = LinkEntity.List(xml, this, null);
         }
 
         protected override void AddXMLProperties(XmlElement xml)

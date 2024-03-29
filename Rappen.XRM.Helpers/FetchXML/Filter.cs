@@ -10,6 +10,7 @@ namespace Rappen.XRM.Helpers.FetchXML
         public Filter ParentFilter;
         public List<Filter> Filters;
         public List<Condition> Conditions;
+        public List<LinkEntity> LinkEntities;
         public bool? Or;
         public bool? IsQuickFind;
         public bool? OverrideRecordLimit;
@@ -23,6 +24,7 @@ namespace Rappen.XRM.Helpers.FetchXML
             OverrideRecordLimit = xml.AttributeBool("overridequickfindrecordlimitenabled");
             Conditions = Condition.List(xml, this);
             Filters = Filter.List(xml, null, this);
+            LinkEntities = LinkEntity.List(xml, ParentEntity, this);
         }
 
         public override string ToString() => Or == null ? "filter" : Or == true ? "or" : "and";
@@ -39,15 +41,19 @@ namespace Rappen.XRM.Helpers.FetchXML
 
         protected override List<string> GetKnownAttributes() => new List<string> { "type", "isquickfindfields", "overridequickfindrecordlimitenabled" };
 
-        protected override List<string> GetKnownNodes() => new List<string> { "filter", "condition" };
+        protected override List<string> GetKnownNodes() => new List<string> { "filter", "condition", "link-entity" };
 
         protected override void AddXMLProperties(XmlElement xml)
         {
-            xml.AddAttribute("type", OrToType);
+            if (Or == true)
+            {
+                xml.AddAttribute("type", OrToType);
+            }
             xml.AddAttribute("isquickfindfields", IsQuickFind);
             xml.AddAttribute("overridequickfindrecordlimitenabled", OverrideRecordLimit);
             Conditions?.ForEach(c => xml.AppendChild(c.ToXML()));
             Filters?.ForEach(f => xml.AppendChild(f.ToXML()));
+            LinkEntities?.ForEach(l => xml.AppendChild(l.ToXML()));
         }
 
         private string OrToType
