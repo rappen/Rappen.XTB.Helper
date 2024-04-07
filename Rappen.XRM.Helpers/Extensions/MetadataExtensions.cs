@@ -179,5 +179,65 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             return result.ToArray();
         }
+
+        public static string ToDisplayName(this EntityMetadata entity)
+        {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
+            if (entity.DisplayName?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
+            {
+                return label1;
+            }
+            if (entity.DisplayName?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
+            {
+                return label2;
+            }
+            return entity.LogicalName;
+        }
+
+        public static string ToDisplayName(this AttributeMetadata attribute)
+        {
+            if (attribute == null)
+            {
+                return string.Empty;
+            }
+            if (attribute.DisplayName?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
+            {
+                return label1;
+            }
+            if (attribute.DisplayName?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
+            {
+                return label2;
+            }
+            return attribute.LogicalName;
+        }
+
+        public static string ToTypeName(this AttributeMetadata attribute, bool friendlier = false)
+        {
+            if (attribute?.AttributeType == null)
+            {
+                return string.Empty;
+            }
+            var result = attribute.AttributeTypeName?.Value ?? attribute.AttributeType?.ToString();
+            if (result?.EndsWith("Type") == true)
+            {
+                result = result.Substring(0, result.Length - 4);
+            }
+            if (friendlier)
+            {
+                result = result
+                    .Replace("String", "Text")
+                    .Replace("Memo", "Long Text")
+                    .Replace("Integer", "Whole Number")
+                    .Replace("MultiSelectPicklist", "Choices")
+                    .Replace("Picklist", "Choice")
+                    .Replace("Boolean", "Yes/No")
+                    .Replace("Money", "Currency")
+                    .Replace("Uniqueidentifier", "Id");
+            }
+            return result;
+        }
     }
 }
