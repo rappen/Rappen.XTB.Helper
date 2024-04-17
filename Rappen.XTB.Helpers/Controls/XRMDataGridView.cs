@@ -21,6 +21,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private IOrganizationService organizationService;
         private IEnumerable<Entity> entities;
+        private EntityMetadata entitymeta;
         private bool autoRefresh = true;
         private bool showFriendlyNames = false;
         private bool showBothNames = false;
@@ -120,7 +121,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     throw new ArgumentException("DataSource can only contain entities of the same type.");
                 }
-
+                entitymeta = organizationService.GetEntity(entities?.FirstOrDefault(e => !string.IsNullOrEmpty(e.LogicalName))?.LogicalName);
                 if (designedColumnsDetermined && designedColumnsUsed && designedColumns != null)
                 {
                     foreach (var col in designedColumns)
@@ -507,11 +508,18 @@ namespace Rappen.XTB.Helpers.Controls
         {
             if (entities != null)
             {
-                var cols = GetTableColumns(entities);
-                var data = GetDataTable(entities, cols);
-                BindData(data);
-                ArrangeColumns();
-                FixColumnsFromLayout();
+                try
+                {
+                    var cols = GetTableColumns(entities);
+                    var data = GetDataTable(entities, cols);
+                    BindData(data);
+                    ArrangeColumns();
+                    FixColumnsFromLayout();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Oops.\nUnexpected error during refresh of {this.Name}.\n\nJust try again, please.\nToo many these messages? Create an issue so Jonas can try again to fix this error.\n\n{ex.Message}");
+                }
             }
             base.Refresh();
         }
@@ -834,28 +842,45 @@ namespace Rappen.XTB.Helpers.Controls
                     //   as a different column to the ID of the record.
                     return;
                 }
-                if (friendlyname &&
-                   meta != null &&
-                   meta.DisplayName != null &&
-                   meta.DisplayName.UserLocalizedLabel != null)
+                var columnName = string.Empty;
+                if (friendlyname)
                 {
-                    dataColumn.Caption = meta.DisplayName.UserLocalizedLabel.Label;
-                    if (attribute.Contains("."))
+                    if (!attribute.Contains(".") && !attribute.Equals(meta?.LogicalName))
+                    {   // Should be an aliased attribute
+                        columnName = attribute;
+                    }
+                    else if (meta?.DisplayName?.UserLocalizedLabel?.Label is string label)
                     {
-                        if (dataColumn.ExtendedProperties.ContainsKey(_extendedMetaEntity) && dataColumn.ExtendedProperties[_extendedMetaEntity] is EntityMetadata aliasmeta)
+                        columnName = label;
+                        if (attribute.Contains("."))
                         {
-                            dataColumn.Caption += $" ({aliasmeta.DisplayName.UserLocalizedLabel.Label})";
-                        }
-                        else
-                        {
-                            dataColumn.Caption = attribute.Split('.')[0] + " " + dataColumn.Caption;
+                            if (dataColumn.ExtendedProperties.ContainsKey(_extendedMetaEntity) && dataColumn.ExtendedProperties[_extendedMetaEntity] is EntityMetadata aliasmeta)
+                            {
+                                columnName += $" ({aliasmeta.DisplayName.UserLocalizedLabel.Label})";
+                            }
+                            else
+                            {
+                                columnName = attribute.Split('.')[0] + " " + columnName;
+                            }
                         }
                     }
                 }
-                else
+                if (string.IsNullOrWhiteSpace(columnName) && meta?.LogicalName is string logicalname && !attribute.Contains("."))
                 {
-                    dataColumn.Caption = attribute;
+                    if (meta.EntityLogicalName is string entitylogicalname && entitylogicalname != entitymeta?.LogicalName)
+                    {
+                        columnName = entitylogicalname + "." + logicalname;
+                    }
+                    else
+                    {
+                        columnName = logicalname;
+                    }
                 }
+                if (string.IsNullOrWhiteSpace(columnName))
+                {
+                    columnName = attribute;
+                }
+                dataColumn.Caption = columnName;
                 columns.Add(dataColumn);
             }
         }
