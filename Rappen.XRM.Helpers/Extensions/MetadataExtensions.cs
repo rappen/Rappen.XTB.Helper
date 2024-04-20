@@ -180,7 +180,7 @@ namespace Rappen.XRM.Helpers.Extensions
             return result.ToArray();
         }
 
-        public static string ToDisplayName(this EntityMetadata entity)
+        public static string ToDisplayName(this EntityMetadata entity, bool includelogicalname = false)
         {
             if (entity == null)
             {
@@ -188,16 +188,33 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             if (entity.DisplayName?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
             {
-                return label1;
+                return label1 + (includelogicalname ? $" ({entity.LogicalName})" : string.Empty);
             }
             if (entity.DisplayName?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
             {
-                return label2;
+                return label2 + (includelogicalname ? $" ({entity.LogicalName})" : string.Empty);
             }
             return entity.LogicalName;
         }
 
-        public static string ToDisplayName(this AttributeMetadata attribute)
+        public static string ToCollectionDisplayName(this EntityMetadata entity)
+        {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
+            if (entity.DisplayCollectionName?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
+            {
+                return label1;
+            }
+            if (entity.DisplayCollectionName?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
+            {
+                return label2;
+            }
+            return entity.LogicalCollectionName;
+        }
+
+        public static string ToDisplayName(this AttributeMetadata attribute, bool includetype = false)
         {
             if (attribute == null)
             {
@@ -205,11 +222,11 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             if (attribute.DisplayName?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
             {
-                return label1;
+                return label1 + (includetype ? $" ({attribute.ToTypeName()})" : string.Empty);
             }
             if (attribute.DisplayName?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
             {
-                return label2;
+                return label2 + (includetype ? $" ({attribute.ToTypeName()})" : string.Empty);
             }
             return attribute.LogicalName;
         }

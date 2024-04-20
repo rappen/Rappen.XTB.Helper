@@ -155,7 +155,7 @@ namespace Rappen.XTB.Helpers.Controls
                     .Where(l => !string.IsNullOrWhiteSpace(l))
                     .Select(l => service.GetEntity(l))
                     .Where(m => m != null)
-                    .Select(m => new EntityMetadataItem(m, true))
+                    .Select(m => new EntityMetadataItem(m, true, false))
                     .ToArray());
             }
             cmbEntity.SelectedIndex = cmbEntity.Items.Count > 0 ? 0 : -1;

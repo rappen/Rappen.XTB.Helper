@@ -1,5 +1,4 @@
-﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Metadata;
+﻿using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XTB.Helpers.ControlItems;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +12,7 @@ namespace Rappen.XTB.Helpers.Controls
         #region Private properties
 
         private bool showFriendlyNames = true;
+        private bool showFriendlyIncludingLogicalNames = false;
         private bool sorted = true;
         private IEnumerable<EntityMetadata> entities;
         private bool addnulloption;
@@ -78,6 +78,22 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen XRM")]
+        [DefaultValue(false)]
+        [Description("True to also show logicalname after friendly names.")]
+        public bool ShowFriendlyIncludingLogicalName
+        {
+            get { return showFriendlyIncludingLogicalNames; }
+            set
+            {
+                if (value != showFriendlyIncludingLogicalNames)
+                {
+                    showFriendlyIncludingLogicalNames = value;
+                    Refresh();
+                }
+            }
+        }
+
+        [Category("Rappen XRM")]
         [DefaultValue(true)]
         [Description("Defines if the entities should be sorted alphabetically, based on selected layout")]
         public new bool Sorted
@@ -124,7 +140,7 @@ namespace Rappen.XTB.Helpers.Controls
                 return;
             }
             var selected = SelectedEntity?.LogicalName;
-            var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames)).ToArray();
+            var ds = entities?.Select(e => new EntityMetadataItem(e, showFriendlyNames, showFriendlyIncludingLogicalNames)).ToArray();
             if (sorted && ds?.Length > 0)
             {
                 ds = ds.OrderBy(e => e.ToString()).ToArray();

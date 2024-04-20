@@ -4,7 +4,6 @@
     using Rappen.XRM.Helpers;
     using Rappen.XRM.Helpers.Extensions;
     using Rappen.XRM.Helpers.Interfaces;
-    using Rappen.XTB.Helpers.Extensions;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
 
@@ -39,7 +38,7 @@
             Entity = entity;
             Format = format;
             Bag = bag;
-            entitymetadata = new Lazy<EntityMetadataItem>(() => new EntityMetadataItem(bag.Service.GetEntity(entity.LogicalName), true));
+            entitymetadata = new Lazy<EntityMetadataItem>(() => new EntityMetadataItem(bag.Service.GetEntity(entity.LogicalName), true, false));
         }
 
         #endregion Public Constructors
@@ -64,10 +63,7 @@
 
         #region Public Methods
 
-        public override string ToString()
-        {
-            return GetFormattedText(Format);
-        }
+        public override string ToString() => GetFormattedText(Format);
 
         public string GetFormattedText(string format)
         {
