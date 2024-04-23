@@ -1,5 +1,6 @@
 ﻿namespace Rappen.XTB.Helpers
 {
+    using Microsoft.Xrm.Sdk.Metadata;
     using Rappen.XRM.Helpers.Interfaces;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
@@ -103,6 +104,20 @@
             controls.OfType<Control>().Where(y => y.Tag != null).OrderBy(y => y.TabIndex).ToList().ForEach(c => FillControl(collection, c, saveable));
             controls.OfType<Panel>().OrderBy(p => p.TabIndex).ToList().ForEach(p => FillControls(collection, p.Controls, saveable));
             controls.OfType<GroupBox>().OrderBy(g => g.TabIndex).ToList().ForEach(g => FillControls(collection, g.Controls, saveable));
+        }
+
+        public static string GetLayoutXML(EntityMetadata entitymeta, Dictionary<string, int> cellsFromLayoutXML)
+        {
+            if (entitymeta == null || cellsFromLayoutXML == null)
+            {
+                return string.Empty;
+            }
+            return $@"<grid name='resultset' object='{entitymeta?.ObjectTypeCode}' jump='{entitymeta?.PrimaryNameAttribute}' select='1' icon='1' preview='1'>
+  <row name='result' id='
+            {entitymeta?.PrimaryIdAttribute}'>
+    {string.Join("\n    ", cellsFromLayoutXML?.Select(c => $"<cell name='{c.Key}' width='{c.Value}'/>"))}
+  </row>
+</grid>";
         }
 
         private class TextBoxEventHandler
