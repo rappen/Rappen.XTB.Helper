@@ -726,9 +726,27 @@ namespace Rappen.XTB.Helpers.Controls
                     var force = columnOrder.Contains(a) && (showAllColumnsInColumnOrder || entities.Any(e => e.Contains(a)));
 
                     AddColumnForAttribute(entities, columns, a, force, showFriendlyNames);
-                    if (showBothNames && organizationService.GetFriendlyAttributeIsNotAsRawValue(EntityName, a))
+                    if (showBothNames)
                     {
-                        AddColumnForAttribute(entities, columns, a, force, !showFriendlyNames);
+                        var rawentity = EntityName;
+                        var rawattribute = a;
+                        if (a.Contains("."))
+                        {
+                            var value = GetFirstValueForAttribute(entities, a);
+                            if (value != null)
+                            {
+                                var meta = organizationService.GetAttribute(EntityName, a, value);
+                                if (meta?.EntityLogicalName != null)
+                                {
+                                    rawentity = meta.EntityLogicalName;
+                                    rawattribute = meta.LogicalName;
+                                }
+                            }
+                        }
+                        if (organizationService.GetFriendlyAttributeIsNotAsRawValue(rawentity, rawattribute))
+                        {
+                            AddColumnForAttribute(entities, columns, a, force, !showFriendlyNames);
+                        }
                     }
                 });
             }
