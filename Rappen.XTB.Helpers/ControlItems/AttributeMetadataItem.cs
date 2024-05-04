@@ -24,7 +24,7 @@
         public AttributeMetadataItem(IOrganizationService service, string entity, string attribute, bool friendlynames, bool showtypes)
             : this(service.GetAttribute(entity, attribute), friendlynames, showtypes) { }
 
-        public override string ToString() => FriendlyNames ? Metadata.ToDisplayName(ShowTypes) : Metadata.LogicalName;
+        public override string ToString() => (FriendlyNames ? Metadata?.ToDisplayName(ShowTypes) : Metadata?.LogicalName) ?? string.Empty;
 
         public string GetValue()
         {
