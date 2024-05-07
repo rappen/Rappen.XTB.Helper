@@ -20,5 +20,14 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             return xmldoc;
         }
+
+        public static string AttributeValue(this XmlNode node, string key)
+        {
+            if (node != null && node.Attributes != null && node.Attributes[key] is XmlAttribute attr)
+            {
+                return attr.Value;
+            }
+            return string.Empty;
+        }
     }
 }
