@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\TriCheckBox.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Controls\TriCheckBox.Designer.cs" >
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\TriCheckBox.Designer.cs">
       <DependentUpon>TriCheckBox.cs</DependentUpon>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnDateTime.cs" />
@@ -67,6 +67,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\OptionMetadataItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UrlUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
   </ItemGroup>
   <ItemGroup>
