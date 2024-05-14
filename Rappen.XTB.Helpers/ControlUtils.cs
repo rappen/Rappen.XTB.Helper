@@ -265,5 +265,64 @@
                 new ComboBoxEventHandler(cmb, saveable).Attach();
             }
         }
+
+        public static DialogResult PromptDialog(string text, string caption, bool multi, ref string value)
+        {
+            Form prompt = new Form();
+            prompt.Width = 500;
+            prompt.Height = multi ? 250 : 150;
+            prompt.Text = caption;
+            prompt.StartPosition = FormStartPosition.CenterScreen;
+            prompt.FormBorderStyle = multi ? FormBorderStyle.SizableToolWindow : FormBorderStyle.FixedToolWindow;
+            Label textLabel = new Label()
+            {
+                Left = 50,
+                Top = 20,
+                Width = 430,
+                Text = text
+            };
+            TextBox textBox = new TextBox()
+            {
+                Left = 50,
+                Top = 45,
+                Width = 400,
+                Height = multi ? 120 : 20,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom,
+                Multiline = multi,
+                AcceptsReturn = multi,
+                Text = value
+            };
+            Button cancellation = new Button()
+            {
+                Text = "Cancel",
+                Left = 220,
+                Width = 100,
+                Top = multi ? 180 : 80,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
+                DialogResult = DialogResult.Cancel
+            };
+            Button confirmation = new Button()
+            {
+                Text = "OK",
+                Left = 350,
+                Width = 100,
+                Top = multi ? 180 : 80,
+                Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
+                DialogResult = DialogResult.OK
+            };
+            //confirmation.Click += (sender, e) => { prompt.Close(); };
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(cancellation);
+            prompt.Controls.Add(confirmation);
+            prompt.Controls.Add(textLabel);
+            prompt.CancelButton = cancellation;
+            prompt.AcceptButton = confirmation;
+            var result = prompt.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                value = textBox.Text;
+            }
+            return result;
+        }
     }
 }

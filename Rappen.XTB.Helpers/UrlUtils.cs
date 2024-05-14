@@ -1,4 +1,7 @@
-﻿using System;
+﻿using McTools.Xrm.Connection;
+using Microsoft.Xrm.Sdk;
+using Rappen.XTB.Helpers.Controls;
+using System;
 using System.Diagnostics;
 using System.Web;
 using System.Windows.Forms;
@@ -11,39 +14,145 @@ namespace Rappen.XTB.Helpers
         public static string TOOL_NAME;
         public static string MVP_ID = "DX-MVP-5002475";
 
-        public static void OpenUrl(object sender)
+        public static void OpenUrl(object sender, ConnectionDetail connectionDetail = null)
         {
             if (sender == null)
             {
                 return;
             }
-            var url = sender as string;
+            var noextraparams = false;
+            var url = GetUrl(sender);
             if (string.IsNullOrWhiteSpace(url))
             {
-                url = (sender as Control)?.Tag as string;
+                url = GetUrl((sender as LinkLabel)?.Tag);
             }
             if (string.IsNullOrWhiteSpace(url))
             {
-                url = (sender as LinkLabel)?.Tag as string;
+                url = GetUrl((sender as LinkLabel)?.Text);
             }
             if (string.IsNullOrWhiteSpace(url))
             {
-                url = (sender as LinkLabel)?.Text;
+                url = GetUrl((sender as ToolStripItem)?.Tag);
             }
             if (string.IsNullOrWhiteSpace(url))
             {
-                url = (sender as Control)?.Text;
+                url = GetUrl((sender as ToolStripItem)?.Text);
+            }
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                url = GetUrl((sender as Control)?.Tag);
+            }
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                url = GetUrl((sender as Control)?.Text);
+            }
+            if (string.IsNullOrWhiteSpace(url) && sender is Entity entity && connectionDetail != null)
+            {
+                url = entity.GetEntityUrl(connectionDetail);
+                noextraparams = !string.IsNullOrWhiteSpace(url);
+            }
+            if (string.IsNullOrEmpty(url) && sender is XRMRecordEventArgs xrmenvarg && connectionDetail != null)
+            {
+                url = xrmenvarg.Entity?.GetEntityUrl(connectionDetail);
+                noextraparams = !string.IsNullOrWhiteSpace(url);
             }
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
             }
-            url = url.Trim();
-            if (!url.StartsWith("http"))
+            if (!noextraparams)
             {
-                return;
+                url = ProcessURL(url.Trim());
             }
-            Process.Start(ProcessURL(url));
+            if (connectionDetail != null)
+            {
+                connectionDetail.OpenUrlWithBrowserProfile(new Uri(url));
+            }
+            else
+            {
+                Process.Start(url);
+            }
+        }
+
+        public static string GetFullWebApplicationUrl(ConnectionDetail ConnectionDetail)
+        {
+            var url = ConnectionDetail.WebApplicationUrl;
+            if (string.IsNullOrEmpty(url))
+            {
+                url = ConnectionDetail.ServerName;
+            }
+            if (!url.ToLower().StartsWith("http"))
+            {
+                url = string.Concat("http://", url);
+            }
+            var uri = new Uri(url);
+            if (!uri.Host.EndsWith(".dynamics.com"))
+            {
+                if (string.IsNullOrEmpty(uri.AbsolutePath.Trim('/')))
+                {
+                    uri = new Uri(uri, ConnectionDetail.Organization);
+                }
+            }
+            return uri.ToString();
+        }
+
+        public static string GetEntityUrl(this Entity entity, ConnectionDetail ConnectionDetail)
+        {
+            var entref = entity.ToEntityReference();
+            switch (entref.LogicalName)
+            {
+                case "activitypointer":
+                    if (!entity.Contains("activitytypecode"))
+                    {
+                        MessageBox.Show("To open records of type activitypointer, attribute 'activitytypecode' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        entref.LogicalName = string.Empty;
+                    }
+                    else
+                    {
+                        entref.LogicalName = entity["activitytypecode"].ToString();
+                    }
+                    break;
+
+                case "activityparty":
+                    if (!entity.Contains("partyid"))
+                    {
+                        MessageBox.Show("To open records of type activityparty, attribute 'partyid' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        entref.LogicalName = string.Empty;
+                    }
+                    else
+                    {
+                        var party = (EntityReference)entity["partyid"];
+                        entref.LogicalName = party.LogicalName;
+                        entref.Id = party.Id;
+                    }
+                    break;
+            }
+            return GetEntityReferenceUrl(ConnectionDetail, entref);
+        }
+
+        private static string GetEntityReferenceUrl(ConnectionDetail ConnectionDetail, EntityReference entref)
+        {
+            if (!string.IsNullOrEmpty(entref.LogicalName) && !entref.Id.Equals(Guid.Empty))
+            {
+                var url = GetFullWebApplicationUrl(ConnectionDetail);
+                url = string.Concat(url,
+                    url.EndsWith("/") ? "" : "/",
+                    "main.aspx?etn=",
+                    entref.LogicalName,
+                    "&pagetype=entityrecord&id=",
+                    entref.Id.ToString());
+                return url;
+            }
+            return string.Empty;
+        }
+
+        private static string GetUrl(object holder)
+        {
+            if (holder is string url && url.Trim().StartsWith("http"))
+            {
+                return url.Trim();
+            }
+            return string.Empty;
         }
 
         private static string ProcessURL(string url)
