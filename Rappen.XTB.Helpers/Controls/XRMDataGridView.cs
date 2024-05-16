@@ -362,6 +362,8 @@ namespace Rappen.XTB.Helpers.Controls
 
         public bool SettingsWidths { get; private set; } = false;
 
+        public bool Refreshing { get; private set; } = false;
+
         #endregion Published properties
 
         #region Published events
@@ -508,22 +510,30 @@ namespace Rappen.XTB.Helpers.Controls
         /// </summary>
         public override void Refresh()
         {
-            if (entities != null)
+            try
             {
-                try
+                Refreshing = true;
+                if (entities != null)
                 {
-                    var cols = GetTableColumns(entities);
-                    var data = GetDataTable(entities, cols);
-                    BindData(data);
-                    ArrangeColumns();
-                    SetIndexAndWidths();
+                    try
+                    {
+                        var cols = GetTableColumns(entities);
+                        var data = GetDataTable(entities, cols);
+                        BindData(data);
+                        ArrangeColumns();
+                        SetIndexAndWidths();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Oops.\nUnexpected error during refresh of {this.Name}.\n\nJust try again, please.\nToo many of these messages? Create an issue so Jonas can try again to fix this error.\n\n{ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Oops.\nUnexpected error during refresh of {this.Name}.\n\nJust try again, please.\nToo many of these messages? Create an issue so Jonas can try again to fix this error.\n\n{ex.Message}");
-                }
+                base.Refresh();
             }
-            base.Refresh();
+            finally
+            {
+                Refreshing = false;
+            }
         }
 
         /// <summary>
