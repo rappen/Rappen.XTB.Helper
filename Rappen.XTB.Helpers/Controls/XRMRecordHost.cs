@@ -130,7 +130,7 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 else
                 {
-                    MessageBox.Show($"Column '{columnname}' is not available for table {Record.LogicalName}.", "Set value", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBoxEx.Show($"Column '{columnname}' is not available for table {Record.LogicalName}.", "Set value", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 var oldval = Record?.PropertyAsBaseType(columnname, null, true);
                 var newval = EntityExtensions.AttributeToBaseType(value);

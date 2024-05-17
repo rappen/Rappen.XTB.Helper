@@ -29,7 +29,7 @@ namespace Rappen.XTB.Helpers.Controls
             }
             if (string.IsNullOrWhiteSpace(column))
             {
-                MessageBox.Show("Cannot set value, Column property missing.", this.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBoxEx.Show(this, "Cannot set value, Column property missing.", this.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             recordhost[column] = Value;

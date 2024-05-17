@@ -125,7 +125,7 @@ namespace Rappen.XTB.Helpers.Controls
                     if (view.TryGetAttributeValue<bool?>(Savedquery.Isquickfindquery, out bool? isqf) && isqf == true)
                     {
                         Cursor = Cursors.Arrow;
-                        MessageBox.Show("The environment contains too many records to use the Quick Find view.\nPlease select another view.", "Loading data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBoxEx.Show(this, "The environment contains too many records to use the Quick Find view.\nPlease select another view.", "Loading data", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         if (cmbView.DataSource is IEnumerable<Entity> views)
                         {
                             views = views.Except(views.Where(v => v.TryGetAttributeValue<bool?>(Savedquery.Isquickfindquery, out bool? isqfq) && isqfq == true));

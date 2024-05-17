@@ -525,7 +525,7 @@ namespace Rappen.XTB.Helpers.Controls
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Oops.\nUnexpected error during refresh of {this.Name}.\n\nJust try again, please.\nToo many of these messages? Create an issue so Jonas can try again to fix this error.\n\n{ex.Message}");
+                        MessageBoxEx.Show(this, $"Oops.\nUnexpected error during refresh of {this.Name}.\n\nJust try again, please.\nToo many of these messages? Create an issue so Jonas can try again to fix this error.\n\n{ex.Message}");
                     }
                 }
                 base.Refresh();
@@ -1013,7 +1013,7 @@ namespace Rappen.XTB.Helpers.Controls
                     }
                     catch
                     {
-                        MessageBox.Show("Attribute " + col + " failed, value: " + entity[col].ToString());
+                        MessageBoxEx.Show(this, "Attribute " + col + " failed, value: " + entity[col].ToString());
                     }
                 }
                 if (FilterIncludeRow(dRow, filteredcols))
