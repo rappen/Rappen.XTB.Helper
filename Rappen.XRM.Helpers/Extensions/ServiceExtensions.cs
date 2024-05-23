@@ -150,7 +150,7 @@ namespace Rappen.XRM.Helpers.Extensions
             do
             {
                 page++;
-                if (page != 1 || showMessageOnFirstPage)
+                if (worker?.WorkerReportsProgress == true && (page != 1 || showMessageOnFirstPage))
                 {
                     worker?.ReportProgress(0, GetProgress(message, resultCollection?.Entities?.Count ?? 0, pagesize, page, sw));
                 }
