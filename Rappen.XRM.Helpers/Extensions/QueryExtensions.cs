@@ -28,7 +28,7 @@ namespace Rappen.XRM.Helpers.Extensions
                     }
                     pageno = pageno + diffpage;
                     fetchnode.SetAttribute("page", pageno.ToString());
-                    fetchnode.SetAttribute("pagingcookie", cookie);
+                    fetchnode.SetAttribute("paging-cookie", cookie);
                     fex.Query = pagedoc.OuterXml;
                 }
             }
