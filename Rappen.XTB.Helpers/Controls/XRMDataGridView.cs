@@ -681,7 +681,7 @@ namespace Rappen.XTB.Helpers.Controls
                 return;
             }
             columnswidths = Columns.Cast<DataGridViewColumn>()
-                .Where(c => !c.Name.StartsWith("#") && !c.Name.EndsWith("|both") && c.Visible && c.Width > 5)
+                .Where(c => !string.IsNullOrEmpty(c.Name) && !c.Name.StartsWith("#") && !c.Name.EndsWith("|both") && c.Visible && c.Width > 5)
                 .OrderBy(c => c.DisplayIndex)
                 .ToDictionary(c => c.Name, c => c.Width);
         }
