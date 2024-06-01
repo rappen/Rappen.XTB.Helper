@@ -51,6 +51,11 @@ namespace Rappen.XTB.Helpers
                 url = entity.GetEntityUrl(connectionDetail);
                 noextraparams = !string.IsNullOrWhiteSpace(url);
             }
+            if (string.IsNullOrWhiteSpace(url) && sender is EntityReference entityref && connectionDetail != null)
+            {
+                url = entityref.GetEntityUrl(connectionDetail);
+                noextraparams = !string.IsNullOrWhiteSpace(url);
+            }
             if (string.IsNullOrEmpty(url) && sender is XRMRecordEventArgs xrmenvarg && connectionDetail != null)
             {
                 url = xrmenvarg.Entity?.GetEntityUrl(connectionDetail);
@@ -59,6 +64,10 @@ namespace Rappen.XTB.Helpers
             if (string.IsNullOrWhiteSpace(url))
             {
                 return;
+            }
+            if (!noextraparams && url.Contains(".dynamics.com/"))
+            {
+                noextraparams = true;
             }
             if (!noextraparams)
             {
@@ -127,10 +136,10 @@ namespace Rappen.XTB.Helpers
                     }
                     break;
             }
-            return GetEntityReferenceUrl(ConnectionDetail, entref);
+            return entref.GetEntityUrl(ConnectionDetail);
         }
 
-        private static string GetEntityReferenceUrl(ConnectionDetail ConnectionDetail, EntityReference entref)
+        public static string GetEntityUrl(this EntityReference entref, ConnectionDetail ConnectionDetail)
         {
             if (!string.IsNullOrEmpty(entref.LogicalName) && !entref.Id.Equals(Guid.Empty))
             {
@@ -161,14 +170,18 @@ namespace Rappen.XTB.Helpers
             {
                 return url;
             }
-            if (string.IsNullOrWhiteSpace(MVP_ID) || string.IsNullOrWhiteSpace(UTM_MEDIUM) || string.IsNullOrWhiteSpace(TOOL_NAME))
+            if (string.IsNullOrWhiteSpace(UTM_MEDIUM) || string.IsNullOrWhiteSpace(TOOL_NAME))
             {
-                throw new Exception("MVP_ID, UTM_MEDIUM, TOOL_NAME must be set.");
+                throw new Exception($"UTM_MEDIUM='{UTM_MEDIUM}', TOOL_NAME='{TOOL_NAME}' must be set.");
             }
             var urib = new UriBuilder(url);
             var qry = HttpUtility.ParseQueryString(urib.Query);
             if (urib.Host.ToLowerInvariant().Contains("microsoft.com"))
             {
+                if (string.IsNullOrWhiteSpace(MVP_ID))
+                {
+                    throw new Exception($"MVP_ID must be set.");
+                }
                 qry.Add("WT.mc_id", MVP_ID);
                 urib.Path = urib.Path.Replace("/en-us/", "/");
             }
