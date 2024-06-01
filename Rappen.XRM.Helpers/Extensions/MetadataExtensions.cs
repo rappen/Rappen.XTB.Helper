@@ -78,12 +78,20 @@ namespace Rappen.XRM.Helpers.Extensions
             if (!entities.TryGetValue(service, out var serviceEntities))
             {
                 serviceEntities = new Dictionary<string, EntityMetadata>();
-                entities.Add(service, serviceEntities);
+                try
+                {
+                    entities.Add(service, serviceEntities);
+                }
+                catch { }
             }
 
             if (!serviceEntities.ContainsKey(entity) && LoadEntityDetails(service, entity) is EntityMetadata e)
             {
-                serviceEntities.Add(entity, e);
+                try
+                {
+                    serviceEntities.Add(entity, e);
+                }
+                catch { }
             }
             if (serviceEntities.TryGetValue(entity, out EntityMetadata meta))
             {
