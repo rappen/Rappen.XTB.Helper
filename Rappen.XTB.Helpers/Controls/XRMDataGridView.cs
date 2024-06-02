@@ -28,8 +28,7 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showIdColumn = true;
         private bool showIndexColumn = true;
         private bool showLocalTimes = false;
-        private bool designedColumnsDetermined = false;
-        private bool designedColumnsUsed = false;
+        private bool? designedColumnsUsed = null;
         private List<string> filterColumns = null;
         private string filterText = null;
         private string[] columnOrder = new string[] { };
@@ -122,7 +121,7 @@ namespace Rappen.XTB.Helpers.Controls
                     throw new ArgumentException("DataSource can only contain entities of the same type.");
                 }
                 entitymeta = organizationService.GetEntity(entities?.FirstOrDefault(e => !string.IsNullOrEmpty(e.LogicalName))?.LogicalName);
-                if (designedColumnsDetermined && designedColumnsUsed && designedColumns != null)
+                if (DesignedColumnsUsed() && designedColumns != null)
                 {
                     foreach (var col in designedColumns)
                     {
@@ -680,6 +679,10 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return;
             }
+            if (DesignedColumnsUsed())
+            {
+                return;
+            }
             columnswidths = Columns.Cast<DataGridViewColumn>()
                 .Where(c => !string.IsNullOrEmpty(c.Name) && !c.Name.StartsWith("#") && !c.Name.EndsWith("|both") && c.Visible && c.Width > 5)
                 .OrderBy(c => c.DisplayIndex)
@@ -689,6 +692,25 @@ namespace Rappen.XTB.Helpers.Controls
         #endregion Private event handler methods
 
         #region Private methods
+
+        private bool DesignedColumnsUsed()
+        {
+            var hasdesignedcols = Columns.Cast<DataGridViewColumn>().Where(c => c.Visible && c.Width > 5).Any();
+            if (designedColumnsUsed == null || designedColumnsUsed.Value != hasdesignedcols)
+            {
+                if (hasdesignedcols == true)
+                {
+                    designedColumns = new DataGridViewColumn[Columns.Count];
+                    Columns.CopyTo(designedColumns, 0);
+                }
+                else
+                {
+                    designedColumns = null;
+                }
+                designedColumnsUsed = hasdesignedcols;
+            }
+            return hasdesignedcols;
+        }
 
         private XRMRecordEventArgs GetXRMRecordEventArgs(DataGridViewCellEventArgs e)
         {
@@ -701,17 +723,7 @@ namespace Rappen.XTB.Helpers.Controls
         private List<DataColumn> GetTableColumns(IEnumerable<Entity> entities)
         {
             var columns = new List<DataColumn>();
-            if (!designedColumnsDetermined)
-            {
-                designedColumnsUsed = Columns.Count > 0;
-                designedColumnsDetermined = true;
-                if (designedColumnsUsed)
-                {
-                    designedColumns = new DataGridViewColumn[Columns.Count];
-                    Columns.CopyTo(designedColumns, 0);
-                }
-            }
-            if (designedColumnsUsed && columnswidths == null)
+            if (DesignedColumnsUsed() == true)
             {
                 PopulateColumnsFromDesign(entities, columns);
             }
@@ -1104,7 +1116,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private void ArrangeColumns()
         {
-            if (columnOrder?.Length == 0 || designedColumnsUsed)
+            if (columnOrder?.Length == 0 || DesignedColumnsUsed())
             {
                 return;
             }
@@ -1167,7 +1179,7 @@ namespace Rappen.XTB.Helpers.Controls
 
         private void SetIndexAndWidths()
         {
-            if (columnswidths == null || designedColumnsUsed)
+            if (columnswidths == null || DesignedColumnsUsed())
             {
                 return;
             }
