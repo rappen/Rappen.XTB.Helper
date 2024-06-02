@@ -695,10 +695,10 @@ namespace Rappen.XTB.Helpers.Controls
 
         private bool DesignedColumnsUsed()
         {
-            var hasdesignedcols = Columns.Cast<DataGridViewColumn>().Where(c => c.Visible && c.Width > 5).Any();
-            if (designedColumnsUsed == null || designedColumnsUsed.Value != hasdesignedcols)
+            if (designedColumnsUsed == null)
             {
-                if (hasdesignedcols == true)
+                designedColumnsUsed = Columns.Cast<DataGridViewColumn>().Where(c => c.Visible && c.Width > 5).Any();
+                if (designedColumnsUsed == true)
                 {
                     designedColumns = new DataGridViewColumn[Columns.Count];
                     Columns.CopyTo(designedColumns, 0);
@@ -707,9 +707,8 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     designedColumns = null;
                 }
-                designedColumnsUsed = hasdesignedcols;
             }
-            return hasdesignedcols;
+            return designedColumnsUsed == true;
         }
 
         private XRMRecordEventArgs GetXRMRecordEventArgs(DataGridViewCellEventArgs e)
