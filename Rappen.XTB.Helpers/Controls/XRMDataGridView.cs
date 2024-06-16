@@ -1188,6 +1188,24 @@ namespace Rappen.XTB.Helpers.Controls
             // First hidden all columns
             Columns.Cast<DataGridViewColumn>().ToList().ForEach(c => c.Visible = false);
             var display = 0;
+            if (!columnswidths.Any(cw => cw.Key == "#no") && Columns["#no"] is DataGridViewColumn colno)
+            {
+                if (showIndexColumn)
+                {
+                    colno.DisplayIndex = display++;
+                }
+                colno.Width = 40;
+                colno.Visible = showIndexColumn;
+            }
+            if (!columnswidths.Any(cw => cw.Key == "#id") && Columns["#id"] is DataGridViewColumn colid)
+            {
+                if (showIdColumn)
+                {
+                    colid.DisplayIndex = display++;
+                }
+                colid.Width = 100;
+                colid.Visible = showIdColumn;
+            }
             foreach (var cell in columnswidths.Where(c => c.Value > 0))
             {
                 if (Columns.Cast<DataGridViewColumn>().FirstOrDefault(c => c.Name == cell.Key) is DataGridViewColumn column)
