@@ -1068,7 +1068,12 @@ namespace Rappen.XTB.Helpers.Controls
                 }
                 if (datacolumn.ColumnName.IsPOA() != true || !datacolumn.GetFriendly())
                 {
-                    if (type == typeof(int) || type == typeof(decimal) || type == typeof(double) || type == typeof(Money) || (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
+                    if (type == typeof(int) ||
+                        type == typeof(long) ||
+                        type == typeof(decimal) ||
+                        type == typeof(double) ||
+                        type == typeof(Money) ||
+                        (type == typeof(OptionSetValue) && !datacolumn.GetFriendly()))
                     {
                         col.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
                     }
