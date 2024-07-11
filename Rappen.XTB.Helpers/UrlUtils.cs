@@ -3,6 +3,8 @@ using Microsoft.Xrm.Sdk;
 using Rappen.XTB.Helpers.Controls;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Net;
 using System.Web;
 using System.Windows.Forms;
 
@@ -153,6 +155,27 @@ namespace Rappen.XTB.Helpers
                 return url;
             }
             return string.Empty;
+        }
+
+        public static T DownloadXml<T>(this Uri uri, T defaultvalue = default(T))
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            var webRequestXml = HttpWebRequest.Create(uri) as HttpWebRequest;
+            webRequestXml.Accept = "text/html, application/xhtml+xml, */*";
+            try
+            {
+                using (var response = webRequestXml.GetResponse())
+                using (var content = response.GetResponseStream())
+                using (var reader = new StreamReader(content))
+                {
+                    var strContent = reader.ReadToEnd();
+                    return (T)XmlSerializerHelper.Deserialize(strContent, typeof(T));
+                }
+            }
+            catch
+            {
+                return defaultvalue;
+            }
         }
 
         private static string GetUrl(object holder)
