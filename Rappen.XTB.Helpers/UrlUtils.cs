@@ -1,6 +1,5 @@
 ﻿using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
-using Rappen.XTB.FetchXmlBuilder.Extensions;
 using Rappen.XTB.Helpers.Controls;
 using System;
 using System.Diagnostics;

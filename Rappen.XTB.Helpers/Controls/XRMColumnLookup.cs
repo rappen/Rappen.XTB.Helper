@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xrm.Sdk;
-using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Rappen.XTB.Helpers.ControlItems;
@@ -8,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.ServiceModel.Configuration;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls

@@ -1,7 +1,6 @@
 ﻿using Rappen.XTB.Helpers.Interfaces;
 using System;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls

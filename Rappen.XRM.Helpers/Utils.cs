@@ -139,7 +139,7 @@
 
         public static string GetViewDeepLink(string webappurl, string entity, Guid viewid, NameValueCollection extraqs) => GetDeepLink(webappurl, "entitylist", entity, viewid, extraqs);
 
-        private static string GetDeepLink(string webappurl,string pagetype, string entity, Guid id, NameValueCollection extraqs)
+        private static string GetDeepLink(string webappurl, string pagetype, string entity, Guid id, NameValueCollection extraqs)
         {
             if (string.IsNullOrWhiteSpace(entity))
             {
