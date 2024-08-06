@@ -1,5 +1,6 @@
 ﻿using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
+using Rappen.XTB.FetchXmlBuilder.Extensions;
 using Rappen.XTB.Helpers.Controls;
 using System;
 using System.Diagnostics;
@@ -7,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Web;
 using System.Windows.Forms;
+using static System.Windows.Forms.LinkLabel;
 
 namespace Rappen.XTB.Helpers
 {
@@ -16,37 +18,54 @@ namespace Rappen.XTB.Helpers
         public static string TOOL_NAME;
         public static string MVP_ID = "DX-MVP-5002475";
 
-        public static void OpenUrl(object sender, ConnectionDetail connectionDetail = null)
+        /// <summary>
+        /// Trying all it can to find a url and open it
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="connectionDetail">Using this profile browser and not adding UTM if included</param>
+        /// <returns>Returns True if an url was found and open, False if not</returns>
+        public static bool OpenUrl(object sender, ConnectionDetail connectionDetail = null)
         {
             if (sender == null)
             {
-                return;
+                return false;
             }
             var noextraparams = false;
             var url = GetUrl(sender);
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(url) && sender is Link link)
             {
-                url = GetUrl((sender as LinkLabel)?.Tag);
+                url = GetUrl(link.LinkData);
             }
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(url) && sender is LinkLabel linklbl)
             {
-                url = GetUrl((sender as LinkLabel)?.Text);
+                if (linklbl.Links.Count > 0 && linklbl.Links[0].Enabled)
+                {
+                    url = GetUrl(linklbl.Links[0].LinkData);
+                }
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    url = GetUrl(linklbl.Tag);
+                }
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    url = GetUrl(linklbl.Text);
+                }
             }
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(url) && sender is ToolStripItem tsi)
             {
-                url = GetUrl((sender as ToolStripItem)?.Tag);
+                url = GetUrl(tsi.Tag);
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    url = GetUrl(tsi.Text);
+                }
             }
-            if (string.IsNullOrWhiteSpace(url))
+            if (string.IsNullOrWhiteSpace(url) && sender is Control ctrl)
             {
-                url = GetUrl((sender as ToolStripItem)?.Text);
-            }
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                url = GetUrl((sender as Control)?.Tag);
-            }
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                url = GetUrl((sender as Control)?.Text);
+                url = GetUrl(ctrl.Tag);
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    url = GetUrl(ctrl.Text);
+                }
             }
             if (string.IsNullOrWhiteSpace(url) && sender is Entity entity && connectionDetail != null)
             {
@@ -65,7 +84,7 @@ namespace Rappen.XTB.Helpers
             }
             if (string.IsNullOrWhiteSpace(url))
             {
-                return;
+                return false;
             }
             if (!noextraparams && url.Contains(".dynamics.com/"))
             {
@@ -83,9 +102,10 @@ namespace Rappen.XTB.Helpers
             {
                 Process.Start(url);
             }
+            return true;
         }
 
-        public static string GetFullWebApplicationUrl(ConnectionDetail ConnectionDetail)
+        public static string GetFullWebApplicationUrl(this ConnectionDetail ConnectionDetail)
         {
             var url = ConnectionDetail.WebApplicationUrl;
             if (string.IsNullOrEmpty(url))
@@ -105,6 +125,12 @@ namespace Rappen.XTB.Helpers
                 }
             }
             return uri.ToString();
+        }
+
+        public static string GetWebApiServiceUrl(this ConnectionDetail connectiondetail)
+        {
+            var url = new Uri(new Uri(connectiondetail.GetFullWebApplicationUrl()), $"api/data/v{connectiondetail.OrganizationMajorVersion}.{connectiondetail.OrganizationMinorVersion}");
+            return url.ToString();
         }
 
         public static string GetEntityUrl(this Entity entity, ConnectionDetail ConnectionDetail)
@@ -145,7 +171,7 @@ namespace Rappen.XTB.Helpers
         {
             if (!string.IsNullOrEmpty(entref.LogicalName) && !entref.Id.Equals(Guid.Empty))
             {
-                var url = GetFullWebApplicationUrl(ConnectionDetail);
+                var url = ConnectionDetail.GetFullWebApplicationUrl();
                 url = string.Concat(url,
                     url.EndsWith("/") ? "" : "/",
                     "main.aspx?etn=",
@@ -183,6 +209,10 @@ namespace Rappen.XTB.Helpers
             if (holder is string url && url.Trim().StartsWith("http"))
             {
                 return url.Trim();
+            }
+            else if (holder is Uri uri)
+            {
+                return uri.ToString();
             }
             return string.Empty;
         }
