@@ -128,12 +128,20 @@ namespace Rappen.XTB.Helpers
 
         public static string GetWebApiServiceUrl(this ConnectionDetail connectiondetail)
         {
+            if (connectiondetail == null)
+            {
+                return string.Empty;
+            }
             var url = new Uri(new Uri(connectiondetail.GetFullWebApplicationUrl()), $"api/data/v{connectiondetail.OrganizationMajorVersion}.{connectiondetail.OrganizationMinorVersion}");
             return url.ToString();
         }
 
         public static string GetEntityUrl(this Entity entity, ConnectionDetail ConnectionDetail)
         {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
             var entref = entity.ToEntityReference();
             switch (entref.LogicalName)
             {
@@ -168,18 +176,18 @@ namespace Rappen.XTB.Helpers
 
         public static string GetEntityUrl(this EntityReference entref, ConnectionDetail ConnectionDetail)
         {
-            if (!string.IsNullOrEmpty(entref.LogicalName) && !entref.Id.Equals(Guid.Empty))
+            if (entref == null || string.IsNullOrEmpty(entref.LogicalName) || entref.Id.Equals(Guid.Empty))
             {
-                var url = ConnectionDetail.GetFullWebApplicationUrl();
-                url = string.Concat(url,
-                    url.EndsWith("/") ? "" : "/",
-                    "main.aspx?etn=",
-                    entref.LogicalName,
-                    "&pagetype=entityrecord&id=",
-                    entref.Id.ToString());
-                return url;
+                return string.Empty;
             }
-            return string.Empty;
+            var url = ConnectionDetail.GetFullWebApplicationUrl();
+            url = string.Concat(url,
+                url.EndsWith("/") ? "" : "/",
+                "main.aspx?etn=",
+                entref.LogicalName,
+                "&pagetype=entityrecord&id=",
+                entref.Id.ToString());
+            return url;
         }
 
         public static T DownloadXml<T>(this Uri uri, T defaultvalue = default(T))
