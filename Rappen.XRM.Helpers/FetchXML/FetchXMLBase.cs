@@ -52,7 +52,7 @@ namespace Rappen.XRM.Helpers.FetchXML
         private const string IsRequired = "{0} is required";
         private const string InValid = "{0} is not valid";
         private const string NotInMetadata = "{0} is not in the database.";
-        private const string NotShowingNow = "{0} is not currently shown.";
+        private const string NotShowingNow = "{0} is not currently shown, usually by filtered out.";
 
         public ControlValidationResult(ControlValidationLevel level, string message, string url = null)
         {
