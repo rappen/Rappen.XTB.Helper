@@ -143,10 +143,10 @@ namespace Rappen.XTB.Helpers.Controls
         [Browsable(false)]
         public string LayoutXML
         {
-            get => ControlUtils.GetLayoutXML(entitymeta, columnswidths);
+            get => ControlUtils.GetLayoutXMLFromCells(entitymeta, columnswidths);
             set
             {
-                columnswidths = GetColumnsWidthsFromLayoutXML(value);
+                columnswidths = ControlUtils.GetCellsFromLayoutXML(value);
                 if (entities != null && autoRefresh)
                 {
                     Refresh();
@@ -1138,47 +1138,6 @@ namespace Rappen.XTB.Helpers.Controls
                     Columns[attribute + "|both"].DisplayIndex = pos++;
                 }
             }
-        }
-
-        private Dictionary<string, int> GetColumnsWidthsFromLayoutXML(string layoutxml)
-        {
-            string GetCellName(XmlNode node)
-            {
-                if (node != null && node.Attributes != null && node.Attributes["name"] is XmlAttribute attr)
-                {
-                    return attr.Value;
-                }
-                return string.Empty;
-            }
-            int GetCellWidth(XmlNode node)
-            {
-                if (node != null && node.Attributes != null)
-                {
-                    if (node.Attributes["ishidden"] is XmlAttribute attrhidden &&
-                        attrhidden.Value is string hidden)
-                    {
-                        hidden = hidden.ToLowerInvariant().Trim();
-                        return hidden == "1" || hidden == "true" ? 0 : 100;
-                    }
-                    if (node.Attributes["width"] is XmlAttribute attrwidth &&
-                        int.TryParse(attrwidth.Value, out var width))
-                    {
-                        return width;
-                    }
-                }
-                return 100;
-            }
-
-            if (!string.IsNullOrEmpty(layoutxml) && layoutxml.ToXml().SelectSingleNode("grid") is XmlElement grid)
-            {
-                var cells = grid.SelectSingleNode("row")?
-                    .ChildNodes.Cast<XmlNode>()
-                    .Where(n => n.Name == "cell")
-                    .Select(c => new KeyValuePair<string, int>(GetCellName(c), GetCellWidth(c)))
-                    .ToDictionary(c => c.Key, c => c.Value);
-                return cells?.Count > 0 ? cells : null;
-            }
-            return null;
         }
 
         private void SetIndexAndWidths()

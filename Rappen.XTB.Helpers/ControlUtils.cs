@@ -1,12 +1,14 @@
 ﻿namespace Rappen.XTB.Helpers
 {
     using Microsoft.Xrm.Sdk.Metadata;
+    using Rappen.XRM.Helpers.Extensions;
     using Rappen.XRM.Helpers.Interfaces;
     using Rappen.XTB.Helpers.Interfaces;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Windows.Forms;
+    using System.Xml;
 
     public class ControlUtils
     {
@@ -106,18 +108,58 @@
             controls.OfType<GroupBox>().OrderBy(g => g.TabIndex).ToList().ForEach(g => FillControls(collection, g.Controls, saveable));
         }
 
-        public static string GetLayoutXML(EntityMetadata entitymeta, Dictionary<string, int> cellsFromLayoutXML)
+        public static string GetLayoutXMLFromCells(EntityMetadata entitymeta, Dictionary<string, int> cells)
         {
-            if (entitymeta == null || cellsFromLayoutXML == null)
+            if (entitymeta == null || cells == null)
             {
                 return string.Empty;
             }
-            return $@"<grid name='resultset' object='{entitymeta?.ObjectTypeCode}' jump='{entitymeta?.PrimaryNameAttribute}' select='1' icon='1' preview='1'>
+            return $@"<grid name='resultset' object='{entitymeta.ObjectTypeCode}' jump='{entitymeta.PrimaryNameAttribute}' select='1' icon='1' preview='1'>
   <row name='result' id='
-            {entitymeta?.PrimaryIdAttribute}'>
-    {string.Join("\n    ", cellsFromLayoutXML?.Select(c => $"<cell name='{c.Key}' width='{c.Value}'/>"))}
+            {entitymeta.PrimaryIdAttribute}'>
+    {string.Join("\n    ", cells.Select(c => $"<cell name='{c.Key}' width='{c.Value}'/>"))}
   </row>
 </grid>";
+        }
+        public static Dictionary<string, int> GetCellsFromLayoutXML(string layoutxml)
+        {
+            string GetCellName(XmlNode node)
+            {
+                if (node != null && node.Attributes != null && node.Attributes["name"] is XmlAttribute attr)
+                {
+                    return attr.Value;
+                }
+                return string.Empty;
+            }
+            int GetCellWidth(XmlNode node)
+            {
+                if (node != null && node.Attributes != null)
+                {
+                    if (node.Attributes["ishidden"] is XmlAttribute attrhidden &&
+                        attrhidden.Value is string hidden)
+                    {
+                        hidden = hidden.ToLowerInvariant().Trim();
+                        return hidden == "1" || hidden == "true" ? 0 : 100;
+                    }
+                    if (node.Attributes["width"] is XmlAttribute attrwidth &&
+                        int.TryParse(attrwidth.Value, out var width))
+                    {
+                        return width;
+                    }
+                }
+                return 100;
+            }
+
+            if (!string.IsNullOrEmpty(layoutxml) && layoutxml.ToXml().SelectSingleNode("grid") is XmlElement grid)
+            {
+                var cells = grid.SelectSingleNode("row")?
+                    .ChildNodes.Cast<XmlNode>()
+                    .Where(n => n.Name == "cell")
+                    .Select(c => new KeyValuePair<string, int>(GetCellName(c), GetCellWidth(c)))
+                    .ToDictionary(c => c.Key, c => c.Value);
+                return cells?.Count > 0 ? cells : null;
+            }
+            return null;
         }
 
         private class TextBoxEventHandler
