@@ -152,12 +152,22 @@
 
             if (!string.IsNullOrEmpty(layoutxml) && layoutxml.ToXml().SelectSingleNode("grid") is XmlElement grid)
             {
-                var cells = grid.SelectSingleNode("row")?
-                    .ChildNodes.Cast<XmlNode>()
-                    .Where(n => n.Name == "cell")
-                    .Select(c => new KeyValuePair<string, int>(GetCellName(c), GetCellWidth(c)))
-                    .ToDictionary(c => c.Key, c => c.Value);
-                return cells?.Count > 0 ? cells : null;
+                try
+                {
+                    var cells = grid.SelectSingleNode("row")?
+                        .ChildNodes.Cast<XmlNode>()
+                        .Where(n => n.Name == "cell")
+                        .Select(c => new KeyValuePair<string, int>(GetCellName(c), GetCellWidth(c)))
+                        .ToDictionary(c => c.Key, c => c.Value);
+                    return cells?.Count > 0 ? cells : null;
+                }
+                catch (ArgumentException ex)
+                {
+                    if (ex.HResult != -2147024809)
+                    {
+                        throw;
+                    }
+                }
             }
             return null;
         }
