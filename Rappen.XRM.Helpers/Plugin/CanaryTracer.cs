@@ -1,8 +1,9 @@
 ﻿/* ***********************************************************
  * CanaryTracer.cs
- * Found at: https://jonasr.app/canary
+ * Revision: 2024-06-29
+ * Code found at: https://jonasr.app/canary-code
+ * Background: https://jonasr.app/canary/
  * Created by: Jonas Rapp https://jonasr.app/
- * Get full solution: https://jonasr.app/canary/
  *
  * Writes everything from an IExecutionContext to the Plugin Trace Log.
  *
@@ -118,7 +119,9 @@ namespace Rappen.Dataverse.Canary
                 }
                 if (plugincontext3 != null)
                 {
-                    if (!plugincontext3.AuthenticatedUserId.Equals(Guid.Empty) && !plugincontext3.AuthenticatedUserId.Equals(context.UserId))
+                    if (!plugincontext3.AuthenticatedUserId.Equals(Guid.Empty) &&
+                        !plugincontext3.AuthenticatedUserId.Equals(context.UserId) &&
+                        !plugincontext3.AuthenticatedUserId.Equals(context.InitiatingUserId))
                     {
                         tracingservice.Trace($"AuthUserId   : {plugincontext3.AuthenticatedUserId}");
                     }
@@ -145,6 +148,10 @@ namespace Rappen.Dataverse.Canary
                     {
                         tracingservice.Trace($"PortalContact: {plugincontext2.PortalsContactId}");
                     }
+                }
+                if (context.OwningExtension != null)
+                {
+                    tracingservice.Trace($"{(context.OwningExtension.LogicalName == "sdkmessageprocessingstep" ? "Step    " : context.OwningExtension.LogicalName)}: {context.OwningExtension.Id} {context.OwningExtension.Name}");
                 }
                 tracingservice.Trace($"Message : {context.MessageName}");
                 if (plugincontext != null)
