@@ -11,7 +11,7 @@ namespace Rappen.XRM.Helpers.Plugin
         {
             try
             {
-                serviceProvider.TraceContext();
+                serviceProvider.TraceContext(false, true, false, false, true);
                 using (var bag = new PluginBag(serviceProvider))
                 {
                     var watch = Stopwatch.StartNew();
