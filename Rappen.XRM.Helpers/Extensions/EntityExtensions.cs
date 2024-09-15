@@ -660,39 +660,39 @@ namespace Rappen.XRM.Helpers.Extensions
 
         private static string AttributeToString(Entity entity, object attribute, string attributename, IOrganizationService service)
         {
-            if (attribute is AliasedValue)
+            if (attribute is AliasedValue av)
             {
-                return AttributeToString(entity, ((AliasedValue)attribute).Value, ((AliasedValue)attribute).AttributeLogicalName, service);
+                return AttributeToString(entity, av.Value, av.AttributeLogicalName, service);
             }
-            else if (attribute is EntityReference)
+            if (attribute is EntityReference refatt)
             {
-                EntityReference refatt = (EntityReference)attribute;
                 if (!string.IsNullOrEmpty(refatt.Name))
                 {
                     return refatt.Name;
                 }
-                else if (service != null)
+                if (service != null)
                 {
-                    var primaryattribute = service.GetPrimaryAttribute(entity.LogicalName).LogicalName;
+                    var primaryattribute = service.GetPrimaryAttribute(refatt.LogicalName).LogicalName;
                     var referencedentity = service.Retrieve(refatt.LogicalName, refatt.Id, new ColumnSet(primaryattribute));
                     if (referencedentity.Contains(primaryattribute))
                     {
                         return AttributeToString(referencedentity, primaryattribute, service);
                     }
                 }
+                return refatt.LogicalName + ":" + refatt.Id.ToString();
             }
-            else if (attribute is EntityCollection && ((EntityCollection)attribute).EntityName == "activityparty")
+            if (attribute is EntityCollection ecatt && ecatt.EntityName == "activityparty")
             {
                 var result = new StringBuilder();
-                if (((EntityCollection)attribute).Entities.Count > 0)
+                if (ecatt.Entities.Count > 0)
                 {
                     var partyAdded = false;
-                    foreach (var activityparty in ((EntityCollection)attribute).Entities)
+                    foreach (var activityparty in ecatt.Entities)
                     {
                         var party = "";
-                        if (activityparty.Contains("partyid") && activityparty["partyid"] is EntityReference)
+                        if (activityparty.Contains("partyid") && activityparty["partyid"] is EntityReference entref)
                         {
-                            party = ((EntityReference)activityparty["partyid"]).Name;
+                            party = entref.Name;
                         }
                         if (string.IsNullOrEmpty(party) && activityparty.Contains("addressused"))
                         {
@@ -712,39 +712,43 @@ namespace Rappen.XRM.Helpers.Extensions
                 }
                 return result.ToString();
             }
-            else if (attribute is OptionSetValue optatt)
+            if (attribute is OptionSetValueCollection optmultiatt)
             {
-                if (service != null)
+                if (service != null && service.GetAttribute(entity.LogicalName, attributename) is MultiSelectPicklistAttributeMetadata msam)
                 {
-                    var plAMD = service.GetAttribute(entity.LogicalName, attributename) as EnumAttributeMetadata;
-                    foreach (var oMD in plAMD?.OptionSet?.Options)
+                    return string.Join(", ", optmultiatt.Select(o => msam?.OptionSet?.Options.FirstOrDefault(oo => oo.Value == o.Value)?.Label?.UserLocalizedLabel?.Label ?? o.Value.ToString()));
+                }
+                return string.Join("; ", optmultiatt.Select(o => o.Value.ToString()));
+            }
+            if (attribute is OptionSetValue optatt)
+            {
+                if (service != null && service.GetAttribute(entity.LogicalName, attributename) is EnumAttributeMetadata eam)
+                {
+                    foreach (var oMD in eam?.OptionSet?.Options)
                     {
                         if (oMD.Value == optatt.Value)
                         {
                             return oMD.Label?.UserLocalizedLabel?.Label ?? oMD.Label.LocalizedLabels[0]?.Label;
                         }
                     }
-
-                    return "";  // OptionSet value not found!
                 }
+                return optatt.Value.ToString();
             }
-            else if (attribute is DateTime)
+            if (attribute is DateTime dt)
             {
-                return ((DateTime)attribute).ToString("G");
+                return dt.ToString("G");
             }
-            else if (attribute is Money)
+            if (attribute is Money money)
             {
-                return ((Money)attribute).Value.ToString("C");
+                return money.Value.ToString("C");
             }
 
             if (attribute != null)
             {
                 return attribute.ToString();
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         #endregion Public Methods
