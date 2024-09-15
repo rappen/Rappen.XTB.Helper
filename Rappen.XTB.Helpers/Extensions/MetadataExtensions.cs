@@ -45,7 +45,7 @@ namespace Rappen.XTB.Helpers.Extensions
                         }
                         else if (WaitUntilMetadataLoaded)
                         {   // Load the cache until done
-                            worker.ReportProgress(0, "Reloaded Metadata into the cache...");
+                            worker.ReportProgress(0, "Reloading Metadata into the cache...");
                             eventargs.Result = plugin.ConnectionDetail.MetadataCacheLoader.ConfigureAwait(false).GetAwaiter().GetResult()?.EntityMetadata;
                         }
                         else
