@@ -95,6 +95,7 @@ namespace Rappen.XTB.Helpers
             }
             if (connectionDetail != null)
             {
+                url = url.Replace(" ", "+");
                 connectionDetail.OpenUrlWithBrowserProfile(new Uri(url));
             }
             else
