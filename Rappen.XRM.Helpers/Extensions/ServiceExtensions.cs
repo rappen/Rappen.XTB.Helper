@@ -1,5 +1,6 @@
 ﻿using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Organization;
 using Microsoft.Xrm.Sdk.Query;
@@ -126,9 +127,34 @@ namespace Rappen.XRM.Helpers.Extensions
         ///   {records} - retrieved records until now
         ///   {timeperrecord} - avarage of time to retrieve each record
         /// </param>
+        /// <param name="showMessageOnFirstPage"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message, bool showMessageOnFirstPage)
+        public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message, bool showMessageOnFirstPage) => RetrieveMultiple(service, query, worker, eventargs, message, showMessageOnFirstPage, true);
+
+        /// <summary>
+        /// Retrieving records from Dataverse
+        /// </summary>
+        /// <param name="service"></param>
+        /// <param name="query"></param>
+        /// <param name="worker"></param>
+        /// <param name="eventargs"></param>
+        /// <param name="message">
+        /// Progress message send before each page retrieving.
+        /// Possible tokens:
+        ///   {retrieving} - which records we are now retrieving
+        ///   {page} - which page with are retrieving
+        ///   {pagesize} - the size of the page to retrieve
+        ///   {time} - how much time it has taken
+        ///   {records} - retrieved records until now
+        ///   {timeperrecord} - avarage of time to retrieve each record
+        /// </param>
+        /// <param name="showMessageOnFirstPage"></param>
+        /// <param name="allpages"></param>
+        /// <param name="parameters"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
+        public static EntityCollection RetrieveMultiple(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message, bool showMessageOnFirstPage, bool allpages, params KeyValuePair<string, object>[] parameters)
         {
             if (!(query is FetchExpression || query is QueryExpression))
             {
@@ -138,9 +164,11 @@ namespace Rappen.XRM.Helpers.Extensions
             EntityCollection tmpResult = null;
             if (string.IsNullOrEmpty(message))
             {
-                message = "Retrieving records {retrieving} on page {page}\nRetrieved {records} in {time}";
+                message = allpages ?
+                    "Retrieving records {retrieving} on page {page}\nRetrieved {records} in {time}" :
+                    "Retrieving records {retrieving}";
             }
-            if (query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0 && queryex.TopCount == null)
+            if (allpages && query is QueryExpression queryex && queryex.PageInfo.PageNumber == 0 && queryex.TopCount == null)
             {
                 queryex.PageInfo.PageNumber = 1;
             }
@@ -163,7 +191,7 @@ namespace Rappen.XRM.Helpers.Extensions
                 {
                     query.NavigatePage(tmpResult.PagingCookie);
                 }
-                tmpResult = service.RetrieveMultiple(query);
+                tmpResult = RetrieveMultiple(service, query, parameters);
                 if (resultCollection == null)
                 {
                     resultCollection = tmpResult;
@@ -177,8 +205,26 @@ namespace Rappen.XRM.Helpers.Extensions
                     resultCollection.TotalRecordCountLimitExceeded = tmpResult.TotalRecordCountLimitExceeded;
                 }
             }
-            while (tmpResult.MoreRecords && eventargs?.Cancel != true);
+            while (allpages && tmpResult.MoreRecords && eventargs?.Cancel != true);
             return resultCollection;
+        }
+
+        public static EntityCollection RetrieveMultiple(this IOrganizationService service, QueryBase query, KeyValuePair<string, object>[] parameters)
+        {
+            if (parameters != null && parameters.Length > 0)
+            {
+                var req = new RetrieveMultipleRequest
+                {
+                    Query = query
+                };
+                req.Parameters.AddRange(parameters);
+                var resp = (RetrieveMultipleResponse)service.Execute(req);
+                return resp.EntityCollection;
+            }
+            else
+            {
+                return service.RetrieveMultiple(query);
+            }
         }
 
         private static string GetProgress(string message, int retrievedrecords, int pagesize, int page, Stopwatch sw)
