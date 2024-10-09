@@ -108,6 +108,7 @@ namespace Rappen.XTB.Helpers.Controls
                 gridResults.DataSource = null;
                 return;
             }
+            panWarning.Visible = false;
             txtFilter.Enabled = view.GetAttributeValue<int>(Savedquery.QueryType) == 4;
             if (!txtFilter.Enabled && !string.IsNullOrWhiteSpace(txtFilter.Text))
             {
@@ -115,8 +116,15 @@ namespace Rappen.XTB.Helpers.Controls
             }
             try
             {
+                Enabled = false;
                 Cursor = Cursors.WaitCursor;
-                gridResults.DataSource = service.ExecuteQuickFind(entity.Metadata.LogicalName, view, txtFilter.Text);
+                var records = service.ExecuteQuickFind(entity.Metadata.LogicalName, view, txtFilter.Text);
+                if (records.MoreRecords)
+                {
+                    lblWarning.Text = "Only showing first page, but there are more available.\nPlease change view or filter to find correct data if needed.";
+                    panWarning.Visible = true;
+                }
+                gridResults.DataSource = records;
             }
             catch (FaultException<OrganizationServiceFault> ex)
             {
@@ -124,8 +132,8 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     if (view.TryGetAttributeValue<bool?>(Savedquery.Isquickfindquery, out bool? isqf) && isqf == true)
                     {
-                        Cursor = Cursors.Arrow;
-                        MessageBoxEx.Show(this, "The environment contains too many records to use the Quick Find view.\nPlease select another view.", "Loading data", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        lblWarning.Text = "The environment contains too many records to use the Quick Find view.\nPlease select another view.";
+                        panWarning.Visible = true;
                         if (cmbView.DataSource is IEnumerable<Entity> views)
                         {
                             views = views.Except(views.Where(v => v.TryGetAttributeValue<bool?>(Savedquery.Isquickfindquery, out bool? isqfq) && isqfq == true));
@@ -137,6 +145,7 @@ namespace Rappen.XTB.Helpers.Controls
             finally
             {
                 Cursor = Cursors.Arrow;
+                Enabled = true;
             }
             gridResults.ColumnOrder = String.Join(",", view["layoutxml"].ToString().ToXml().SelectNodes("//cell/@name").OfType<XmlAttribute>().Select(a => a.Value));
             gridResults.ShowAllColumnsInColumnOrder = true;

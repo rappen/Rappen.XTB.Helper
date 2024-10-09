@@ -349,7 +349,7 @@ namespace Rappen.XRM.Helpers.Extensions
             {
                 ProcessFilter(metadata, filterNode, search);
             }
-            return service.RetrieveMultipleAll(new FetchExpression(fetchDoc.OuterXml));
+            return service.RetrieveMultiple(new FetchExpression(fetchDoc.OuterXml));
         }
 
         internal static EntityCollection RetrieveSystemViews(this IOrganizationService service, string logicalname, bool quickfind)

@@ -49,6 +49,8 @@
             this.splitGrids = new System.Windows.Forms.SplitContainer();
             this.gridResults = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
             this.gridSelection = new Rappen.XTB.Helpers.Controls.XRMDataGridView();
+            this.panWarning = new System.Windows.Forms.Panel();
+            this.lblWarning = new System.Windows.Forms.Label();
             this.timerLoadData = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -59,6 +61,7 @@
             this.splitGrids.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gridResults)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridSelection)).BeginInit();
+            this.panWarning.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
@@ -73,7 +76,7 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(533, 110);
+            this.panel1.Size = new System.Drawing.Size(533, 102);
             this.panel1.TabIndex = 0;
             // 
             // btnFilter
@@ -115,9 +118,12 @@
             this.cmbView.Column = null;
             this.cmbView.DisplayFormat = "";
             this.cmbView.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbView.Filter = null;
             this.cmbView.FormattingEnabled = true;
             this.cmbView.Location = new System.Drawing.Point(100, 46);
             this.cmbView.Name = "cmbView";
+            this.cmbView.RecordHost = null;
+            this.cmbView.Service = null;
             this.cmbView.Size = new System.Drawing.Size(421, 21);
             this.cmbView.TabIndex = 3;
             this.cmbView.SelectedIndexChanged += new System.EventHandler(this.cmbView_SelectedIndexChanged);
@@ -243,13 +249,14 @@
             // 
             this.splitGrids.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitGrids.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.splitGrids.Location = new System.Drawing.Point(0, 110);
+            this.splitGrids.Location = new System.Drawing.Point(0, 102);
             this.splitGrids.Name = "splitGrids";
             this.splitGrids.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
             // splitGrids.Panel1
             // 
             this.splitGrids.Panel1.Controls.Add(this.gridResults);
+            this.splitGrids.Panel1.Controls.Add(this.panWarning);
             this.splitGrids.Panel1.Padding = new System.Windows.Forms.Padding(10, 0, 10, 0);
             // 
             // splitGrids.Panel2
@@ -257,8 +264,8 @@
             this.splitGrids.Panel2.Controls.Add(this.gridSelection);
             this.splitGrids.Panel2.Controls.Add(this.panel3);
             this.splitGrids.Panel2.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-            this.splitGrids.Size = new System.Drawing.Size(533, 391);
-            this.splitGrids.SplitterDistance = 269;
+            this.splitGrids.Size = new System.Drawing.Size(533, 399);
+            this.splitGrids.SplitterDistance = 277;
             this.splitGrids.TabIndex = 4;
             // 
             // gridResults
@@ -273,7 +280,8 @@
             this.gridResults.ColumnOrder = "";
             this.gridResults.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridResults.FilterColumns = "";
-            this.gridResults.Location = new System.Drawing.Point(10, 0);
+            this.gridResults.LayoutXML = "";
+            this.gridResults.Location = new System.Drawing.Point(10, 34);
             this.gridResults.MultiSelect = false;
             this.gridResults.Name = "gridResults";
             this.gridResults.ReadOnly = true;
@@ -284,7 +292,7 @@
             this.gridResults.ShowIdColumn = false;
             this.gridResults.ShowIndexColumn = false;
             this.gridResults.ShowLocalTimes = true;
-            this.gridResults.Size = new System.Drawing.Size(513, 269);
+            this.gridResults.Size = new System.Drawing.Size(513, 243);
             this.gridResults.TabIndex = 2;
             this.gridResults.RecordDoubleClick += new Rappen.XTB.Helpers.Controls.XRMRecordEventHandler(this.gridResults_RecordDoubleClick);
             this.gridResults.SelectionChanged += new System.EventHandler(this.gridResults_SelectionChanged);
@@ -302,6 +310,7 @@
             this.gridSelection.ColumnOrder = "";
             this.gridSelection.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gridSelection.FilterColumns = "";
+            this.gridSelection.LayoutXML = "";
             this.gridSelection.Location = new System.Drawing.Point(99, 0);
             this.gridSelection.Name = "gridSelection";
             this.gridSelection.ReadOnly = true;
@@ -316,6 +325,28 @@
             this.gridSelection.TabIndex = 3;
             this.gridSelection.DataSourceChanged += new System.EventHandler(this.gridSelection_DataSourceChanged);
             this.gridSelection.SelectionChanged += new System.EventHandler(this.gridSelection_SelectionChanged);
+            // 
+            // panWarning
+            // 
+            this.panWarning.Controls.Add(this.lblWarning);
+            this.panWarning.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panWarning.ForeColor = System.Drawing.Color.Red;
+            this.panWarning.Location = new System.Drawing.Point(10, 0);
+            this.panWarning.Name = "panWarning";
+            this.panWarning.Size = new System.Drawing.Size(513, 34);
+            this.panWarning.TabIndex = 4;
+            this.panWarning.Visible = false;
+            // 
+            // lblWarning
+            // 
+            this.lblWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblWarning.Location = new System.Drawing.Point(5, 3);
+            this.lblWarning.Name = "lblWarning";
+            this.lblWarning.Size = new System.Drawing.Size(505, 29);
+            this.lblWarning.TabIndex = 0;
+            this.lblWarning.Text = "Warning";
             // 
             // timerLoadData
             // 
@@ -346,6 +377,7 @@
             this.splitGrids.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.gridResults)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.gridSelection)).EndInit();
+            this.panWarning.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -372,5 +404,7 @@
         internal System.Windows.Forms.SplitContainer splitGrids;
         private System.Windows.Forms.Button btnRemoveValue;
         private System.Windows.Forms.Timer timerLoadData;
+        private System.Windows.Forms.Panel panWarning;
+        private System.Windows.Forms.Label lblWarning;
     }
 }
