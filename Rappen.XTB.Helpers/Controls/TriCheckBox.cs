@@ -1,5 +1,4 @@
-﻿using Microsoft.Xrm.Sdk.Workflow;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
@@ -49,7 +48,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen")]
-        [Default("False")]
+        [DefaultValue("False")]
         public string TextUnchecked
         {
             get => textUnchecked;
@@ -61,7 +60,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen")]
-        [Default("True")]
+        [DefaultValue("True")]
         public string TextChecked
         {
             get => textChecked;
@@ -73,7 +72,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         [Category("Rappen")]
-        [Default("Indeterminate")]
+        [DefaultValue("Indeterminate")]
         public string TextIndeterminate
         {
             get => textIndeterminate;
