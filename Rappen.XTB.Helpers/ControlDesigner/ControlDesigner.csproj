@@ -270,10 +270,10 @@
       <Link>IXRMRecordControl.cs</Link>
     </Compile>
     <Compile Include="Program.cs" />
-    <!--EmbeddedResource Include="..\Controls\XRMLookupDialogForm.resx">
-      <Link>XRMLookupDialogForm2.resx</Link>
+    <EmbeddedResource Include="..\Controls\XRMLookupDialogForm.resx">
+      <Link>XRMLookupDialogForm.resx</Link>
       <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>
-    </EmbeddedResource-->
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
