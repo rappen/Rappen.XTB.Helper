@@ -76,9 +76,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMDataGridView.resx">
-      <DependentUpon>XRMDataGridView.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.resx">
       <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>
     </EmbeddedResource>
