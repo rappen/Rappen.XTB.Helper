@@ -2,6 +2,9 @@
 using Rappen.XRM.Helpers.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 namespace Rappen.XRM.Helpers.Plugin
 {
@@ -60,6 +63,10 @@ namespace Rappen.XRM.Helpers.Plugin
 
         public void StartSection(string name = null)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = GetOrigin()?.Name ?? $"Section {sections.Count + 1}";
+            }
             Log("\\ " + name);
             sections.Add(name);
         }
@@ -67,6 +74,15 @@ namespace Rappen.XRM.Helpers.Plugin
         public void Trace(string format, params object[] args)
         {
             Log(string.Format(format, args));
+        }
+
+        private MethodBase GetOrigin()
+        {
+            StackFrame[] stackFrames = new StackTrace(true).GetFrames();
+            return stackFrames.Select(s => s.GetMethod()).FirstOrDefault(m =>
+                !m.IsVirtual &&
+                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.Helpers") &&
+                !m.ReflectedType.FullName.StartsWith("xxxxxxxxxxxxx"));
         }
     }
 }
