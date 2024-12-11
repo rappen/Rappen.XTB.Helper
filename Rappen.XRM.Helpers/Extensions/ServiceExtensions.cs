@@ -132,6 +132,8 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <exception cref="ArgumentException"></exception>
         public static EntityCollection RetrieveMultipleAll(this IOrganizationService service, QueryBase query, BackgroundWorker worker, DoWorkEventArgs eventargs, string message, bool showMessageOnFirstPage) => RetrieveMultiple(service, query, worker, eventargs, message, showMessageOnFirstPage, true);
 
+        public static IEnumerable<T> RetrieveMultipleAll<T>(this IOrganizationService service, QueryBase query) where T : Entity => service.RetrieveMultipleAll(query).Entities.Select(x => x.ToEntity<T>());
+
         /// <summary>
         /// Retrieving records from Dataverse
         /// </summary>
@@ -226,6 +228,14 @@ namespace Rappen.XRM.Helpers.Extensions
                 return service.RetrieveMultiple(query);
             }
         }
+
+        public static Entity RetrieveOne(this IOrganizationService service, QueryBase query)
+        {
+            var result = service.RetrieveMultiple(query);
+            return result.Entities.Count == 1 ? result.Entities[0] : null;
+        }
+
+        public static T RetrieveOne<T>(this IOrganizationService service, QueryBase query) where T : Entity => service.RetrieveOne(query)?.ToEntity<T>();
 
         private static string GetProgress(string message, int retrievedrecords, int pagesize, int page, Stopwatch sw)
         {

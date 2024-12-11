@@ -175,6 +175,8 @@ namespace Rappen.XRM.Helpers.Plugin
             }
             return clone;
         }
+
+        public static T Clone<T>(this T entity, bool onlyId) where T : Entity => Clone((Entity)entity, onlyId).ToEntity<T>();
     }
 
     public enum ContextEntityType
