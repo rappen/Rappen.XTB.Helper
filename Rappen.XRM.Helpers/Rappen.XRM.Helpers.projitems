@@ -9,6 +9,8 @@
     <Import_RootNamespace>Rappen.XRM.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Console\ConsoleBag.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Console\ConsoleLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BagExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DateTimeExtensions.cs" />
