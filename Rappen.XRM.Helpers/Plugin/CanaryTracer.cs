@@ -76,11 +76,11 @@ namespace Rappen.Dataverse.Canary
         /// <param name="expandcollections">Set to true if EntityCollection objects should list all contained Entity objects with all fields available.</param>
         /// <param name="includestage30">Set to true to also include plugins in internal stage.</param>
         /// <param name="service">Service used if convertqueries is true, may be null if not used.</param>
-        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service)
+        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int maxitemlength = 200)
         {
             try
             {
-                tracingservice.TraceContext(context, parentcontext, attributetypes, convertqueries, expandcollections, includestage30, service, 1);
+                tracingservice.TraceContext(context, parentcontext, attributetypes, convertqueries, expandcollections, includestage30, service, 1, maxitemlength);
             }
             catch (Exception ex)
             {
@@ -89,7 +89,7 @@ namespace Rappen.Dataverse.Canary
             }
         }
 
-        private static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int depth)
+        private static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int depth, int maxitemlength)
         {
             if (tracingservice == null)
             {
@@ -167,11 +167,11 @@ namespace Rappen.Dataverse.Canary
                 }
                 tracingservice.Trace("");
 
-                tracingservice.TraceAndAlign("InputParameters", context.InputParameters, attributetypes, convertqueries, expandcollections, service);
-                tracingservice.TraceAndAlign("OutputParameters", context.OutputParameters, attributetypes, convertqueries, expandcollections, service);
-                tracingservice.TraceAndAlign("SharedVariables", context.SharedVariables, attributetypes, convertqueries, expandcollections, service);
-                tracingservice.TraceAndAlign("PreEntityImages", context.PreEntityImages, attributetypes, convertqueries, expandcollections, service);
-                tracingservice.TraceAndAlign("PostEntityImages", context.PostEntityImages, attributetypes, convertqueries, expandcollections, service);
+                tracingservice.TraceAndAlign("InputParameters", context.InputParameters, attributetypes, convertqueries, expandcollections, service, maxitemlength);
+                tracingservice.TraceAndAlign("OutputParameters", context.OutputParameters, attributetypes, convertqueries, expandcollections, service, maxitemlength);
+                tracingservice.TraceAndAlign("SharedVariables", context.SharedVariables, attributetypes, convertqueries, expandcollections, service, maxitemlength);
+                tracingservice.TraceAndAlign("PreEntityImages", context.PreEntityImages, attributetypes, convertqueries, expandcollections, service, maxitemlength);
+                tracingservice.TraceAndAlign("PostEntityImages", context.PostEntityImages, attributetypes, convertqueries, expandcollections, service, maxitemlength);
                 if (plugincontext4 != null)
                 {
                     if (plugincontext4.PreEntityImagesCollection.Length != 1 || context.PreEntityImages == null)
@@ -187,12 +187,12 @@ namespace Rappen.Dataverse.Canary
             }
             if (parentcontext && plugincontext?.ParentContext != null)
             {
-                tracingservice.TraceContext(plugincontext.ParentContext, parentcontext, attributetypes, convertqueries, expandcollections, includestage30, service, depth + 1);
+                tracingservice.TraceContext(plugincontext.ParentContext, parentcontext, attributetypes, convertqueries, expandcollections, includestage30, service, depth + 1, maxitemlength);
             }
             tracingservice.Trace("");
         }
 
-        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>>[] parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service)
+        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>>[] parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength = 200)
         {
             if (parametercollection == null || parametercollection.Length == 0)
             {
@@ -200,7 +200,7 @@ namespace Rappen.Dataverse.Canary
             }
             if (parametercollection.Length == 1)
             {
-                tracingservice.TraceAndAlign(topic, parametercollection[0], attributetypes, convertqueries, expandcollections, service);
+                tracingservice.TraceAndAlign(topic, parametercollection[0], attributetypes, convertqueries, expandcollections, service, maxitemlength);
             }
             else
             {
@@ -208,20 +208,20 @@ namespace Rappen.Dataverse.Canary
             }
         }
 
-        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>> parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service)
+        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>> parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength = 200)
         {
             if (parametercollection == null || parametercollection.Count() == 0) { return; }
             tracingservice.Trace(topic);
             var keylen = parametercollection.Max(p => p.Key.Length);
             foreach (var parameter in parametercollection)
             {
-                tracingservice.Trace($"  {parameter.Key}{new string(' ', keylen - parameter.Key.Length)} = {ValueToString(parameter.Value, attributetypes, convertqueries, expandcollections, service, 2)}");
+                tracingservice.Trace($"  {parameter.Key}{new string(' ', keylen - parameter.Key.Length)} = {ValueToString(parameter.Value, attributetypes, convertqueries, expandcollections, service, 2, maxitemlength)}");
             }
         }
 
         private static string GetLastType(this object value) => value?.GetType()?.ToString()?.Split('.')?.Last();
 
-        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1)
+        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = 200)
         {
             var indentstring = new string(' ', indent * 2);
             if (value == null)
@@ -245,22 +245,22 @@ namespace Rappen.Dataverse.Canary
                 }
                 if (expandcollections && collection.Entities.Count > 0)
                 {
-                    result += "\n" + ValueToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent);
+                    result += "\n" + ValueToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
                 }
                 if (!expandcollections && collection.Entities.Count == 1)
                 {
-                    result += $"\n{indentstring}" + ValueToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1);
+                    result += $"\n{indentstring}" + ValueToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength);
                 }
                 return result;
             }
             else if (value is IEnumerable<Entity> entities)
             {
-                return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ValueToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1)))}" : string.Empty;
+                return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ValueToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)))}" : string.Empty;
             }
             else if (value is Entity entity)
             {
                 var keylen = entity.Attributes.Count > 0 ? entity.Attributes.Max(p => p.Key.Length) : 50;
-                return $"{entity.LogicalName} {entity.Id}\n{indentstring}" + string.Join($"\n{indentstring}", entity.Attributes.OrderBy(a => a.Key).Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ValueToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1)}"));
+                return $"{entity.LogicalName} {entity.Id}\n{indentstring}" + string.Join($"\n{indentstring}", entity.Attributes.OrderBy(a => a.Key).Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ValueToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)}"));
             }
             else if (value is ColumnSet columnset)
             {
@@ -294,11 +294,15 @@ namespace Rappen.Dataverse.Canary
                 }
                 else if (value is AliasedValue alias)
                 {
-                    result = ValueToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent);
+                    result = ValueToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
                 }
                 else
                 {
                     result = value.ToString().Replace("\n", $"\n  {indentstring}");
+                    if (result.Length > maxitemlength)
+                    {
+                        result = result.Substring(0, maxitemlength) + "...";
+                    }
                 }
                 return result + (attributetypes ? $" \t({value.GetLastType()})" : "");
             }
