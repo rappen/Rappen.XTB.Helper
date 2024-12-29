@@ -16,6 +16,19 @@ namespace Rappen.XRM.Helpers.Console
             Service = service;
             logger = new ConsoleLogger();
         }
+
         public void Trace(string format, params object[] args) => logger.Log(string.Format(format, args));
+
+        public void Cmd(string args, string folder = null)
+        {
+            Trace($"Cmd: {args}");
+            if (!string.IsNullOrEmpty(folder))
+            {
+                args = $"/c cd /d {folder} && {args}";
+                Trace($"     in folder: {folder}");
+            }
+            System.Diagnostics.Process.Start("cmd.exe", args).WaitForExit();
+            Trace("Cmd: Called");
+        }
     }
 }
