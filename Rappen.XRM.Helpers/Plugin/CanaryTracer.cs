@@ -20,7 +20,18 @@
  *        convertqueries,
  *        expandcollections,
  *        includestage30,
- *        service);
+ *        service,
+ *        maxitemlength);
+ *
+ * Getting anything into text:
+ *    CanaryTracer.ValueToString(
+ *        value,                Any type to stringify, it's extra smart for most Dataverse columns types
+ *        attributetypes,       Include type in output
+ *        convertqueries,       If there was some query, convert to FetchXML
+ *        expandcollections,    If it is a collection, stringify all items too
+ *        service,              This is needed if convertqueries is true
+ *        indent,               Indent length, defaults to 1
+ *        maxitemlength);       If the stringifying is long, we might trim it, defaults to the constant MaxItemLength on line 50
  *
  *               Enjoy responsibly.
  * **********************************************************/
@@ -36,6 +47,8 @@ namespace Rappen.Dataverse.Canary
 
     public static class CanaryTracer
     {
+        const int MaxItemLength = 200;
+
         /// <summary>
         /// Default settings to trace the context in the easiest way.
         /// </summary>
@@ -76,7 +89,7 @@ namespace Rappen.Dataverse.Canary
         /// <param name="expandcollections">Set to true if EntityCollection objects should list all contained Entity objects with all fields available.</param>
         /// <param name="includestage30">Set to true to also include plugins in internal stage.</param>
         /// <param name="service">Service used if convertqueries is true, may be null if not used.</param>
-        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int maxitemlength = 200)
+        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int maxitemlength = MaxItemLength)
         {
             try
             {
@@ -176,11 +189,11 @@ namespace Rappen.Dataverse.Canary
                 {
                     if (plugincontext4.PreEntityImagesCollection.Length != 1 || context.PreEntityImages == null)
                     {
-                        tracingservice.TraceAndAlign("PreEntityImagesCollection", plugincontext4.PreEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
+                        tracingservice.TraceAndAlign("PreEntityImagesCollection", plugincontext4.PreEntityImagesCollection, attributetypes, convertqueries, expandcollections, service, maxitemlength);
                     }
                     if (plugincontext4.PostEntityImagesCollection.Length != 1 || context.PostEntityImages == null)
                     {
-                        tracingservice.TraceAndAlign("PostEntityImagesCollection", plugincontext4.PostEntityImagesCollection, attributetypes, convertqueries, expandcollections, service);
+                        tracingservice.TraceAndAlign("PostEntityImagesCollection", plugincontext4.PostEntityImagesCollection, attributetypes, convertqueries, expandcollections, service, maxitemlength);
                     }
                 }
                 tracingservice.Trace("--- Context {0} Trace End ---", depth);
@@ -192,7 +205,7 @@ namespace Rappen.Dataverse.Canary
             tracingservice.Trace("");
         }
 
-        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>>[] parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength = 200)
+        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>>[] parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength)
         {
             if (parametercollection == null || parametercollection.Length == 0)
             {
@@ -208,7 +221,7 @@ namespace Rappen.Dataverse.Canary
             }
         }
 
-        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>> parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength = 200)
+        private static void TraceAndAlign<T>(this ITracingService tracingservice, string topic, IEnumerable<KeyValuePair<string, T>> parametercollection, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int maxitemlength)
         {
             if (parametercollection == null || parametercollection.Count() == 0) { return; }
             tracingservice.Trace(topic);
@@ -221,7 +234,7 @@ namespace Rappen.Dataverse.Canary
 
         private static string GetLastType(this object value) => value?.GetType()?.ToString()?.Split('.')?.Last();
 
-        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = 200)
+        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = MaxItemLength)
         {
             var indentstring = new string(' ', indent * 2);
             if (value == null)
