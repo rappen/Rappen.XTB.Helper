@@ -33,5 +33,10 @@ namespace Rappen.XRM.Helpers.Plugin
         }
 
         public void Trace(string format, params object[] args) => logger.Trace(format, args);
+
+        public void Cmd(string args, string folder = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

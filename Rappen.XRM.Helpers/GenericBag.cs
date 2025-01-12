@@ -14,5 +14,15 @@ namespace Rappen.XRM.Helpers
             Service = service;
             Logger = new VoidLogger();
         }
+
+        public void Cmd(string args, string folder = null)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Trace(string format, params object[] args)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
