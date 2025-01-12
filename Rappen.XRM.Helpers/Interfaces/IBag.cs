@@ -23,5 +23,9 @@ namespace Rappen.XRM.Helpers.Interfaces
         {
             get;
         }
+
+        void Cmd(string args, string folder = null);
+
+        void Trace(string format, params object[] args);
     }
 }
