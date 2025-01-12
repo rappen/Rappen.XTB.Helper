@@ -8,6 +8,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
+    using System.IO;
     using System.Linq;
     using System.Web;
 
@@ -138,6 +139,19 @@
         public static string GetRecordDeepLink(string webappurl, string entity, Guid recordid, NameValueCollection extraqs) => GetDeepLink(webappurl, "entityrecord", entity, recordid, extraqs);
 
         public static string GetViewDeepLink(string webappurl, string entity, Guid viewid, NameValueCollection extraqs) => GetDeepLink(webappurl, "entitylist", entity, viewid, extraqs);
+
+        public static string GetUnUsedPathByIndex(string folder, string name)
+        {
+            int inttemp = 0;
+            while (Directory.Exists(Path.Combine(folder, FolderByIndex(name, inttemp))))
+            {
+                inttemp++;
+            }
+            Directory.CreateDirectory(Path.Combine(folder, FolderByIndex(name, inttemp)));
+            return Path.Combine(folder, FolderByIndex(name, inttemp));
+        }
+
+        private static string FolderByIndex(string folder, int index) => $"{folder}{(index > 0 ? $"_{index}" : "")}";
 
         private static string GetDeepLink(string webappurl, string pagetype, string entity, Guid id, NameValueCollection extraqs)
         {
