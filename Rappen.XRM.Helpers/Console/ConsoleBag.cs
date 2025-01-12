@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Rappen.XRM.Helpers.Interfaces;
+using System.IO;
 
 namespace Rappen.XRM.Helpers.Console
 {
@@ -9,12 +10,15 @@ namespace Rappen.XRM.Helpers.Console
 
         public ILogger Logger => logger;
 
+        public readonly string WorkingFolder;
+
         public IOrganizationService Service { get; }
 
-        public ConsoleBag(IOrganizationService service)
+        public ConsoleBag(IOrganizationService service, string rootfolder)
         {
+            WorkingFolder = rootfolder.Contains(":\"") ? rootfolder : Path.Combine(Path.GetTempPath(), rootfolder);
             Service = service;
-            logger = new ConsoleLogger();
+            logger = new ConsoleLogger(WorkingFolder);
         }
 
         public void Trace(string format, params object[] args) => logger.Log(string.Format(format, args));
