@@ -1,6 +1,6 @@
 ﻿/* ***********************************************************
  * CanaryTracer.cs
- * Revision: 2024-06-29
+ * Revision: 2025-01-19
  * Code found at: https://jonasr.app/canary-code
  * Background: https://jonasr.app/canary/
  * Created by: Jonas Rapp https://jonasr.app/
@@ -22,6 +22,9 @@
  *        includestage30,
  *        service,
  *        maxitemlength);
+ *
+ * Simplest way to get anything into text:
+ *    MyAnyObject.ValueToString();      The object type should probably be any type in Dataverse
  *
  * Getting anything into text:
  *    CanaryTracer.ValueToString(
@@ -234,90 +237,103 @@ namespace Rappen.Dataverse.Canary
 
         private static string GetLastType(this object value) => value?.GetType()?.ToString()?.Split('.')?.Last();
 
+        public static string ValueToString(this object value) => ValueToString(value, true, false, false, null);
+
         public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = MaxItemLength)
         {
-            var indentstring = new string(' ', indent * 2);
-            if (value == null)
+            try
             {
-                return $"{indentstring}<null>";
-            }
-            else if (value is EntityCollection collection)
-            {
-                var result = $"{collection.Entities.Count} {collection.EntityName}(s)" + (attributetypes ? $" \t({value.GetLastType()})" : "");
-                if (collection.TotalRecordCount > 0)
+                var indentstring = new string(' ', indent * 2);
+                if (value == null)
                 {
-                    result += $"\n  TotalRecordCount: {collection.TotalRecordCount}";
+                    return $"{indentstring}<null>";
                 }
-                if (collection.MoreRecords)
+                else if (value is EntityCollection collection)
                 {
-                    result += $"\n  MoreRecords: {collection.MoreRecords}";
+                    var result = $"{collection.Entities.Count} {collection.EntityName}(s)" + (attributetypes ? $" \t({value.GetLastType()})" : "");
+                    if (collection.TotalRecordCount > 0)
+                    {
+                        result += $"\n  TotalRecordCount: {collection.TotalRecordCount}";
+                    }
+                    if (collection.MoreRecords)
+                    {
+                        result += $"\n  MoreRecords: {collection.MoreRecords}";
+                    }
+                    if (!string.IsNullOrWhiteSpace(collection.PagingCookie))
+                    {
+                        result += $"\n  PagingCookie: {collection.PagingCookie}";
+                    }
+                    if (expandcollections && collection.Entities.Count > 0)
+                    {
+                        result += "\n" + ValueToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                    }
+                    if (!expandcollections && collection.Entities.Count == 1)
+                    {
+                        result += $"\n{indentstring}" + ValueToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength);
+                    }
+                    return result;
                 }
-                if (!string.IsNullOrWhiteSpace(collection.PagingCookie))
+                else if (value is IEnumerable<Entity> entities)
                 {
-                    result += $"\n  PagingCookie: {collection.PagingCookie}";
+                    return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ValueToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)))}" : string.Empty;
                 }
-                if (expandcollections && collection.Entities.Count > 0)
+                else if (value is Entity entity)
                 {
-                    result += "\n" + ValueToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                    var keylen = entity.Attributes.Count > 0 ? entity.Attributes.Max(p => p.Key.Length) : 50;
+                    return $"{entity.LogicalName} {entity.Id}\n{indentstring}" + string.Join($"\n{indentstring}", entity.Attributes.OrderBy(a => a.Key).Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ValueToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)}"));
                 }
-                if (!expandcollections && collection.Entities.Count == 1)
+                else if (value is ColumnSet columnset)
                 {
-                    result += $"\n{indentstring}" + ValueToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength);
+                    var columnlist = new List<string>(columnset.Columns);
+                    columnlist.Sort();
+                    return $"\n{indentstring}" + string.Join($"\n{indentstring}", columnlist);
                 }
-                return result;
-            }
-            else if (value is IEnumerable<Entity> entities)
-            {
-                return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ValueToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)))}" : string.Empty;
-            }
-            else if (value is Entity entity)
-            {
-                var keylen = entity.Attributes.Count > 0 ? entity.Attributes.Max(p => p.Key.Length) : 50;
-                return $"{entity.LogicalName} {entity.Id}\n{indentstring}" + string.Join($"\n{indentstring}", entity.Attributes.OrderBy(a => a.Key).Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ValueToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)}"));
-            }
-            else if (value is ColumnSet columnset)
-            {
-                var columnlist = new List<string>(columnset.Columns);
-                columnlist.Sort();
-                return $"\n{indentstring}" + string.Join($"\n{indentstring}", columnlist);
-            }
-            else if (value is FetchExpression fetchexpression)
-            {
-                return $"{value}\n{indentstring}{fetchexpression.Query}";
-            }
-            else if (value is QueryExpression queryexpression && convertqueries && service != null)
-            {
-                var fetchxml = (service.Execute(new QueryExpressionToFetchXmlRequest { Query = queryexpression }) as QueryExpressionToFetchXmlResponse).FetchXml;
-                return $"{queryexpression}\n{indentstring}{fetchxml}";
-            }
-            else
-            {
-                var result = string.Empty;
-                if (value is EntityReference entityreference)
+                else if (value is FetchExpression fetchexpression)
                 {
-                    result = $"{entityreference.LogicalName} {entityreference.Id} {entityreference.Name}";
+                    return $"{value}\n{indentstring}{fetchexpression.Query}";
                 }
-                else if (value is OptionSetValue optionsetvalue)
+                else if (value is QueryExpression queryexpression && convertqueries && service != null)
                 {
-                    result = optionsetvalue.Value.ToString();
-                }
-                else if (value is Money money)
-                {
-                    result = money.Value.ToString();
-                }
-                else if (value is AliasedValue alias)
-                {
-                    result = ValueToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                    var fetchxml = (service.Execute(new QueryExpressionToFetchXmlRequest { Query = queryexpression }) as QueryExpressionToFetchXmlResponse).FetchXml;
+                    return $"{queryexpression}\n{indentstring}{fetchxml}";
                 }
                 else
                 {
-                    result = value.ToString().Replace("\n", $"\n  {indentstring}");
-                    if (result.Length > maxitemlength)
+                    var result = string.Empty;
+                    if (value is EntityReference entityreference)
                     {
-                        result = result.Substring(0, maxitemlength) + "...";
+                        result = $"{entityreference.LogicalName} {entityreference.Id} {entityreference.Name}";
                     }
+                    else if (value is OptionSetValue optionsetvalue)
+                    {
+                        result = optionsetvalue.Value.ToString();
+                    }
+                    else if (value is OptionSetValueCollection optcoll)
+                    {
+                        result = string.Join(";", optcoll.Select(o => o.Value));
+                    }
+                    else if (value is Money money)
+                    {
+                        result = money.Value.ToString();
+                    }
+                    else if (value is AliasedValue alias)
+                    {
+                        result = ValueToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                    }
+                    else
+                    {
+                        result = value.ToString().Replace("\n", $"\n  {indentstring}");
+                        if (result.Length > maxitemlength)
+                        {
+                            result = result.Substring(0, maxitemlength) + "...";
+                        }
+                    }
+                    return result + (attributetypes ? $" \t({value.GetLastType()})" : "");
                 }
-                return result + (attributetypes ? $" \t({value.GetLastType()})" : "");
+            }
+            catch (Exception ex)
+            {
+                return $"*** Cannot stringify value:{value}\n*** {ex.Message}";
             }
         }
 
