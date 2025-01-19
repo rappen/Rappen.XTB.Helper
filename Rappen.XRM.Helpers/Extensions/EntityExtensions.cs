@@ -219,7 +219,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="bag"></param>
         /// <param name="onlyId"></param>
         /// <returns></returns>
-        public static Entity Clone(this Entity entity, bool onlyId, IBag bag)
+        public static Entity Clone(this Entity entity, bool onlyId, IBag bag = null)
         {
             if (entity == null)
             {
@@ -236,6 +236,8 @@ namespace Rappen.XRM.Helpers.Extensions
             bag?.Logger.Log($"Cloned {entity.LogicalName} {entity.Id} with {entity.Attributes.Count} attributes");
             return clone;
         }
+
+        public static T Clone<T>(this T entity, bool onlyId, IBag bag = null) where T : Entity => Clone((Entity)entity, onlyId, bag).ToEntity<T>();
 
         /// <summary>
         ///
@@ -419,6 +421,8 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             return merge;
         }
+
+        public static T Merge<T>(this T entity1, Entity entity2, IBag bag = null) where T : Entity => Merge((Entity)entity1, entity2, bag).ToEntity<T>();
 
         /// <summary>
         /// Generic method to retrieve property with name "name" of type "T"

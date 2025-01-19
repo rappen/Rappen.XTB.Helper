@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -133,50 +134,6 @@ namespace Rappen.XRM.Helpers.Plugin
         public IEnumerator<ContextEntity> GetEnumerator() => _entities.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
-    public static class ContextEntityExtensions
-    {
-        /// <summary>
-        /// Simple, but smart, Merge extension to Entity
-        /// </summary>
-        /// <param name="entity1"></param>
-        /// <param name="entity2"></param>
-        /// <returns></returns>
-        public static Entity Merge(this Entity entity1, Entity entity2)
-        {
-            var merge = entity1.Clone(false) ?? entity2.Clone(false);
-            if (entity1 != null && entity2 != null)
-            {
-                merge.Attributes.AddRange(entity2.Attributes.Where(a => !merge.Attributes.Contains(a.Key)));
-            }
-            return merge;
-        }
-
-        /// <summary>
-        /// Simple, but smart, Clone
-        /// </summary>
-        /// <param name="entity">Entity to clone</param>
-        /// <param name="onlyId">True if only Id shall be used, otherwise all attributes will be include</param>
-        /// <returns></returns>
-        public static Entity Clone(this Entity entity, bool onlyId)
-        {
-            if (entity == null)
-            {
-                return null;
-            }
-            var clone = new Entity(entity.LogicalName, entity.Id);
-
-            if (!onlyId)
-            {
-                // Preparing all attributes except the one in which entity id is stored
-                var attributes = entity.Attributes.Where(x => x.Key.ToLowerInvariant() != $"{clone.LogicalName}id".ToLowerInvariant() || (Guid)x.Value != clone.Id);
-                clone.Attributes.AddRange(attributes.Where(a => !clone.Attributes.Contains(a.Key)));
-            }
-            return clone;
-        }
-
-        public static T Clone<T>(this T entity, bool onlyId) where T : Entity => Clone((Entity)entity, onlyId).ToEntity<T>();
     }
 
     public enum ContextEntityType
