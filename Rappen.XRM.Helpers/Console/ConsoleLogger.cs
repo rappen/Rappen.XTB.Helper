@@ -1,5 +1,8 @@
 ﻿using Rappen.XRM.Helpers.Interfaces;
 using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 
 namespace Rappen.XRM.Helpers.Console
 {
@@ -37,7 +40,11 @@ namespace Rappen.XRM.Helpers.Console
 
         public void StartSection(string name = null)
         {
-            Write("\\" + (name ?? ""));
+            if (string.IsNullOrEmpty(name))
+            {
+                name = GetOrigin()?.Name ?? $"Section {section + 1}";
+            }
+            Write($"\\ {name}");
             section++;
         }
 
@@ -56,6 +63,15 @@ namespace Rappen.XRM.Helpers.Console
             {
                 System.Console.WriteLine($"Error writing to {logpath}:{Environment.NewLine}{ex.Message}");
             }
+        }
+
+        private MethodBase GetOrigin()
+        {
+            StackFrame[] stackFrames = new StackTrace(true).GetFrames();
+            return stackFrames.Select(s => s.GetMethod()).FirstOrDefault(m =>
+                !m.IsVirtual &&
+                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.Helpers") &&
+                !m.ReflectedType.FullName.StartsWith("xxxxxxxxxxxxx"));
         }
     }
 }
