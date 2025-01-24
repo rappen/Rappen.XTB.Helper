@@ -397,7 +397,22 @@ namespace Rappen.XRM.Helpers.Extensions
         }
 
         /// <summary>
-        ///
+        /// Adds missing attributes from entity2 to entity1
+        /// </summary>
+        /// <param name="entity1"></param>
+        /// <param name="entity2"></param>
+        /// <param name="overwrite"></param>
+        public static void AddAttributesFrom(this Entity entity1, Entity entity2, bool overwrite = false)
+        {
+            if (entity1 == null || entity2 == null)
+            {
+                return;
+            }
+            entity1.Attributes.AddRange(entity2.Attributes.Where(a => !entity1.Attributes.Contains(a.Key) || overwrite));
+        }
+
+        /// <summary>
+        /// Creates a new entity from entity1 and adding missing attributes in entity1 from entity2
         /// </summary>
         /// <param name="entity1"></param>
         /// <param name="bag"></param>
