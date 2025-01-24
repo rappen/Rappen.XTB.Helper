@@ -50,7 +50,7 @@ namespace Rappen.Dataverse.Canary
 
     public static class CanaryTracer
     {
-        const int MaxItemLength = 200;
+        private const int MaxItemLength = 200;
 
         /// <summary>
         /// Default settings to trace the context in the easiest way.
@@ -325,7 +325,7 @@ namespace Rappen.Dataverse.Canary
                         result = value.ToString().Replace("\n", $"\n  {indentstring}");
                         if (result.Length > maxitemlength)
                         {
-                            result = result.Substring(0, maxitemlength) + "...";
+                            result = result.Substring(0, maxitemlength) + $"... ({result.Length})";
                         }
                     }
                     return result + (attributetypes ? $" \t({value.GetLastType()})" : "");
