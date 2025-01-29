@@ -1,6 +1,6 @@
 ﻿/* ***********************************************************
  * CanaryTracer.cs
- * Revision: 2025-01-19
+ * Revision: 2025-01-29
  * Code found at: https://jonasr.app/canary-code
  * Background: https://jonasr.app/canary/
  * Created by: Jonas Rapp https://jonasr.app/
@@ -14,27 +14,28 @@
  *    tracingservice.TraceContext(context);
  *
  * Advanced sample call:
- *    tracingservice.TraceContext(context,
- *        includeparentcontext,
- *        includeattributetypes,
- *        convertqueries,
- *        expandcollections,
- *        includestage30,
- *        service,
- *        maxitemlength);
+ *    tracingservice.TraceContext(
+ *      context,                This is the Context to trace
+ *      parentcontext,          If this conext has parent context, it will repeat upwards until no parent
+ *      attributetypes,         Include the type of the value, e.g. "Mr Smith (string)"
+ *      convertqueries,         If the value is a QueryExpression, convert to FetchXML
+ *      expandcollections,      If the value is a collection of Entity, stringify all items too
+ *      includestage30,         Stage 30 is internal in the platform, set to true to include
+ *      service,                This is needed if convertqueries is true
+ *      maxitemlength);         If the stringifying is long, we might trim it, defaults to the constant MaxItemLength on line 53
  *
  * Simplest way to get anything into text:
- *    MyAnyObject.ValueToString();      The object type should probably be any type in Dataverse
+ *    MyAnyObject.ObjectToString();      The object type should probably be any type in Dataverse
  *
  * Getting anything into text:
- *    CanaryTracer.ValueToString(
- *        value,                Any type to stringify, it's extra smart for most Dataverse columns types
- *        attributetypes,       Include type in output
- *        convertqueries,       If there was some query, convert to FetchXML
- *        expandcollections,    If it is a collection, stringify all items too
- *        service,              This is needed if convertqueries is true
- *        indent,               Indent length, defaults to 1
- *        maxitemlength);       If the stringifying is long, we might trim it, defaults to the constant MaxItemLength on line 50
+ *    CanaryTracer.ObjectToString(
+ *      value,                  Any type to stringify, it's extra smart for most Dataverse columns types
+ *      attributetypes,         Include the type of the value, e.g. "Mr Smith (string)"
+ *      convertqueries,         If the value is a QueryExpression, convert to FetchXML
+ *      expandcollections,      If the value is a collection of Entity, stringify all items too
+ *      service,                This is needed if convertqueries is true
+ *      indent,                 Indent length, defaults to 1
+ *      maxitemlength);         If the stringifying is long, we might trim it, defaults to the constant MaxItemLength on line 53
  *
  *               Enjoy responsibly.
  * **********************************************************/
@@ -79,7 +80,7 @@ namespace Rappen.Dataverse.Canary
         /// </summary>
         /// <param name="tracingservice">The tracer to trace the trace.</param>
         /// <param name="context">The plugin or workflow context to trace.</param>
-        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context) => tracingservice.TraceContext(context, false, true, false, false, false, null);
+        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context) => tracingservice.TraceContext(context, false, true, false, false, false);
 
         /// <summary>
         /// Dumps everything interesting from the plugin context to the plugin trace log
@@ -92,7 +93,7 @@ namespace Rappen.Dataverse.Canary
         /// <param name="expandcollections">Set to true if EntityCollection objects should list all contained Entity objects with all fields available.</param>
         /// <param name="includestage30">Set to true to also include plugins in internal stage.</param>
         /// <param name="service">Service used if convertqueries is true, may be null if not used.</param>
-        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30, IOrganizationService service, int maxitemlength = MaxItemLength)
+        public static void TraceContext(this ITracingService tracingservice, IExecutionContext context, bool parentcontext, bool attributetypes, bool convertqueries, bool expandcollections, bool includestage30 = false, IOrganizationService service = null, int maxitemlength = MaxItemLength)
         {
             try
             {
@@ -231,15 +232,15 @@ namespace Rappen.Dataverse.Canary
             var keylen = parametercollection.Max(p => p.Key.Length);
             foreach (var parameter in parametercollection)
             {
-                tracingservice.Trace($"  {parameter.Key}{new string(' ', keylen - parameter.Key.Length)} = {ValueToString(parameter.Value, attributetypes, convertqueries, expandcollections, service, 2, maxitemlength)}");
+                tracingservice.Trace($"  {parameter.Key}{new string(' ', keylen - parameter.Key.Length)} = {ObjectToString(parameter.Value, attributetypes, convertqueries, expandcollections, service, 2, maxitemlength)}");
             }
         }
 
-        private static string GetLastType(this object value) => value?.GetType()?.ToString()?.Split('.')?.Last();
+        private static string GetLastType(this object value) => value?.GetType()?.ToString()?.Split('.')?.Last() ?? "";
 
-        public static string ValueToString(this object value) => ValueToString(value, true, false, false, null);
+        public static string ObjectToString(this object value) => ObjectToString(value, true, false, false);
 
-        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = MaxItemLength)
+        public static string ObjectToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service = null, int indent = 1, int maxitemlength = MaxItemLength)
         {
             try
             {
@@ -265,22 +266,26 @@ namespace Rappen.Dataverse.Canary
                     }
                     if (expandcollections && collection.Entities.Count > 0)
                     {
-                        result += "\n" + ValueToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                        result += "\n" + ObjectToString(collection.Entities, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
                     }
                     if (!expandcollections && collection.Entities.Count == 1)
                     {
-                        result += $"\n{indentstring}" + ValueToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength);
+                        result += $"\n{indentstring}" + ObjectToString(collection.Entities[0], attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength);
                     }
                     return result;
                 }
                 else if (value is IEnumerable<Entity> entities)
                 {
-                    return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ValueToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)))}" : string.Empty;
+                    return expandcollections ? $"{indentstring}{string.Join($"\n{indentstring}", entities.Select(e => ObjectToString(e, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)))}" : string.Empty;
                 }
                 else if (value is Entity entity)
                 {
                     var keylen = entity.Attributes.Count > 0 ? entity.Attributes.Max(p => p.Key.Length) : 50;
-                    return $"{entity.LogicalName} {entity.Id}\n{indentstring}" + string.Join($"\n{indentstring}", entity.Attributes.OrderBy(a => a.Key).Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ValueToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)}"));
+                    return $"{entity.LogicalName} {entity.Id}\n{indentstring}" +
+                        string.Join($"\n{indentstring}",
+                            entity.Attributes
+                                .OrderBy(a => a.Key)
+                                .Select(a => $"{a.Key}{new string(' ', keylen - a.Key.Length)} = {ObjectToString(a.Value, attributetypes, convertqueries, expandcollections, service, indent + 1, maxitemlength)}"));
                 }
                 else if (value is ColumnSet columnset)
                 {
@@ -318,7 +323,7 @@ namespace Rappen.Dataverse.Canary
                     }
                     else if (value is AliasedValue alias)
                     {
-                        result = ValueToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+                        result = ObjectToString(alias.Value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
                     }
                     else
                     {
@@ -337,6 +342,9 @@ namespace Rappen.Dataverse.Canary
             }
         }
 
+        [Obsolete("Please use method ObjectToString instead - same features, and more!")]
+        public static string ValueToString(object value, bool attributetypes, bool convertqueries, bool expandcollections, IOrganizationService service, int indent = 1, int maxitemlength = MaxItemLength) => ObjectToString(value, attributetypes, convertqueries, expandcollections, service, indent, maxitemlength);
+
         public static void Write(this ITracingService tracer, string text)
         {
             tracer.Trace(DateTime.Now.ToString("HH:mm:ss.fff  ") + text);
@@ -344,8 +352,8 @@ namespace Rappen.Dataverse.Canary
 
         public static void TraceError(this IServiceProvider serviceprovider, Exception exception)
         {
-            var tracer = (ITracingService)serviceprovider.GetService(typeof(ITracingService));
-            tracer.Write(exception.ToString());
+            var tracer = serviceprovider.GetService(typeof(ITracingService)) as ITracingService;
+            tracer?.Write(exception.ToString());
         }
     }
 }
