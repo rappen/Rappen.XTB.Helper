@@ -408,7 +408,13 @@ namespace Rappen.XRM.Helpers.Extensions
             {
                 return;
             }
-            entity1.Attributes.AddRange(entity2.Attributes.Where(a => !entity1.Attributes.Contains(a.Key) || overwrite));
+            foreach (var attribute in entity2.Attributes)
+            {
+                if (!entity1.Attributes.Contains(attribute.Key) || overwrite)
+                {
+                    entity1.Attributes[attribute.Key] = attribute.Value;
+                }
+            }
         }
 
         /// <summary>
