@@ -13,6 +13,10 @@ namespace Rappen.XRM.Helpers.Console
 
         public ConsoleLogger(string workingfolder)
         {
+            if (!System.IO.Directory.Exists(workingfolder))
+            {
+                System.IO.Directory.CreateDirectory(workingfolder);
+            }
             var logfile = $"ConsoleLogger_{DateTime.Now:yyyyMMdd_HHmmss}.log";
             logpath = System.IO.Path.Combine(workingfolder, logfile);
             section = 0;
