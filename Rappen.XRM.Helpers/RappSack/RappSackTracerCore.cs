@@ -24,10 +24,7 @@ namespace Rappen.XRM.Helpers.RappSack
             this.timing = timing;
         }
 
-        public void Trace(string message, TraceLevel level = TraceLevel.Information)
-        {
-            InternalTrace(message, GetTime(), blocks.Count, level);
-        }
+        public void Trace(string message, TraceLevel level = TraceLevel.Information) => InternalTrace(message, GetTime(), blocks.Count, level);
 
         public void Trace(Exception exception)
         {
