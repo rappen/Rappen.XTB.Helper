@@ -46,8 +46,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Plugin\PluginLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappSack\Base.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappSack\Logging\Base.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappSack\RappSackCore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappSack\RappSackConsole.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappSack\RappSackPlugin.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappSack\RappSackTracerCore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntityCollectionSerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\EntitySerializer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\SerializationStyle.cs" />
