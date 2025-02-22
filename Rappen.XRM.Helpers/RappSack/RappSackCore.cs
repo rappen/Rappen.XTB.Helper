@@ -10,11 +10,18 @@ namespace Rappen.XRM.Helpers.RappSack
         private IOrganizationService service;
         private RappSackTracerCore tracer;
 
+        public RappSackCore()
+        { }
+
         public RappSackCore(IOrganizationService service, RappSackTracerCore tracer)
         {
             this.service = service;
             this.tracer = tracer;
         }
+
+        public void SetService(IOrganizationService service) => this.service = service;
+
+        public void SetTracer(RappSackTracerCore tracer) => this.tracer = tracer;
 
         #region Tracer
 

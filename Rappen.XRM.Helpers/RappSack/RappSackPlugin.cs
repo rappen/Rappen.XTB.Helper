@@ -6,35 +6,29 @@ using System;
 
 namespace Rappen.XRM.Helpers.RappSack
 {
-    public class RappSackPlugin : RappSackCore
+    public abstract class RappSackPlugin : RappSackCore, IPlugin
     {
-        public IPluginExecutionContext5 Context { get; }
-        public ContextEntity ContextEntity { get; }
-        public ContextEntityCollection ContextEntityCollection { get; }
+        public IPluginExecutionContext5 Context { get; private set; }
+        public ContextEntity ContextEntity { get; private set; }
+        public ContextEntityCollection ContextEntityCollection { get; private set; }
 
-        public RappSackPlugin(IServiceProvider provider, RappSackTracerCore tracer) : base(provider.Get<IOrganizationService>(), tracer)
-        {
-            Context = provider.Get<IPluginExecutionContext5>();
-            ContextEntity = new ContextEntity(Context);
-            ContextEntityCollection = new ContextEntityCollection(Context);
-        }
-    }
-
-    public abstract class RappSackPluginBase : IPlugin
-    {
         public void Execute(IServiceProvider serviceProvider)
         {
             try
             {
                 serviceProvider.TraceContext(false, true, false, false, true);
-                var rappsack = new RappSackPlugin(serviceProvider, new RappSackPluginTracer(serviceProvider));
+                SetService(serviceProvider.Get<IOrganizationService>());
+                SetTracer(new RappSackPluginTracer(serviceProvider));
+                Context = serviceProvider.Get<IPluginExecutionContext5>();
+                ContextEntity = new ContextEntity(Context);
+                ContextEntityCollection = new ContextEntityCollection(Context);
                 try
                 {
-                    Execute(rappsack);
+                    Execute();
                 }
                 catch (Exception e)
                 {
-                    rappsack.Trace(e);
+                    Trace(e);
                 }
             }
             catch (Exception ex)
@@ -44,11 +38,11 @@ namespace Rappen.XRM.Helpers.RappSack
                 {
                     throw;
                 }
-                throw new InvalidPluginExecutionException($"Unhandled {ex.GetType()} in RappSackPluginBase: {ex.Message}", ex);
+                throw new InvalidPluginExecutionException($"Unhandled {ex.GetType()} in RappSackPlugin: {ex.Message}", ex);
             }
         }
 
-        public abstract void Execute(RappSackPlugin rappsack);
+        public abstract void Execute();
     }
 
     internal class RappSackPluginTracer : RappSackTracerCore
