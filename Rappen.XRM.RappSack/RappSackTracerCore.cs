@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 
 namespace Rappen.XRM.RappSack
 {
@@ -10,7 +9,7 @@ namespace Rappen.XRM.RappSack
     {
         private TraceTiming timing = TraceTiming.ElapsedSinceLast;
         private DateTime timeStart = DateTime.Now;
-        private DateTime timeLast = DateTime.MinValue;
+        private DateTime timeLast = DateTime.Now;
         private List<string> blocks = new List<string>();
 
         public TraceTiming Timing
@@ -24,7 +23,7 @@ namespace Rappen.XRM.RappSack
             this.timing = timing;
         }
 
-        public void Trace(string message, TraceLevel level = TraceLevel.Information) => InternalTrace(message, GetTime(), blocks.Count, level);
+        public void Trace(string message, TraceLevel level = TraceLevel.Information) => TraceInternal(message, GetTime(), blocks.Count, level);
 
         public void Trace(Exception exception)
         {
@@ -37,14 +36,16 @@ namespace Rappen.XRM.RappSack
             {
                 excstr += Environment.NewLine + exception.StackTrace;
             }
-            InternalTrace($"\n*** Error: {exception.GetType()} ***\n{excstr}\n", "", 0, TraceLevel.Error);
+            TraceInternal($"\n*** Error: {exception.GetType()} ***\n{excstr}\n", "", 0, TraceLevel.Error);
         }
+
+        public void TraceRaw(string message, TraceLevel level = TraceLevel.Information) => TraceInternal(message, string.Empty, 0, level);
 
         public void TraceIn(string name = "")
         {
             if (string.IsNullOrEmpty(name))
             {
-                name = GetOrigin()?.Name ?? $"Block {blocks.Count + 1}";
+                name = CallerMethodName() ?? $"Block {blocks.Count + 1}";
             }
             Trace($"\\ {name}");
             blocks.Add(name);
@@ -62,29 +63,53 @@ namespace Rappen.XRM.RappSack
             Trace($"/ {name}");
         }
 
-        protected abstract void InternalTrace(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information);
+        internal string CallerMethodName()
+        {
+            var stackFrames = new StackTrace(true).GetFrames();
+            if (stackFrames == null || stackFrames.Count() == 0)
+            {
+                return null;
+            }
+            //return string.Join(Environment.NewLine, stackFrames
+            //    .Select(s => s.GetMethod())
+            //    .Where(m =>
+            //        m != null &&
+            //        !m.IsVirtual &&
+            //        !m.ReflectedType.FullName.StartsWith("System") &&
+            //        !m.ReflectedType.FullName.StartsWith("Microsoft") &&
+            //        !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"))
+            //    .Select(m => m.ReflectedType.FullName + " - " + m.Name));
+            var caller = stackFrames
+                .Select(s => s.GetMethod()).FirstOrDefault(m =>
+                m != null &&
+                !m.IsVirtual &&
+                !m.ReflectedType.FullName.StartsWith("System") &&
+                !m.ReflectedType.FullName.StartsWith("Microsoft") &&
+                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"))?.ReflectedType.FullName;
+            if (string.IsNullOrWhiteSpace(caller))
+            {
+                return null;
+            }
+            return caller;
+        }
+
+        protected abstract void TraceInternal(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information);
 
         private string GetTime()
         {
-            if (timing == TraceTiming.None)
+            var timePrev = timeLast;
+            timeLast = DateTime.Now;
+            if (timePrev == DateTime.MinValue)
             {
-                return string.Empty;
-            }
-            if (timeLast == DateTime.MinValue)
-            {
-                timeLast = DateTime.Now;
-                return $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} ";
+                return $"{timeStart:yyyy-MM-dd HH:mm:ss.fff}{Environment.NewLine}";
             }
             switch (timing)
             {
                 case TraceTiming.ElapsedSinceStart:
-                    return $"{(DateTime.Now - timeStart).TotalMilliseconds:0000} ";
+                    return $"{string.Format("{0,5}", (int)(timeLast - timeStart).TotalMilliseconds)} ";
 
                 case TraceTiming.ElapsedSinceLast:
-                    var time = DateTime.Now;
-                    var result = $"{(time - timeLast).TotalMilliseconds:0000} ";
-                    timeLast = time;
-                    return result;
+                    return $"{string.Format("{0,5}", (int)(timeLast - timePrev).TotalMilliseconds)} ";
 
                 case TraceTiming.CurrentTime:
                     return $"{DateTime.Now:HH:mm:ss.fff} ";
@@ -92,20 +117,6 @@ namespace Rappen.XRM.RappSack
                 default:
                     return string.Empty;
             }
-        }
-
-        private MethodBase GetOrigin()
-        {
-            var stackFrames = new StackTrace(true).GetFrames();
-            if (stackFrames == null || stackFrames.Count() == 0)
-            {
-                return null;
-            }
-            return stackFrames
-                .Select(s => s.GetMethod()).FirstOrDefault(m =>
-                m != null &&
-                !m.IsVirtual &&
-                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.Helpers"));
         }
     }
 

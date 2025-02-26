@@ -18,13 +18,15 @@ namespace Rappen.XRM.RappSack
 
         public RappSackCore(IOrganizationService service, RappSackTracerCore tracer)
         {
-            this.service = service;
-            this.tracer = tracer;
+            SetService(service);
+            SetTracer(tracer);
         }
 
         public void SetService(IOrganizationService service) => this.service = service;
 
         public void SetTracer(RappSackTracerCore tracer) => this.tracer = tracer;
+
+        protected string CallerMethodName() => tracer.CallerMethodName();
 
         #endregion Setting up RappSack
 
@@ -33,6 +35,8 @@ namespace Rappen.XRM.RappSack
         public void Trace(string message, TraceLevel level = TraceLevel.Information) => tracer.Trace(message, level);
 
         public void Trace(Exception exception) => tracer.Trace(exception);
+
+        public void TraceRaw(string message, TraceLevel level = TraceLevel.Information) => tracer.TraceRaw(message, level);
 
         public void TraceIn(string name = "") => tracer.TraceIn(name);
 
@@ -194,6 +198,7 @@ namespace Rappen.XRM.RappSack
                     query.NavigatePage(tmpResult.PagingCookie);
                 }
                 tmpResult = service.RetrieveMultiple(query);
+                Trace($"Retrieved page {pageno} with {tmpResult.Entities.Count} records");
                 if (result == null)
                 {
                     result = tmpResult;
@@ -208,8 +213,10 @@ namespace Rappen.XRM.RappSack
                 }
             }
             while (tmpResult.MoreRecords);
-
-            Trace($"Retrieved {result.Entities.Count} records" + (pageno > 1 ? $" in {pageno} pages" : ""));
+            if (pageno > 1)
+            {
+                Trace($"Retrieved {result.Entities.Count} records" + (pageno > 1 ? $" in {pageno} pages" : ""));
+            }
             return result;
         }
 

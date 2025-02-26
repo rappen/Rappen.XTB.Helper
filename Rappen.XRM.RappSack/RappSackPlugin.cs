@@ -11,24 +11,22 @@ namespace Rappen.XRM.RappSack
         public ContextEntity ContextEntity { get; private set; }
         public ContextEntityCollection ContextEntityCollection { get; private set; }
 
+        public abstract ServiceAs ServiceAs { get; }
+
         public void Execute(IServiceProvider serviceProvider)
         {
             try
             {
                 serviceProvider.TraceContext(false, true, false, false, true);
-                SetService(serviceProvider.Get<IOrganizationService>());
-                SetTracer(new RappSackPluginTracer(serviceProvider));
                 Context = serviceProvider.Get<IPluginExecutionContext5>();
                 ContextEntity = new ContextEntity(Context);
                 ContextEntityCollection = new ContextEntityCollection(Context);
-                try
-                {
-                    Execute();
-                }
-                catch (Exception e)
-                {
-                    Trace(e);
-                }
+                SetTracer(new RappSackPluginTracer(serviceProvider));
+                SetService(serviceProvider.Get<IOrganizationServiceFactory>().CreateOrganizationService(ServiceAs == ServiceAs.Initiating ? Context.InitiatingUserId : Context.UserId));
+                var starttime = DateTime.Now;
+                TraceRaw($"Execution {CallerMethodName() ?? "RappSackPlugin"} at {starttime:yyyy-MM-dd HH:mm:ss.fff}");
+                Execute();
+                TraceRaw($"Exiting after {(DateTime.Now - starttime).ToSmartString()}");
             }
             catch (Exception ex)
             {
@@ -59,6 +57,19 @@ namespace Rappen.XRM.RappSack
             tracing = tracingService;
         }
 
-        protected override void InternalTrace(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information) => tracing.Trace(timestamp + new string(' ', indent * 2) + message);
+        protected override void TraceInternal(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information)
+        {
+            if (tracing == null)
+            {
+                throw new InvalidPluginExecutionException("Tracer is not initialized");
+            }
+            tracing.Trace(timestamp + new string(' ', indent * 2) + message);
+        }
+    }
+
+    public enum ServiceAs
+    {
+        User,
+        Initiating
     }
 }

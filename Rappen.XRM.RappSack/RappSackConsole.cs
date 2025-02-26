@@ -33,26 +33,26 @@ namespace Rappen.XRM.RappSack
         public RappSackConsoleTracer(string workfolder, TraceTiming timing) : base(timing)
         {
             workfolder = workfolder.Contains(":\"") ? workfolder : Path.Combine(Path.GetTempPath(), workfolder);
-            if (!System.IO.Directory.Exists(workfolder))
+            if (!Directory.Exists(workfolder))
             {
-                System.IO.Directory.CreateDirectory(workfolder);
+                Directory.CreateDirectory(workfolder);
             }
             var logfile = $"RappSackConsoleTracer_{DateTime.Now:yyyyMMdd_HHmmss}.log";
-            logpath = System.IO.Path.Combine(workfolder, logfile);
-            InternalTrace($"Created log file: {logpath}", "", 0);
+            logpath = Path.Combine(workfolder, logfile);
+            TraceInternal($"Created log file: {logpath}", "", 0);
         }
 
-        protected override void InternalTrace(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information)
+        protected override void TraceInternal(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information)
         {
             message = $"{timestamp}{new string(' ', indent * 2)}{message}";
-            System.Console.WriteLine(message);
+            Console.WriteLine(message);
             try
             {
-                System.IO.File.AppendAllText(logpath, message + Environment.NewLine);
+                File.AppendAllText(logpath, message + Environment.NewLine);
             }
             catch (Exception ex)
             {
-                System.Console.WriteLine($"Error writing to {logpath}:{Environment.NewLine}{ex.Message}");
+                Console.WriteLine($"Error writing to {logpath}:{Environment.NewLine}{ex.Message}");
             }
         }
     }
