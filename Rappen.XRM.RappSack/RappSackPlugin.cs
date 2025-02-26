@@ -11,7 +11,7 @@ namespace Rappen.XRM.RappSack
         public ContextEntity ContextEntity { get; private set; }
         public ContextEntityCollection ContextEntityCollection { get; private set; }
 
-        public abstract ServiceAs ServiceAs { get; }
+        public virtual ServiceAs ServiceAs { get; } = ServiceAs.User;
 
         public void Execute(IServiceProvider serviceProvider)
         {
