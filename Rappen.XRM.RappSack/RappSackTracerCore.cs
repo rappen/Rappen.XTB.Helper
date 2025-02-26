@@ -70,27 +70,22 @@ namespace Rappen.XRM.RappSack
             {
                 return null;
             }
-            //return string.Join(Environment.NewLine, stackFrames
-            //    .Select(s => s.GetMethod())
-            //    .Where(m =>
-            //        m != null &&
-            //        !m.IsVirtual &&
-            //        !m.ReflectedType.FullName.StartsWith("System") &&
-            //        !m.ReflectedType.FullName.StartsWith("Microsoft") &&
-            //        !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"))
-            //    .Select(m => m.ReflectedType.FullName + " - " + m.Name));
             var caller = stackFrames
                 .Select(s => s.GetMethod()).FirstOrDefault(m =>
                 m != null &&
                 !m.IsVirtual &&
                 !m.ReflectedType.FullName.StartsWith("System") &&
                 !m.ReflectedType.FullName.StartsWith("Microsoft") &&
-                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"))?.ReflectedType.FullName;
-            if (string.IsNullOrWhiteSpace(caller))
+                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"));
+            if (string.IsNullOrWhiteSpace(caller.Name))
             {
                 return null;
             }
-            return caller;
+            if (caller.IsConstructor)
+            {
+                return caller.ReflectedType.Name;
+            }
+            return caller.Name;
         }
 
         protected abstract void TraceInternal(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information);
