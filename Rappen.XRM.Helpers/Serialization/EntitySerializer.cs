@@ -593,7 +593,7 @@ namespace Rappen.XRM.Helpers.Serialization
                 {
                     if (osv.Value == value)
                     {
-                        return osv.Label.UserLocalizedLabel.Label;
+                        return osv.Label?.UserLocalizedLabel?.Label ?? value.ToString();
                     }
                 }
             }
@@ -606,11 +606,11 @@ namespace Rappen.XRM.Helpers.Serialization
             {
                 if (value)
                 {
-                    return bmeta.OptionSet.TrueOption.Label.UserLocalizedLabel.Label;
+                    return bmeta.OptionSet?.TrueOption?.Label?.UserLocalizedLabel?.Label ?? value.ToString();
                 }
                 else
                 {
-                    return bmeta.OptionSet.FalseOption.Label.UserLocalizedLabel.Label;
+                    return bmeta.OptionSet?.FalseOption?.Label?.UserLocalizedLabel?.Label ?? value.ToString();
                 }
             }
             return value.ToString();
