@@ -206,6 +206,10 @@ namespace Rappen.XRM.Helpers.Extensions
                     resultCollection.TotalRecordCount = tmpResult.TotalRecordCount;
                     resultCollection.TotalRecordCountLimitExceeded = tmpResult.TotalRecordCountLimitExceeded;
                 }
+                if (allpages && tmpResult.MoreRecords)
+                {
+                    pagesize = tmpResult.Entities.Count;
+                }
             }
             while (allpages && tmpResult.MoreRecords && eventargs?.Cancel != true);
             return resultCollection;
