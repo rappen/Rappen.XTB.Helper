@@ -1,4 +1,6 @@
-﻿using System.Xml;
+﻿using System;
+using System.IO;
+using System.Xml;
 
 namespace Rappen.XRM.Helpers.Extensions
 {
@@ -45,6 +47,26 @@ namespace Rappen.XRM.Helpers.Extensions
                 return attr.Value;
             }
             return string.Empty;
+        }
+
+        public static string ToString(this XmlNode xmlNode, bool formatted)
+        {
+            if (xmlNode == null)
+                throw new ArgumentNullException(nameof(xmlNode));
+
+            if (!formatted)
+            {
+                return xmlNode.OuterXml;
+            }
+            using (StringWriter stringWriter = new StringWriter())
+            {
+                using (XmlTextWriter xmlTextWriter = new XmlTextWriter(stringWriter))
+                {
+                    xmlTextWriter.Formatting = Formatting.Indented; // Set formatting to indented
+                    xmlNode.WriteTo(xmlTextWriter);
+                }
+                return stringWriter.ToString();
+            }
         }
     }
 }

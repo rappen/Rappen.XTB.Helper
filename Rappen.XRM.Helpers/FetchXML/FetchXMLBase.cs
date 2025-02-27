@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Rappen.XRM.Helpers.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 
@@ -31,7 +32,7 @@ namespace Rappen.XRM.Helpers.FetchXML
             unknowsNodes = xml.ChildNodes?.Cast<XmlNode>().Where(n => n is XmlElement && !knownNodes.Contains(n.Name)).ToDictionary(n => n.Name, n => n as XmlElement);
         }
 
-        public override string ToString() => ToXML().OuterXml;
+        public override string ToString() => ToXML().ToString(true);
 
         public XmlNode ToXML()
         {
