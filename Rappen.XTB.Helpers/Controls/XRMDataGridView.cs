@@ -459,6 +459,46 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        /// <summary>
+        /// IEnumerable<SelectedXRMCell> representing all currently selected cells/entities/rows/columns
+        /// </summary>
+        [Browsable(false)]
+        public IEnumerable<SelectedXRMCell> SelectedXRMCells
+        {
+            get
+            {
+                if (entities == null)
+                {
+                    return null;
+                }
+                var result = new List<SelectedXRMCell>();
+                foreach (DataGridViewCell cell in SelectedCells)
+                {
+                    if (cell.Visible && cell.RowIndex >= 0 && cell.RowIndex < Rows.Count)
+                    {
+                        var row = Rows[cell.RowIndex];
+                        var entity = row.Cells["#entity"].Value as Entity;
+                        if (entity != null &&
+                            cell.ColumnIndex >= 0 &&
+                            cell.ColumnIndex < Columns.Count &&
+                            Columns[cell.ColumnIndex] is DataGridViewColumn col)
+                        {
+                            var colname = col.Name.Split('|')[0];
+                            result.Add(new SelectedXRMCell
+                            {
+                                RecordRef = entity.ToEntityReference(),
+                                Row = row,
+                                Column = col,
+                                Attribute = colname,
+                                Value = entity.Contains(colname) ? entity[colname] : null
+                            });
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
         #endregion Public properties
 
         #region Public methods
@@ -589,6 +629,80 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 base.Sort(dataGridViewColumn, direction);
             }
+        }
+
+        /// <summary>
+        /// Generates some smart info of all selected cells
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, string> GetSelectedDetails()
+        {
+            var details = new Dictionary<string, string>();
+            try
+            {
+                if (SelectedCells.Count > 1)
+                {
+                    var cellvalues = SelectedXRMCells;
+                    var rows = cellvalues.Select(c => c.Row.Index).Distinct().Count();
+                    var cols = cellvalues.Select(c => c.Column.Index).Distinct().Count();
+                    if (rows > 1 && cols > 1)
+                    {
+                        details.Add("Selected", $"{rows}R x {cols}C");
+                    }
+                    else if (rows > 1 && cols == 1)
+                    {
+                        details.Add("Selected", $"{rows}R{Environment.NewLine}{cellvalues.FirstOrDefault().Column.HeaderText}");
+                        if (cellvalues.Count() > 1 && !cellvalues.All(c => c?.Value == null))
+                        {
+                            if (cellvalues.All(v => v?.Value == null || v.Value is int))
+                            {
+                                var ints = cellvalues.Where(v => v?.Value != null).Select(v => Convert.ToInt64((int)v.Value));
+                                details.Add("Min", ints.Min().ToString());
+                                details.Add("Avg", ints.Average().ToString());
+                                details.Add("Max", ints.Max().ToString());
+                                details.Add("Sum", ((Int64)ints.Sum()).ToString());
+                            }
+                            else if (cellvalues.All(v => v?.Value == null || v.Value is decimal))
+                            {
+                                var decs = cellvalues.Where(v => v?.Value != null).Select(v => (decimal)v.Value);
+                                details.Add("Min", decs.Min().ToString("F"));
+                                details.Add("Avg", decs.Average().ToString("F"));
+                                details.Add("Max", decs.Max().ToString("F"));
+                                details.Add("Sum", decs.Sum().ToString("F"));
+                            }
+                            else if (cellvalues.All(v => v?.Value == null || v.Value is Money))
+                            {
+                                var mons = cellvalues.Where(v => v?.Value != null).Select(v => (Money)v.Value);
+                                details.Add("Min", mons.Min(m => m.Value).ToString("C"));
+                                details.Add("Avg", mons.Average(m => m.Value).ToString("C"));
+                                details.Add("Max", mons.Max(m => m.Value).ToString("C"));
+                                details.Add("Sum", mons.Sum(m => m.Value).ToString("C"));
+                            }
+                            else if (cellvalues.All(v => v?.Value == null || v.Value is DateTime))
+                            {
+                                var dates = cellvalues.Where(v => v?.Value != null).Select(v => (DateTime)v.Value);
+                                details.Add("First", dates.Min().ToShortDateString());
+                                details.Add("Last", dates.Max().ToShortDateString());
+                            }
+                            details.Add("Unique", cellvalues.Select(v => EntitySerializer.AttributeToBaseType(v?.Value)).Distinct().Count().ToString());
+                        }
+                    }
+                    else if (rows == 1 && cols > 1)
+                    {
+                        details.Add("Selected", $"{cols}C");
+                    }
+                    var nulls = cellvalues.Count(v => v?.Value == null);
+                    if (nulls > 0)
+                    {
+                        details.Add("Empty", nulls.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return new Dictionary<string, string> { { "Error", ex.Message } };
+            }
+            return details;
         }
 
         #endregion Public methods
@@ -1188,5 +1302,22 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         #endregion Private methods
+    }
+
+    /// <summary>
+    /// Class containing the selected cell with informations as:
+    ///   EntityReference to the record
+    ///   Row in the grid
+    ///   Column in the grid
+    ///   Attribute name in the record
+    ///   Value of the cell
+    /// </summary>
+    public class SelectedXRMCell
+    {
+        public EntityReference RecordRef;
+        public DataGridViewRow Row;
+        public DataGridViewColumn Column;
+        public string Attribute;
+        public object Value;
     }
 }
