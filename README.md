@@ -17,12 +17,12 @@ I wanted to create base classes ND helpers for the current way we work with Data
 I want to have an easy name that explains what it does, a thing that contains an IOrganizationService, somewhere to log it, and might have info from the context... Trying to open my mind, letting ms Copilot help me.
 Bag, Purse, Container, Sack, Grip...
 
-Sack is a part of a rucksack... I like to use a rucksack, so nice to have everything I need in my backpack.
+A 'sack' is a part of a 'rucksack'... I like to use a rucksack, which is easy to carry and great for having everything I need in my backpack. I've used it forever; I never use a briefcase.
 
-RappSack is my way of keeping all we need.
-There is a `RappSackCore` that handles the most, an abstract class that implements the `IOrganizationService` and handles any type of logging.
-The `RappSackPlugin` and `RappSackConsole` inherited the `RappSackCore`.
-The `RappSackTracerCore` helps us to log stuff to where it can be stored. In plugins to the `ITracingService`, for console apps to a file and to the console, for Azure Functions to the general ILogger which shows up in Azure portal.
+**RappSack** is my way of keeping all we need.<br/>
+There is a `RappSackCore` that handles the most, an abstract class that implements the `IOrganizationService` and handles any type of logging.<br/>
+The `RappSackPlugin` and `RappSackConsole` inherited the `RappSackCore`.<br/>
+The `RappSackTracerCore` helps us to log stuff to where it can be stored. In plugins to the `ITracingService`, for console apps to a file and to the console, for Azure Functions to the general ILogger which shows up in Azure portal.<br/>
 Then there are some other classes, most just `static`, like `RappSackMeta`, `RappSackUtils`.
 
-Curious? Go look: https://github.com/rappen/Rappen.XTB.Helper/tree/main/Rappen.XRM.RappSack
+Curious? Go look: https://jonasr.app/rappsack-code
