@@ -19,7 +19,7 @@ Bag, Purse, Container, Sack, Grip...
 
 A 'sack' is a part of a 'rucksack'... I like to use a rucksack, which is easy to carry and great for having everything I need in my backpack. I've used it forever; I never use a briefcase.
 
-**RappSack** is my way of keeping all we need.<br/>
+**RappSack** is my way of keeping all we need - but not too much stuff, which often happens.<br/>
 There is a `RappSackCore` that handles the most, an abstract class that implements the `IOrganizationService` and handles any type of logging.<br/>
 The `RappSackPlugin` and `RappSackConsole` inherited the `RappSackCore`.<br/>
 The `RappSackTracerCore` helps us to log stuff to where it can be stored. In plugins to the `ITracingService`, for console apps to a file and to the console, for Azure Functions to the general ILogger which shows up in Azure portal.<br/>
