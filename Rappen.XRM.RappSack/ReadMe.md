@@ -1,4 +1,4 @@
-# What is a RappSack?? ![RappSack](Rappen.XRM.RappSack/Images/RappSack_sqr_tsp_150px.png)
+# What is a RappSack?? ![RappSack](Images/RappSack_sqr_tsp_150px.png)
 
 I have created a bunch of "base classes" over time - sometimes including too much, sometimes too simple.
 I've called them xxxBag, xxxContainer, xxxUtils etc. etc.
