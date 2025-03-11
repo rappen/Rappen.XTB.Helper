@@ -3,7 +3,7 @@
 I have created a bunch of "base classes" over time - sometimes including too much, sometimes too simple.
 I've called them xxxBag, xxxContainer, xxxUtils etc. etc.
 
-I wanted to create base classes ND helpers for the current way we work with Dataverse, and the hardest thing is, of course, to find a proper name for it.
+I wanted to create base classes and helpers for the current way we work with Dataverse, and the hardest thing is, of course, to find a proper name for it.
 I want to have an easy name that explains what it does, a thing that contains an IOrganizationService, somewhere to log it, and might have info from the context... Trying to open my mind, letting ms Copilot help me.
 Bag, Purse, Container, Sack, Grip...
 
