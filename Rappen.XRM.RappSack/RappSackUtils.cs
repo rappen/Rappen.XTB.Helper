@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Rappen.XRM.RappSack
 {
@@ -27,6 +29,25 @@ namespace Rappen.XRM.RappSack
                 value = value.Replace("{{" + identifier + "}}", dynamicvalue);
             }
             return value;
+        }
+
+        /// <summary>
+        /// A list gets splitted in a list of lists with a maximum size of chunksize
+        /// </summary>
+        /// <remarks>
+        /// Found on StackOverflow https://stackoverflow.com/a/6362642/2866704
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="chunksize"></param>
+        /// <returns></returns>
+        public static IEnumerable<IEnumerable<T>> Chunkit<T>(this IEnumerable<T> source, int chunksize)
+        {
+            while (source.Any())
+            {
+                yield return source.Take(chunksize);
+                source = source.Skip(chunksize);
+            }
         }
 
         private static string GetValueFromIdentifier(Entity entity, IOrganizationService service, string part)
