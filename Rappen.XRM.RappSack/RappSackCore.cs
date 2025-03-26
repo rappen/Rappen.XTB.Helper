@@ -26,6 +26,12 @@ namespace Rappen.XRM.RappSack
 
         public void SetService(IOrganizationService service) => this.service = service;
 
+        public void SetService(IOrganizationServiceFactory factory, Guid? userid)
+        {
+            SetService(factory.CreateOrganizationService(userid));
+            Trace($"Service set for userid: {userid?.ToString() ?? "SYSTEM"}");
+        }
+
         public void SetTracer(RappSackTracerCore tracer) => this.tracer = tracer;
 
         protected string CallerMethodName() => tracer.CallerMethodName();

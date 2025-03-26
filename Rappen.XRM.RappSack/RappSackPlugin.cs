@@ -12,6 +12,7 @@ namespace Rappen.XRM.RappSack
         public ContextEntityCollection ContextEntityCollection { get; private set; }
 
         public virtual ServiceAs ServiceAs { get; } = ServiceAs.User;
+        public virtual string ExecuterEnvVar { get; } = string.Empty;
 
         public void Execute(IServiceProvider serviceProvider)
         {
@@ -22,7 +23,27 @@ namespace Rappen.XRM.RappSack
                 ContextEntity = new ContextEntity(Context);
                 ContextEntityCollection = new ContextEntityCollection(Context);
                 SetTracer(new RappSackPluginTracer(serviceProvider));
-                SetService(serviceProvider.Get<IOrganizationServiceFactory>().CreateOrganizationService(ServiceAs == ServiceAs.Initiating ? Context.InitiatingUserId : Context.UserId));
+                Guid? svcuser = null;
+                switch (ServiceAs)
+                {
+                    case ServiceAs.Initiating:
+                        svcuser = Context.InitiatingUserId;
+                        break;
+
+                    case ServiceAs.User:
+                        svcuser = Context.UserId;
+                        break;
+
+                    case ServiceAs.Specific:
+                        if (string.IsNullOrWhiteSpace(ExecuterEnvVar))
+                        {
+                            throw new InvalidPluginExecutionException("ServiceAs is Specific, but ExecuterEnvVar is not set");
+                        }
+                        SetService(serviceProvider, null);
+                        svcuser = GetEnvironmentVariableValue<Guid>(ExecuterEnvVar, true);
+                        break;
+                }
+                SetService(serviceProvider, svcuser);
                 var starttime = DateTime.Now;
                 TraceRaw($"Execution {CallerMethodName() ?? "RappSackPlugin"} at {starttime:yyyy-MM-dd HH:mm:ss.fff}");
                 Execute();
@@ -42,6 +63,8 @@ namespace Rappen.XRM.RappSack
         public abstract void Execute();
 
         public void Trace(string format, params object[] args) => base.Trace(string.Format(format, args));
+
+        private void SetService(IServiceProvider provider, Guid? userid) => SetService(provider.Get<IOrganizationServiceFactory>(), userid);
     }
 
     internal class RappSackPluginTracer : RappSackTracerCore
@@ -70,6 +93,8 @@ namespace Rappen.XRM.RappSack
     public enum ServiceAs
     {
         User,
-        Initiating
+        Initiating,
+        System,
+        Specific
     }
 }
