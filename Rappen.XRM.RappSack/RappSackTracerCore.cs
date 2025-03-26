@@ -66,26 +66,30 @@ namespace Rappen.XRM.RappSack
         internal string CallerMethodName()
         {
             var stackFrames = new StackTrace(true).GetFrames();
-            if (stackFrames == null || stackFrames.Count() == 0)
+            if (stackFrames != null && stackFrames.Count() > 0)
             {
-                return null;
+                var caller = stackFrames
+                    .Select(s => s.GetMethod()).FirstOrDefault(m =>
+                    m != null &&
+                    !m.IsVirtual &&
+                    m.ReflectedType != null &&
+                    m.ReflectedType.FullName != null &&
+                    !m.ReflectedType.FullName.StartsWith("System") &&
+                    !m.ReflectedType.FullName.StartsWith("Microsoft") &&
+                    !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"));
+                if (caller != null)
+                {
+                    if (caller.IsConstructor && caller.ReflectedType != null)
+                    {
+                        return caller.ReflectedType.Name;
+                    }
+                    if (!string.IsNullOrWhiteSpace(caller.Name))
+                    {
+                        return caller.Name;
+                    }
+                }
             }
-            var caller = stackFrames
-                .Select(s => s.GetMethod()).FirstOrDefault(m =>
-                m != null &&
-                !m.IsVirtual &&
-                !m.ReflectedType.FullName.StartsWith("System") &&
-                !m.ReflectedType.FullName.StartsWith("Microsoft") &&
-                !m.ReflectedType.FullName.StartsWith("Rappen.XRM.RappSack"));
-            if (string.IsNullOrWhiteSpace(caller.Name))
-            {
-                return null;
-            }
-            if (caller.IsConstructor)
-            {
-                return caller.ReflectedType.Name;
-            }
-            return caller.Name;
+            return null;
         }
 
         protected abstract void TraceInternal(string message, string timestamp, int indent, TraceLevel level = TraceLevel.Information);
