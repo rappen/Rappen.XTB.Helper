@@ -11,7 +11,7 @@ namespace Rappen.XRM.RappSack
     {
         private static Dictionary<IOrganizationService, Dictionary<string, EntityMetadata>> entities = new Dictionary<IOrganizationService, Dictionary<string, EntityMetadata>>();
 
-        public static string[] entityProperties = {
+        internal static string[] entityProperties = {
             "LogicalName",
             "DisplayName",
             "DisplayCollectionName",
@@ -30,7 +30,8 @@ namespace Rappen.XRM.RappSack
             "IsActivityParty",
             "OwnershipType"
         };
-        public static string[] entityDetails = {
+
+        internal static string[] entityDetails = {
             "Attributes",
             "ManyToOneRelationships",
             "OneToManyRelationships",
@@ -39,7 +40,8 @@ namespace Rappen.XRM.RappSack
             "LogicalCollectionName",
             "PrimaryIdAttribute"
         };
-        public static string[] attributeProperties = {
+
+        internal static string[] attributeProperties = {
             "DisplayName",
             "AttributeType",
             "IsValidForRead",
