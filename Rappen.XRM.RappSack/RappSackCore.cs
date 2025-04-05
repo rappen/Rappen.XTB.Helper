@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using System;
@@ -42,6 +43,31 @@ namespace Rappen.XRM.RappSack
 
         public void Trace(string message, TraceLevel level = TraceLevel.Information) => tracer.Trace(message, level);
 
+        public void Trace(QueryBase query)
+        {
+            var fetch = string.Empty;
+            if (query is FetchExpression fex)
+            {
+                fetch = fex.Query;
+            }
+            else if (query is QueryExpression qex)
+            {
+                try
+                {
+                    var response = service.Execute(new QueryExpressionToFetchXmlRequest { Query = qex }) as QueryExpressionToFetchXmlResponse;
+                    fetch = response.FetchXml;
+                }
+                catch (Exception ex)
+                {
+                    Trace($"Could not write Fetch XML: {ex}", TraceLevel.Error);
+                }
+            }
+            if (!string.IsNullOrEmpty(fetch))
+            {
+                Trace($"Query:\n{fetch}");
+            }
+        }
+
         public void Trace(Exception exception) => tracer.Trace(exception);
 
         public void TraceRaw(string message, TraceLevel level = TraceLevel.Information) => tracer.TraceRaw(message, level);
@@ -51,7 +77,7 @@ namespace Rappen.XRM.RappSack
         public void TraceOut() => tracer.TraceOut();
 
         [Obsolete("Use Trace(string message) instead")]
-        public void Log(string message) => Trace(message);
+        internal void Log(string message) => Trace(message);
 
         #endregion Tracer
 
@@ -350,7 +376,7 @@ namespace Rappen.XRM.RappSack
 
         #endregion IOrganizationService Simplified
 
-        #region IOgraizationService Multiple calls
+        #region IOrgaizationService Multiple calls
 
         public IEnumerable<Guid> CreateMultiple(IEnumerable<Entity> entities, int chunksize = 0, RequestParameters parameters = null)
         {
@@ -466,7 +492,7 @@ namespace Rappen.XRM.RappSack
             Trace("Updated");
         }
 
-        #endregion IOgraizationService Multiple calls
+        #endregion IOrgaizationService Multiple calls
 
         #region IOrganizationService Early Bound
 
@@ -664,6 +690,76 @@ namespace Rappen.XRM.RappSack
         }
 
         #endregion Environment Variables
+
+        #region Sharing Methods
+
+        /// <summary>Retrieves all principals and their access
+        /// Details: https://learn.microsoft.com/dotnet/api/microsoft.crm.sdk.messages.retrievesharedprincipalsandaccessrequest
+        /// </summary>
+        /// <param name="entity">The record for which to get principals</param>
+        /// <returns>All principals shared to</returns>
+        public IEnumerable<PrincipalAccess> GetPrincipalsAndAccess(EntityReference entity)
+        {
+            var result = (RetrieveSharedPrincipalsAndAccessResponse)Execute(new RetrieveSharedPrincipalsAndAccessRequest
+            {
+                Target = entity
+            });
+            Trace($"Retrieved {result.PrincipalAccesses.Count()} principals for {entity.LogicalName} {entity.Id}");
+            return result.PrincipalAccesses;
+        }
+
+        /// <summary>Retrieves current AccessRights for given principal on current record</summary>
+        /// <param name="entity">The record the get access rights for</param>
+        /// <param name="principal">User or Team to read access for</param>
+        /// <returns>Current access</returns>
+        public AccessRights GetAccess(EntityReference entity, EntityReference principal)
+        {
+            var accessResponse = (RetrievePrincipalAccessResponse)Execute(new RetrievePrincipalAccessRequest
+            {
+                Principal = principal,
+                Target = entity
+            });
+            var result = accessResponse.AccessRights;
+            Trace($"Read access {result} on {entity.LogicalName} {entity.Id} for {principal.LogicalName} {principal.Name ?? principal.Id.ToString()}");
+            return result;
+        }
+
+        /// <summary>Gives "rights" to "principal" for current record
+        /// Details: https://docs.microsoft.com/dotnet/api/microsoft.crm.sdk.messages.grantaccessrequest
+        /// </summary>
+        /// <param name="entity">The entity on which the access needs to be granted</param>
+        /// <param name="principal">User or Team to grant access to</param>
+        /// <param name="rights">Rights to grant to user/team</param>
+        public void GrantAccess(EntityReference entity, EntityReference principal, AccessRights rights)
+        {
+            Execute(new GrantAccessRequest()
+            {
+                PrincipalAccess = new PrincipalAccess()
+                {
+                    Principal = principal,
+                    AccessMask = rights
+                },
+                Target = entity
+            });
+            Trace($"Granted {rights} on {entity.LogicalName} {entity.Id} to {principal.LogicalName} {principal.Name ?? principal.Id.ToString()}");
+        }
+
+        /// <summary>Removes access from revokee on current record
+        /// Details: https://docs.microsoft.com/dotnet/api/microsoft.crm.sdk.messages.revokeaccessrequest
+        /// </summary>
+        /// <param name="entity">The record to remove shared from</param>
+        /// <param name="principal">User or Team to revoke access from</param>
+        public void RevokeAccess(EntityReference entity, EntityReference principal)
+        {
+            Execute(new RevokeAccessRequest()
+            {
+                Revokee = principal,
+                Target = entity
+            });
+            Trace($"Revoked {principal.LogicalName} {principal.Name ?? principal.Id.ToString()} from {entity.LogicalName} {entity.Id}");
+        }
+
+        #endregion Sharing Methods
     }
 
     public class RequestParameters

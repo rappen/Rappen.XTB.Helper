@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Linq;
+using Microsoft.Crm.Sdk.Messages;
 
 namespace Rappen.XRM.RappSack
 {
@@ -129,7 +130,58 @@ namespace Rappen.XRM.RappSack
         /// </summary>
         /// <param name="entity"></param>
         /// <returns>Primary Attribute value, or Primary Key</returns>
-        public static string ToStringExt(this Entity entity, IOrganizationService service) => RappSackUtils.EntityToString(entity, service);
+        public static string ToStringExt(this Entity entity, IOrganizationService service) => entity.EntityToString(service);
+
+        public static string EntityToString(this Entity entity, IOrganizationService service, string Format = null)
+        {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
+            var value = Format;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                value = service.GetPrimaryAttribute(entity.LogicalName)?.LogicalName ?? string.Empty;
+            }
+            if (!value.Contains("{{") || !value.Contains("}}"))
+            {
+                value = "{{" + value + "}}";
+            }
+            while (value.Contains("{{") && value.Contains("}}"))
+            {
+                var identifier = value.Substring(value.IndexOf("{{") + 2).Split(new string[] { "}}" }, StringSplitOptions.None)[0];
+                var dynamicvalue = GetValueFromIdentifier(entity, service, identifier);
+                value = value.Replace("{{" + identifier + "}}", dynamicvalue);
+            }
+            return value;
+        }
+
+        public static T ToEntity<T>(this Entity entity, string EntityAlias) where T : Entity
+        {
+            var logicalName = Activator.CreateInstance<T>().LogicalName;
+            if (!entity.Attributes.Contains($"{EntityAlias}.{logicalName}id"))
+            {
+                return null;
+            }
+            var _entity = new Entity(logicalName, (Guid)(entity.Attributes[$"{EntityAlias}.{logicalName}id"] as AliasedValue).Value);
+            var attributes = entity.Attributes.Where(x => x.Key.StartsWith(EntityAlias + ".")).ToList();
+            foreach (var attribute in attributes)
+            {
+                _entity[attribute.Key.Replace(EntityAlias + ".", "")] = (attribute.Value as AliasedValue).Value;
+            }
+            try
+            {
+                return _entity.ToEntity<T>();
+            }
+            catch (InvalidPluginExecutionException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidPluginExecutionException(ex.Message, ex);
+            }
+        }
 
         #endregion Entity extensions
 
@@ -244,5 +296,70 @@ namespace Rappen.XRM.RappSack
         }
 
         #endregion DateTime extensions
+
+        #region IEnumeranle extensions
+
+        /// <summary>
+        /// A list gets splitted in a list of lists with a maximum size of chunksize
+        /// </summary>
+        /// <remarks>
+        /// Found on StackOverflow https://stackoverflow.com/a/6362642/2866704
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="chunksize"></param>
+        /// <returns></returns>
+        public static IEnumerable<IEnumerable<T>> Chunkit<T>(this IEnumerable<T> source, int chunksize)
+        {
+            while (source.Any())
+            {
+                yield return source.Take(chunksize);
+                source = source.Skip(chunksize);
+            }
+        }
+
+        #endregion IEnumeranle extensions
+
+        #region Private methods
+
+        private static string GetValueFromIdentifier(Entity entity, IOrganizationService service, string part)
+        {
+            var attribute = part;
+            var format = string.Empty;
+            if (part.Contains("|"))
+            {
+                attribute = part.Split('|')[0];
+                format = part.Split('|')[1];
+            }
+            var partvalue = GetFormattedValue(entity, service, attribute, format);
+            return partvalue;
+        }
+
+        private static string GetFormattedValue(Entity entity, IOrganizationService service, string attribute, string format)
+        {
+            if (!entity.Contains(attribute))
+            {
+                return string.Empty;
+            }
+            var value = entity[attribute];
+            var metadata = service.GetAttribute(entity.LogicalName, attribute, value);
+            if (EntityUtils.AttributeToBaseType(value) is DateTime dtvalue && (dtvalue).Kind == DateTimeKind.Utc)
+            {
+                value = dtvalue.ToLocalTime();
+            }
+            if (!ValueTypeIsFriendly(value) && metadata != null)
+            {
+                value = EntityUtils.AttributeToString(value, metadata, format);
+            }
+            else
+            {
+                value = EntityUtils.AttributeToBaseType(value).ToString();
+            }
+            return value.ToString();
+        }
+
+        private static bool ValueTypeIsFriendly(object value) => value is Int32 || value is decimal || value is double || value is string || value is Money;
+
+        #endregion Private methods
     }
 }

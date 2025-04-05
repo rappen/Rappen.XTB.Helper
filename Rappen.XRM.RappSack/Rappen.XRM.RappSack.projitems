@@ -20,6 +20,5 @@
     <Compile Include="$(MSBuildThisFileDirectory)RappSackExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RappSackPlugin.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RappSackTracerCore.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappSackUtils.cs" />
   </ItemGroup>
 </Project>
