@@ -1,11 +1,5 @@
 ﻿namespace Rappen.XRM.RappSack
 {
-    public enum ExecuteAs
-    {
-        User,
-        Initiating
-    }
-
     public enum ProcessingStage
     {
         PreValidation = 10,
