@@ -279,7 +279,6 @@
             this.gridResults.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.gridResults.ColumnOrder = "";
             this.gridResults.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridResults.FilterColumns = "";
             this.gridResults.LayoutXML = "";
             this.gridResults.Location = new System.Drawing.Point(10, 34);
             this.gridResults.MultiSelect = false;
@@ -309,7 +308,6 @@
             this.gridSelection.ColumnHeadersVisible = false;
             this.gridSelection.ColumnOrder = "";
             this.gridSelection.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gridSelection.FilterColumns = "";
             this.gridSelection.LayoutXML = "";
             this.gridSelection.Location = new System.Drawing.Point(99, 0);
             this.gridSelection.Name = "gridSelection";

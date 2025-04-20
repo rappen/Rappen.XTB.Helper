@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Rappen.XTB.Helpers.Controls
@@ -28,8 +29,6 @@ namespace Rappen.XTB.Helpers.Controls
         private bool showIndexColumn = true;
         private bool showLocalTimes = false;
         private bool? designedColumnsUsed = null;
-        private List<string> filterColumns = null;
-        private string filterText = null;
         private string[] columnOrder = new string[] { };
         private bool showAllColumnsInColumnOrder = false;
         private bool showColumnsNotInColumnOrder = true;
@@ -37,7 +36,13 @@ namespace Rappen.XTB.Helpers.Controls
         private Dictionary<string, int> columnswidths;
         private string sortColumn;
         private ListSortDirection sortDirection = ListSortDirection.Ascending;
+        private Filtering filtering = new Filtering();
 
+        // Obsolete
+        private List<string> filterColumns = new List<string>();
+        private string filterText = null;
+
+        // Consts
         private const string _extendedMetaAttribute = "MetaAttribute";
         private const string _extendedMetaEntity = "MetaEntity";
         private const string _originalType = "OriginalType";
@@ -168,20 +173,22 @@ namespace Rappen.XTB.Helpers.Controls
                     {
                         Refresh();
                     }
+                    Size = new Size(Width, Height); // Force a refresh of the layout
                 }
             }
         }
 
         [Category("Rappen XRM")]
-        [DefaultValue(null)]
-        [Description("Columns to investigate when filtering rows with FilterText. Enter datacolumn name separated by comma.")]
-        public string FilterColumns
+        [Description("Details for filtering after records are returned from Dataverse.")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Content)]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        [Browsable(true)]
+        public Filtering Filtering
         {
-            get => filterColumns == null ? string.Empty : string.Join(", ", filterColumns);
+            get => filtering ?? new Filtering();
             set
             {
-                filterColumns = string.IsNullOrWhiteSpace(value) ? null :
-                    value.ToLowerInvariant().Split(',').Select(c => c.Trim()).Where(c => !string.IsNullOrEmpty(c)).ToList();
+                filtering = value;
                 if (autoRefresh)
                 {
                     Refresh();
@@ -189,14 +196,44 @@ namespace Rappen.XTB.Helpers.Controls
             }
         }
 
+        [Obsolete("Use Filtering instead.")]
         [Category("Rappen XRM")]
+        [DisplayName("Obsolete: Filter Columns")]
         [DefaultValue(null)]
-        [Description("Text to search for in FilterColumns to filter visible rows in the grid.")]
+        [Description("Use Filtering instead. Columns to investigate when filtering rows with FilterText. Enter datacolumn name separated by comma.")]
+        public string FilterColumns
+        {
+            get => filterColumns == null ? string.Empty : string.Join(", ", filterColumns);
+            set
+            {
+                var newfilterColumns = string.IsNullOrWhiteSpace(value) ? new List<string>() :
+                       value.ToLowerInvariant().Split(',').Select(c => c.Trim()).Where(c => !string.IsNullOrEmpty(c)).ToList();
+                if (string.Join(",", newfilterColumns) == string.Join(",", filterColumns))
+                {
+                    return;
+                }
+                filterColumns = newfilterColumns;
+                if (autoRefresh)
+                {
+                    Refresh();
+                }
+            }
+        }
+
+        [Obsolete("Use Filtering instead.")]
+        [Category("Rappen XRM")]
+        [DisplayName("Obsolete: Filter Text")]
+        [DefaultValue(null)]
+        [Description("Use Filtering instead. Text to search for in FilterColumns to filter visible rows in the grid.")]
         public string FilterText
         {
             get => filterText;
             set
             {
+                if (filterText == value?.ToLowerInvariant())
+                {
+                    return;
+                }
                 filterText = value.ToLowerInvariant();
                 if (autoRefresh)
                 {
@@ -705,6 +742,8 @@ namespace Rappen.XTB.Helpers.Controls
             return details;
         }
 
+        public void Filter() => Refresh();
+
         #endregion Public methods
 
         #region Private event handler methods
@@ -1082,7 +1121,8 @@ namespace Rappen.XTB.Helpers.Controls
         {
             var dTable = new DataTable();
             dTable.Columns.AddRange(columns.ToArray());
-            var filteredcols = columns.Cast<DataColumn>().Where(c => filterColumns == null || filterColumns.Contains(c.ColumnName.ToLowerInvariant())).ToList();
+            var filtcols = Filtering?.ColumnList?.Count > 0 ? Filtering.ColumnList : filterColumns;
+            var filteredcols = columns.Cast<DataColumn>().Where(c => filtcols == null || filtcols.Contains(c.ColumnName.ToLowerInvariant())).ToList();
 
             foreach (var entity in entities)
             {
@@ -1150,19 +1190,38 @@ namespace Rappen.XTB.Helpers.Controls
 
         private bool FilterIncludeRow(DataRow dRow, List<DataColumn> filtercolumns)
         {
-            if (string.IsNullOrEmpty(filterText))
+            var text = !string.IsNullOrEmpty(Filtering?.Text) ? Filtering.Text : filterText;
+            if (string.IsNullOrEmpty(text))
             {
                 return true;
             }
+            var result = Filtering?.And == true;
             foreach (var column in filtercolumns)
             {
-                var cellvalue = dRow[column];
-                if (cellvalue.ToString().ToLowerInvariant().Contains(filterText))
+                var cellvalue = dRow[column]?.ToString();
+                var colresult = false;
+                if (Filtering?.RegEx == true)
                 {
-                    return true;
+                    colresult = Regex.IsMatch(cellvalue, text, RegexOptions.IgnoreCase);
+                }
+                else
+                {
+                    colresult = cellvalue.ToLowerInvariant().Contains(text);
+                }
+                if (Filtering?.And == true)
+                {
+                    result = result && colresult;
+                }
+                else
+                {
+                    result = result || colresult;
                 }
             }
-            return false;
+            if (Filtering?.Not == true)
+            {
+                result = !result;
+            }
+            return result;
         }
 
         private void BindData(DataTable dTable)
@@ -1302,6 +1361,40 @@ namespace Rappen.XTB.Helpers.Controls
         }
 
         #endregion Private methods
+    }
+
+    public class Filtering
+    {
+        private List<string> columns { get; set; } = new List<string>();
+        [Browsable(false)]
+        internal List<string> ColumnList => columns;
+        public string Columns
+        {
+            get => string.Join(", ", columns);
+            set
+            {
+                columns = string.IsNullOrWhiteSpace(value) ? new List<string>() :
+                    value.ToLowerInvariant().Split(',').Select(c => c.Trim()).Where(c => !string.IsNullOrEmpty(c)).ToList();
+            }
+        }
+        public string Text { get; set; } = string.Empty;
+        public bool And { get; set; } = false;
+        public bool Not { get; set; } = false;
+        public bool RegEx { get; set; } = false;
+
+        public Filtering()
+        {
+            Columns = string.Empty;
+            Text = string.Empty;
+            And = false;
+            Not = false;
+            RegEx = false;
+        }
+
+        public override string ToString()
+        {
+            return $"Columns: {columns?.Count()}, Text: {Text}, And: {And}, Not: {Not}, RegEx: {RegEx}";
+        }
     }
 
     /// <summary>
