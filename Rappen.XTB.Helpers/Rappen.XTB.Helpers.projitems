@@ -9,6 +9,20 @@
     <Import_RootNamespace>Rappen.XTB.Helpers</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\CheckBoxComboBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\CheckBoxComboBox.Designer.cs">
+      <DependentUpon>CheckBoxComboBox.cs</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\GripBounds.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\NativeMethods.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\Popup.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\Popup.Designer.cs">
+      <DependentUpon>Popup.cs</DependentUpon>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\PopupComboBox.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\PopupComboBox.Designer.cs">
+      <DependentUpon>PopupComboBox.cs</DependentUpon>
+    </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMMetaAutoCompleteComboBox.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMMetaAutoCompleteComboBox.Designer.cs">
       <DependentUpon>XRMMetaAutoCompleteComboBox.cs</DependentUpon>
@@ -76,6 +90,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\CheckCombo\PopupComboBox.resx">
+      <DependentUpon>PopupComboBox.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Controls\XRMLookupDialogForm.resx">
       <DependentUpon>XRMLookupDialogForm.cs</DependentUpon>
     </EmbeddedResource>
