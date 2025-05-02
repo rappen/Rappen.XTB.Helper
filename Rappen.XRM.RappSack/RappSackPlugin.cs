@@ -10,6 +10,7 @@ namespace Rappen.XRM.RappSack
         public IPluginExecutionContext5 Context { get; private set; }
         public ContextEntity ContextEntity { get; private set; }
         public ContextEntityCollection ContextEntityCollection { get; private set; }
+        public Entity Target => ContextEntity?[ContextEntityType.Target];
 
         public virtual ServiceAs ServiceAs { get; } = ServiceAs.User;
         public virtual string ExecuterEnvVar { get; } = string.Empty;
