@@ -12,5 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AiCommunication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AISettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageHistory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MarkdownToRtfConverter.cs" />
   </ItemGroup>
 </Project>
