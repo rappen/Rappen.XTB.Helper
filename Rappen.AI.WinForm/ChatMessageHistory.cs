@@ -10,28 +10,28 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
-        private List<ChatLog> ChatMessages;
+        private List<ChatLog> chatMessages;
 
-        internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
+        internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
         internal static Color UserBackgroundColor = Color.FromArgb(0, 99, 255);
         internal static Color UserTextColor = Color.FromArgb(255, 255, 0);
         internal static Color OtherBackgroundColor = Color.LightGray;
         internal static Color OtherTextColor = Color.Black;
 
-        public IEnumerable<ChatMessage> Messages => ChatMessages;
+        public IEnumerable<ChatMessage> Messages => chatMessages;
 
         public ChatMessageHistory(Panel parent)
         {
             this.parent = parent;
-            ChatMessages = new List<ChatLog>();
+            chatMessages = new List<ChatLog>();
         }
 
         public void Add(ChatRole role, string content, bool hidden)
         {
             var chatLog = new ChatLog(role, content);
-            ChatMessages.Add(chatLog);
-            if (!hidden)
+            chatMessages.Add(chatLog);
+            if (!hidden && !string.IsNullOrWhiteSpace(content))
             {
                 parent.Controls.Add(chatLog.Panel);
             }
@@ -86,7 +86,7 @@ namespace Rappen.AI.WinForm
         public DockStyle DockStyle =>
             Role == ChatRole.Assistant ? DockStyle.Left :
             Role == ChatRole.User ? DockStyle.Right :
-            DockStyle.Top | DockStyle.Left | DockStyle.Right;
+            DockStyle.Top;
 
         public Color BackColor =>
             Role == ChatRole.User ? ChatMessageHistory.UserBackgroundColor :
@@ -132,7 +132,7 @@ namespace Rappen.AI.WinForm
             }
             else
             {
-                message.Text = this.Text;
+                message.Text = this.Text ?? "<no message>";
             }
             message.ContentsResized += Message_ContentsResized;
             stamp = new TextBox
