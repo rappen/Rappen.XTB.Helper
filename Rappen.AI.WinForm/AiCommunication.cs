@@ -9,7 +9,7 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, string introMessage, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<string> handleResult, Func<string, string> executeFetchXmlRequest)
+        public static void CallingAI(string prompt, string introMessage, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<string> handleResponse)
         {
             tool.Cursor = Cursors.WaitCursor;
 
@@ -35,17 +35,27 @@ namespace Rappen.AI.WinForm
                                     options.MaxOutputTokens = 4096;
                                 }).UseFunctionInvocation().Build();
 
-                                var executeFetchXmlRequestDelegate = executeFetchXmlRequest;
+                                var executeRequestDelegate = executeRequest;
                                 var chatOptions = new ChatOptions
                                 {
                                     Tools = new List<AITool>
                                     {
-                                        AIFunctionFactory.Create(executeFetchXmlRequestDelegate)
+                                        AIFunctionFactory.Create(executeRequestDelegate)
                                     }
                                 };
 
                                 var response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions);
-                                a.Result = response.Result;
+                                if (response != null)
+                                {
+                                    if (response.Exception == null)
+                                    {
+                                        a.Result = response.Result;
+                                    }
+                                    else
+                                    {
+                                        throw response.Exception;
+                                    }
+                                }
                             }
                             break;
 
@@ -63,7 +73,7 @@ namespace Rappen.AI.WinForm
                     else if (w.Result is ChatResponse response)
                     {
                         chatMessageHistory.Add(response);
-                        handleResult?.Invoke(response.ToString());
+                        handleResponse?.Invoke(response.ToString());
                     }
                 }
             });
