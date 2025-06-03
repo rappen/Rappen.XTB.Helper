@@ -2,7 +2,6 @@
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
@@ -15,12 +14,10 @@ namespace Rappen.AI.WinForm
         {
             tool.Cursor = Cursors.WaitCursor;
 
-            if (!string.IsNullOrWhiteSpace(introMessage))
+            if (!string.IsNullOrWhiteSpace(introMessage) &&
+                !chatMessageHistory.Messages.Where(m => m.Role == ChatRole.System).Any()) //Only add system message once.
             {
-                if (!chatMessageHistory.Messages.Where(m => m.Role == ChatRole.System).Any()) //Only add system message once.
-                {
-                    chatMessageHistory.Add(ChatRole.System, introMessage, true);
-                }           
+                chatMessageHistory.Add(ChatRole.System, introMessage, true);
             }
 
             chatMessageHistory.Add(ChatRole.User, prompt, false);
@@ -59,7 +56,7 @@ namespace Rappen.AI.WinForm
                                 {
                                     // Check for HTTP status code 529 (Anthropic service overloaded)
                                     var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
-                                    if (httpEx != null && (int) httpEx.StatusCode == 529)
+                                    if (httpEx != null && (int)httpEx.StatusCode == 529)
                                     {
                                         throw new Exception("Anthropic service is overloaded, please try again later.");
                                     }
@@ -70,7 +67,6 @@ namespace Rappen.AI.WinForm
                                 }
 
                                 a.Result = response;
-                              
                             }
                             break;
 
@@ -88,11 +84,9 @@ namespace Rappen.AI.WinForm
                     else if (w.Result is ChatResponse response)
                     {
                         chatMessageHistory.Add(response);
-
                         handleResponse?.Invoke(response.ToString());
                     }
-                },
-                
+                }
             });
         }
     }
