@@ -2,6 +2,8 @@
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -15,8 +17,12 @@ namespace Rappen.AI.WinForm
 
             if (!string.IsNullOrWhiteSpace(introMessage))
             {
-                chatMessageHistory.Add(ChatRole.System, introMessage, true);
+                if (!chatMessageHistory.Messages.Where(m => m.Role == ChatRole.System).Any()) //Only add system message once.
+                {
+                    chatMessageHistory.Add(ChatRole.System, introMessage, true);
+                }           
             }
+
             chatMessageHistory.Add(ChatRole.User, prompt, false);
 
             tool.WorkAsync(new WorkAsyncInfo
@@ -44,18 +50,27 @@ namespace Rappen.AI.WinForm
                                     }
                                 };
 
-                                var response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions);
-                                if (response != null)
+                                ChatResponse response = null;
+                                try
                                 {
-                                    if (response.Exception == null)
+                                    response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions).Result;
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Check for HTTP status code 529 (Anthropic service overloaded)
+                                    var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
+                                    if (httpEx != null && (int) httpEx.StatusCode == 529)
                                     {
-                                        a.Result = response.Result;
+                                        throw new Exception("Anthropic service is overloaded, please try again later.");
                                     }
                                     else
                                     {
-                                        throw response.Exception;
+                                        throw;
                                     }
                                 }
+
+                                a.Result = response;
+                              
                             }
                             break;
 
@@ -73,9 +88,11 @@ namespace Rappen.AI.WinForm
                     else if (w.Result is ChatResponse response)
                     {
                         chatMessageHistory.Add(response);
+
                         handleResponse?.Invoke(response.ToString());
                     }
-                }
+                },
+                
             });
         }
     }

@@ -30,9 +30,14 @@ namespace Rappen.AI.WinForm
         public void Add(ChatRole role, string content, bool hidden)
         {
             var chatLog = new ChatLog(role, content);
-            chatMessages.Add(chatLog);
+
+            if (!string.IsNullOrWhiteSpace(content)){
+                chatMessages.Add(chatLog);
+            }
+
             if (!hidden && !string.IsNullOrWhiteSpace(content))
             {
+              
                 parent.Controls.Add(chatLog.Panel);
             }
         }
