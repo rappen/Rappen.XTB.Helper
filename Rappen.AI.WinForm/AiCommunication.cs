@@ -74,7 +74,10 @@ namespace Rappen.AI.WinForm
                 ChatResponse response = null;
                 try
                 {
-                    response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions).Result;
+                    response = chatClient
+                        .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
+                        .GetAwaiter()
+                        .GetResult();
                 }
                 catch (Exception ex)
                 {
