@@ -2,6 +2,7 @@
 using Microsoft.Extensions.AI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
@@ -30,48 +31,12 @@ namespace Rappen.AI.WinForm
                     switch (supplier.Name)
                     {
                         case "Anthropic":
-                            using (var client = new AnthropicClient(apikey))
-                            {
-                                var chatClient = client.AsBuilder().ConfigureOptions(options =>
-                                {
-                                    options.ModelId = model.Name;
-                                    options.MaxOutputTokens = 4096;
-                                }).UseFunctionInvocation().Build();
-
-                                var executeRequestDelegate = executeRequest;
-                                var chatOptions = new ChatOptions
-                                {
-                                    Tools = new List<AITool>
-                                    {
-                                        AIFunctionFactory.Create(executeRequestDelegate)
-                                    }
-                                };
-
-                                ChatResponse response = null;
-                                try
-                                {
-                                    response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions).Result;
-                                }
-                                catch (Exception ex)
-                                {
-                                    // Check for HTTP status code 529 (Anthropic service overloaded)
-                                    var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
-                                    if (httpEx != null && (int)httpEx.StatusCode == 529)
-                                    {
-                                        throw new Exception("Anthropic service is overloaded, please try again later.");
-                                    }
-                                    else
-                                    {
-                                        throw;
-                                    }
-                                }
-
-                                a.Result = response;
-                            }
+                            AskAnthropic(model, apikey, chatMessageHistory, executeRequest, a);
                             break;
 
                         case "OpenAI":
-                            throw new NotImplementedException();
+                            AskOpenAI(model, apikey, chatMessageHistory, executeRequest, a);
+                            break;
                     }
                 },
                 PostWorkCallBack = (w) =>
@@ -88,6 +53,52 @@ namespace Rappen.AI.WinForm
                     }
                 }
             });
+        }
+
+        private static void AskAnthropic(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest, System.ComponentModel.DoWorkEventArgs workEventArgs)
+        {
+            using (var client = new AnthropicClient(apikey))
+            {
+                var chatClient = client.AsBuilder().ConfigureOptions(options =>
+                {
+                    options.ModelId = model.Name;
+                    options.MaxOutputTokens = 4096;
+                }).UseFunctionInvocation().Build();
+
+                var chatOptions = new ChatOptions();
+                if (executeRequest != null)
+                {
+                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
+                }
+
+                ChatResponse response = null;
+                try
+                {
+                    response = chatClient.GetResponseAsync(chatMessageHistory.Messages, chatOptions).Result;
+                }
+                catch (Exception ex)
+                {
+                    // Check for HTTP status code 529 (Anthropic service overloaded)
+                    var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
+                    if (httpEx == null)
+                    {
+                        throw;
+                    }
+                    if ((int)httpEx.StatusCode == 529)
+                    {
+                        throw new Exception("Anthropic service is overloaded, please try again later.");
+                    }
+                    else if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        throw new Exception("ApiKey may be incorrect.");
+                    }
+                }
+                workEventArgs.Result = response;
+            }
+        }
+        private static void AskOpenAI(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest, DoWorkEventArgs a)
+        {
+            throw new NotImplementedException();
         }
     }
 }

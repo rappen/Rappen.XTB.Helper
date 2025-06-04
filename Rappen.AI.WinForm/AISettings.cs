@@ -21,6 +21,7 @@ namespace Rappen.AI.WinForm
     public class AiSupplier
     {
         public string Name { get; set; }
+        public string Url { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
