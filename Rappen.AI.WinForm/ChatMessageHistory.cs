@@ -36,6 +36,8 @@ namespace Rappen.AI.WinForm
                 if (!hidden)
                 {
                     parent.Controls.Add(chatLog.Panel);
+                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                    parent.PerformLayout();
                 }
             }
         }
