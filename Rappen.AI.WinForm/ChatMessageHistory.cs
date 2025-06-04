@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -10,6 +11,7 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
+        private DateTime starttime;
 
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
         internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
@@ -23,8 +25,22 @@ namespace Rappen.AI.WinForm
         public ChatMessageHistory(Panel parent)
         {
             this.parent = parent;
+            starttime = DateTime.Now;
             Messages = new List<ChatLog>();
         }
+
+        public string Save(string folder, string tool)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+            }
+            var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
+            File.WriteAllText(path, ToString());
+            return path;
+        }
+
+        public override string ToString() => string.Join(Environment.NewLine, Messages.Select(m => m.ToString()));
 
         public void Add(ChatRole role, string content, bool hidden)
         {
@@ -52,8 +68,7 @@ namespace Rappen.AI.WinForm
         private Panel content;
         private RichTextBox message;
         private TextBox stamp;
-
-        internal DateTime timestamp;
+        private DateTime timestamp;
 
         public ChatLog()
         {
@@ -84,22 +99,22 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        public HorizontalAlignment Position =>
+        private HorizontalAlignment Position =>
             Role == ChatRole.Assistant ? HorizontalAlignment.Left :
             Role == ChatRole.User ? HorizontalAlignment.Right :
             HorizontalAlignment.Center;
 
-        public DockStyle DockStyle =>
+        private DockStyle DockStyle =>
             Role == ChatRole.Assistant ? DockStyle.Left :
             Role == ChatRole.User ? DockStyle.Right :
             DockStyle.Top;
 
-        public Color BackColor =>
+        private Color BackColor =>
             Role == ChatRole.User ? ChatMessageHistory.UserBackgroundColor :
             Role == ChatRole.Assistant ? ChatMessageHistory.AssistansBackgroundColor :
             ChatMessageHistory.OtherBackgroundColor;
 
-        public Color ForeColor =>
+        private Color ForeColor =>
             Role == ChatRole.User ? ChatMessageHistory.UserTextColor :
             Role == ChatRole.Assistant ? ChatMessageHistory.AssistansTextColor :
             ChatMessageHistory.OtherTextColor;
