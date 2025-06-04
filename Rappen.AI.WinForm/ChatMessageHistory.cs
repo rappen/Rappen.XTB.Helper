@@ -10,7 +10,6 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
-        private List<ChatLog> chatMessages;
 
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
         internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
@@ -19,12 +18,12 @@ namespace Rappen.AI.WinForm
         internal static Color OtherBackgroundColor = Color.LightGray;
         internal static Color OtherTextColor = Color.Black;
 
-        public IEnumerable<ChatMessage> Messages => chatMessages;
+        public List<ChatLog> Messages { get; private set; }
 
         public ChatMessageHistory(Panel parent)
         {
             this.parent = parent;
-            chatMessages = new List<ChatLog>();
+            Messages = new List<ChatLog>();
         }
 
         public void Add(ChatRole role, string content, bool hidden)
@@ -32,7 +31,7 @@ namespace Rappen.AI.WinForm
             var chatLog = new ChatLog(role, content.Trim());
             if (!string.IsNullOrWhiteSpace(chatLog.Text))
             {
-                chatMessages.Add(chatLog);
+                Messages.Add(chatLog);
                 if (!hidden)
                 {
                     parent.Controls.Add(chatLog.Panel);
@@ -70,6 +69,8 @@ namespace Rappen.AI.WinForm
         {
             timestamp = DateTime.Now;
         }
+
+        public override string ToString() => $"{timestamp:G} - {Role}{Environment.NewLine}{Text}{Environment.NewLine}";
 
         public Panel Panel
         {
