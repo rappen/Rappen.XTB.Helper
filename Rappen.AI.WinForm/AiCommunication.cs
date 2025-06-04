@@ -81,19 +81,19 @@ namespace Rappen.AI.WinForm
                 }
                 catch (Exception ex)
                 {
-                    // Check for HTTP status code 529 (Anthropic service overloaded)
                     var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
                     if (httpEx == null)
                     {
                         throw;
                     }
+                    if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        throw new Exception("ApiKey may be incorrect.");
+                    }
+                    // Check for HTTP status code 529 (Anthropic service overloaded)
                     if ((int)httpEx.StatusCode == 529)
                     {
                         throw new Exception("Anthropic service is overloaded, please try again later.");
-                    }
-                    else if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        throw new Exception("ApiKey may be incorrect.");
                     }
                 }
                 workEventArgs.Result = response;
