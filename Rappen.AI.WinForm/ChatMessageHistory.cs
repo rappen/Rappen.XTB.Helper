@@ -37,6 +37,7 @@ namespace Rappen.AI.WinForm
             }
             var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
             File.WriteAllText(path, ToString());
+            //XmlSerializerHelper.SerializeToFile(Messages.Select(m=>m.ser), Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.xml"));
             return path;
         }
 
@@ -64,11 +65,12 @@ namespace Rappen.AI.WinForm
 
     public class ChatLog : ChatMessage
     {
-        private Panel panel;
-        private Panel content;
-        private RichTextBox message;
-        private TextBox stamp;
-        private DateTime timestamp;
+        private const int messageWidthPercent = 70;
+        private Panel containerPanel;
+        private Panel contentPanel;
+        private RichTextBox messageTextBox;
+        private TextBox stampTextBox;
+        public DateTime timestamp { get; set; }
 
         public ChatLog()
         {
@@ -87,21 +89,21 @@ namespace Rappen.AI.WinForm
 
         public override string ToString() => $"{timestamp:G} - {Role}{Environment.NewLine}{Text}{Environment.NewLine}";
 
-        public Panel Panel
+        internal Panel Panel
         {
             get
             {
-                if (panel == null)
+                if (containerPanel == null)
                 {
                     GetPanel();
                 }
-                return panel;
+                return containerPanel;
             }
         }
 
         private HorizontalAlignment Position =>
             Role == ChatRole.Assistant ? HorizontalAlignment.Left :
-            Role == ChatRole.User ? HorizontalAlignment.Right :
+            Role == ChatRole.User ? HorizontalAlignment.Left :
             HorizontalAlignment.Center;
 
         private DockStyle DockStyle =>
@@ -121,24 +123,23 @@ namespace Rappen.AI.WinForm
 
         private void GetPanel()
         {
-            panel = new Panel
+            containerPanel = new Panel
             {
                 Tag = this,
                 Padding = new Padding(2, 4, 2, 0),
                 Dock = DockStyle.Bottom,
             };
-            panel.Resize += Panel_Resize;
-            var width = (int)(panel.Width * 0.7);
-            content = new Panel
+            containerPanel.Resize += Panel_Resize;
+            contentPanel = new Panel
             {
                 BackColor = BackColor,
                 Padding = new Padding(4),
-                Width = width,
+                Width = (containerPanel.Width * messageWidthPercent) / 100,
                 Height = 60,
                 Dock = DockStyle
             };
-            panel.Controls.Add(content);
-            message = new RichTextBox
+            containerPanel.Controls.Add(contentPanel);
+            messageTextBox = new RichTextBox
             {
                 BackColor = BackColor,
                 ForeColor = ForeColor,
@@ -149,36 +150,38 @@ namespace Rappen.AI.WinForm
             };
             if (false && this.Text.Contains("`"))
             {
-                //      message.Rtf = MarkdownToRtfConverter.Convert(this.Text);
+                //messageTextBox.Rtf = MarkdownToRtfConverter.Convert(this.Text);
             }
             else
             {
-                message.Text = this.Text ?? "<no message>";
+                messageTextBox.Text = this.Text ?? "(no message)";
             }
-            message.ContentsResized += Message_ContentsResized;
-            stamp = new TextBox
+            messageTextBox.ContentsResized += Message_ContentsResized;
+            stampTextBox = new TextBox
             {
                 BackColor = BackColor,
                 ForeColor = ForeColor,
                 BorderStyle = BorderStyle.None,
                 Text = $"{Role.Value} @ {timestamp:T}",
-                TextAlign = HorizontalAlignment.Right, // Position,
+                TextAlign = HorizontalAlignment.Right,
                 Dock = DockStyle.Bottom
             };
-            content.Controls.Add(stamp);
-            content.Controls.Add(message);
+            contentPanel.Controls.Add(stampTextBox);
+            contentPanel.Controls.Add(messageTextBox);
         }
 
         private void Message_ContentsResized(object sender, ContentsResizedEventArgs e)
         {
-            if (sender == message)
+            if (sender == messageTextBox)
             {
                 var cntheight =
-                    e.NewRectangle.Height +                         // text height
-                    stamp.Height +                                  // stamp height
-                    panel.Padding.Top + panel.Padding.Bottom +      // panel padding
-                    content.Padding.Top + content.Padding.Bottom;   // contect padding
-                panel.Height = cntheight;
+                    e.NewRectangle.Height +         // text height
+                    stampTextBox.Height +           // stamp height
+                    containerPanel.Padding.Top +    // panel padding
+                    containerPanel.Padding.Bottom +
+                    contentPanel.Padding.Top +      // content padding
+                    contentPanel.Padding.Bottom;
+                containerPanel.Height = cntheight;
             }
         }
 
@@ -189,7 +192,16 @@ namespace Rappen.AI.WinForm
                 return;
             }
             var width = panel.Width;
-            content.Width = (int)(width * 0.7);
+            contentPanel.Width = (width * messageWidthPercent) / 100;
+            contentPanel.Left = Role == ChatRole.Assistant ? 0 :
+                Role == ChatRole.User ? width - contentPanel.Width :
+                (width - contentPanel.Width) / 2;
         }
+    }
+
+    public class ChatLogSerializer
+    {
+        public ChatLogSerializer() { }
+        public DateTime TimeStamp { get; set; }
     }
 }
