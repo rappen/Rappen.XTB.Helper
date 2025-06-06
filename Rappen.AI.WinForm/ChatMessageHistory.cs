@@ -29,18 +29,29 @@ namespace Rappen.AI.WinForm
             Messages = new List<ChatLog>();
         }
 
-        public string Save(string folder, string tool)
+        public void Save(string file)
         {
+            var folder = Path.GetDirectoryName(file);
             if (!Directory.Exists(folder))
             {
                 Directory.CreateDirectory(folder);
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
-            File.WriteAllText(path, ToString());
+            File.WriteAllText(file, ToString());
             //XmlSerializerHelper.SerializeToFile(Messages.Select(m=>m.ser), Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.xml"));
+        }
+
+        public string Save(string folder, string tool)
+        {
+            var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
+            Save(path);
             return path;
         }
 
+        public void Restart()
+        {
+            Messages = new List<ChatLog>();
+            parent.Controls.Clear();
+        }
         public override string ToString() => string.Join(Environment.NewLine, Messages.Select(m => m.ToString()));
 
         public void Add(ChatRole role, string content, bool hidden)
