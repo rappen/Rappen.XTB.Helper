@@ -26,7 +26,7 @@ namespace Rappen.AI.WinForm
             tool.WorkAsync(new WorkAsyncInfo
             {
                 Message = $"Asking the {supplier.Name}...",
-                Work = async (w, a) =>
+                Work = (w, a) =>
                 {
                     switch (supplier.Name)
                     {
@@ -82,19 +82,21 @@ namespace Rappen.AI.WinForm
                 catch (Exception ex)
                 {
                     var httpEx = ex as Anthropic.ApiException ?? ex.InnerException as Anthropic.ApiException;
-                    if (httpEx == null)
+                    
+                    // Handle Anthropic specific API exceptions.
+                    if (httpEx != null)
                     {
-                        throw;
+                        if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            throw new Exception("ApiKey may be incorrect.");
+                        }
+                        else if ((int)httpEx.StatusCode == 529) // Anthropic service overloaded
+                        {
+                            throw new Exception("Anthropic service is overloaded, please try again later.");
+                        }
                     }
-                    if (httpEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        throw new Exception("ApiKey may be incorrect.");
-                    }
-                    // Check for HTTP status code 529 (Anthropic service overloaded)
-                    if ((int)httpEx.StatusCode == 529)
-                    {
-                        throw new Exception("Anthropic service is overloaded, please try again later.");
-                    }
+                    
+                    throw;
                 }
                 workEventArgs.Result = response;
             }
