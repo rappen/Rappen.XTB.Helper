@@ -1,6 +1,5 @@
 ﻿using Anthropic;
 using Microsoft.Extensions.AI;
-using OpenAI;
 using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
@@ -63,44 +62,10 @@ namespace Rappen.AI.WinForm
 
         private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
         {
-            IChatClient client = null;
-
-            if (supplier.Name == "Anthropic")
-            {
-                client = client = new AnthropicClient(apikey);
-            }
-            else if (supplier.Name == "OpenAI")
-            {
-                client = new OpenAI.Chat.ChatClient(model.Name, apikey).AsIChatClient();
-            }
-            else
-            {
-                throw new NotImplementedException(String.Format("AI Supplier {0} not implemented!", supplier.Name));
-            }
-
-            var chatClient = client.AsBuilder().ConfigureOptions(options =>
-            {
-                options.ModelId = model.Name;
-                options.MaxOutputTokens = 4096;
-            }).UseFunctionInvocation().Build();
-
-            var chatOptions = new ChatOptions();
-            if (executeRequest != null)
-            {
-                chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
-            }
-
-            var response = chatClient
-                .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
-                .GetAwaiter()
-                .GetResult();
-            return response;
-
-        }
-
-        private static ChatResponse AskAnthropic(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
-        {
-            using (var client = new AnthropicClient(apikey))
+            using (IChatClient client =
+                supplier.Name == "Anthropic" ? new AnthropicClient(apikey) :
+                supplier.Name == "OpenAI" ? new ChatClient(model.Name, apikey).AsIChatClient() :
+                throw new NotImplementedException(String.Format("AI Supplier {0} not implemented!", supplier.Name)))
             {
                 var chatClient = client.AsBuilder().ConfigureOptions(options =>
                 {
@@ -118,26 +83,6 @@ namespace Rappen.AI.WinForm
                     .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
                     .GetAwaiter()
                     .GetResult();
-                return response;
-            }
-        }
-        private static ChatResponse AskOpenAI(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
-        {
-            using (var client = new OpenAI.Chat.ChatClient(model.Name, apikey).AsIChatClient()) {
-
-                IChatClient chatClient = new ChatClientBuilder(client).UseFunctionInvocation().Build();
-
-                var chatOptions = new ChatOptions();
-                if (executeRequest != null)
-                {
-                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
-                }
-
-                var response = chatClient
-                      .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
-                      .GetAwaiter()
-                      .GetResult();
-
                 return response;
             }
         }
