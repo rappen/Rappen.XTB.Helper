@@ -1,5 +1,7 @@
 ﻿using Anthropic;
 using Microsoft.Extensions.AI;
+using OpenAI;
+using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,16 +29,7 @@ namespace Rappen.AI.WinForm
                 Message = $"Asking the {supplier.Name}...",
                 Work = (w, a) =>
                 {
-                    switch (supplier.Name)
-                    {
-                        case "Anthropic":
-                            a.Result = AskAnthropic(model, apikey, chatMessageHistory, executeRequest);
-                            break;
-
-                        case "OpenAI":
-                            a.Result = AskOpenAI(model, apikey, chatMessageHistory, executeRequest);
-                            break;
-                    }
+                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, executeRequest);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -53,7 +46,7 @@ namespace Rappen.AI.WinForm
                             }
                             else if ((int)apiEx.StatusCode == 529) // Anthropic service overloaded
                             {
-                                tool.ShowErrorDialog(new Exception("Anthropic service is overloaded, please try again later."));
+                                tool.ShowErrorDialog(new Exception("AI service is overloaded, please try again later."));
                                 return;
                             }
                         }
@@ -66,6 +59,43 @@ namespace Rappen.AI.WinForm
                     }
                 }
             });
+        }
+
+        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
+        {
+            IChatClient client = null;
+
+            if (supplier.Name == "Anthropic")
+            {
+                client = client = new AnthropicClient(apikey);
+            }
+            else if (supplier.Name == "OpenAI")
+            {
+                client = new OpenAI.Chat.ChatClient(model.Name, apikey).AsIChatClient();
+            }
+            else
+            {
+                throw new NotImplementedException(String.Format("AI Supplier {0} not implemented!", supplier.Name));
+            }
+
+            var chatClient = client.AsBuilder().ConfigureOptions(options =>
+            {
+                options.ModelId = model.Name;
+                options.MaxOutputTokens = 4096;
+            }).UseFunctionInvocation().Build();
+
+            var chatOptions = new ChatOptions();
+            if (executeRequest != null)
+            {
+                chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
+            }
+
+            var response = chatClient
+                .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
+                .GetAwaiter()
+                .GetResult();
+            return response;
+
         }
 
         private static ChatResponse AskAnthropic(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
@@ -91,9 +121,25 @@ namespace Rappen.AI.WinForm
                 return response;
             }
         }
-        private static object AskOpenAI(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
+        private static ChatResponse AskOpenAI(AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
         {
-            throw new NotImplementedException();
+            using (var client = new OpenAI.Chat.ChatClient(model.Name, apikey).AsIChatClient()) {
+
+                IChatClient chatClient = new ChatClientBuilder(client).UseFunctionInvocation().Build();
+
+                var chatOptions = new ChatOptions();
+                if (executeRequest != null)
+                {
+                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
+                }
+
+                var response = chatClient
+                      .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
+                      .GetAwaiter()
+                      .GetResult();
+
+                return response;
+            }
         }
     }
 }
