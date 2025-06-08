@@ -11,6 +11,8 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
+        private readonly string supplier;
+        private readonly string user;
         private DateTime starttime;
 
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
@@ -22,9 +24,11 @@ namespace Rappen.AI.WinForm
 
         public List<ChatLog> Messages { get; private set; }
 
-        public ChatMessageHistory(Panel parent)
+        public ChatMessageHistory(Panel parent, string supplier = null, string user = null)
         {
             this.parent = parent;
+            this.supplier = supplier;
+            this.user = user;
             starttime = DateTime.Now;
             Messages = new List<ChatLog>();
         }
@@ -60,11 +64,13 @@ namespace Rappen.AI.WinForm
             Messages = new List<ChatLog>();
             parent.Controls.Clear();
         }
+
         public override string ToString() => string.Join(Environment.NewLine, Messages.Select(m => m.ToString()));
 
         public void Add(ChatRole role, string content, bool hidden)
         {
-            var chatLog = new ChatLog(role, content.Trim());
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier : "";
+            var chatLog = new ChatLog(role, content.Trim(), sender);
             if (!string.IsNullOrWhiteSpace(chatLog.Text))
             {
                 Messages.Add(chatLog);
@@ -89,24 +95,27 @@ namespace Rappen.AI.WinForm
         private Panel contentPanel;
         private RichTextBox messageTextBox;
         private TextBox stampTextBox;
-        public DateTime timestamp { get; set; }
+
+        public readonly DateTime TimeStamp;
+        public readonly string Sender;
 
         public ChatLog()
         {
-            timestamp = DateTime.Now;
+            TimeStamp = DateTime.Now;
         }
 
         public ChatLog(ChatMessage message) : base(message.Role, message.Text)
         {
-            timestamp = DateTime.Now;
+            TimeStamp = DateTime.Now;
         }
 
-        public ChatLog(ChatRole role, string content) : base(role, content)
+        public ChatLog(ChatRole role, string content, string sender) : base(role, content)
         {
-            timestamp = DateTime.Now;
+            TimeStamp = DateTime.Now;
+            Sender = string.IsNullOrEmpty(sender) ? role.ToString() : sender;
         }
 
-        public override string ToString() => $"{timestamp:G} - {Role}{Environment.NewLine}{Text}{Environment.NewLine}";
+        public override string ToString() => $"{TimeStamp:G} - {Sender}{Environment.NewLine}{Text}{Environment.NewLine}";
 
         internal Panel Panel
         {
@@ -181,7 +190,7 @@ namespace Rappen.AI.WinForm
                 BackColor = BackColor,
                 ForeColor = ForeColor,
                 BorderStyle = BorderStyle.None,
-                Text = $"{Role.Value} @ {timestamp:T}",
+                Text = $"{Sender} @ {TimeStamp:T}",
                 TextAlign = HorizontalAlignment.Right,
                 Dock = DockStyle.Bottom
             };
@@ -216,11 +225,5 @@ namespace Rappen.AI.WinForm
                 Role == ChatRole.User ? width - contentPanel.Width :
                 (width - contentPanel.Width) / 2;
         }
-    }
-
-    public class ChatLogSerializer
-    {
-        public ChatLogSerializer() { }
-        public DateTime TimeStamp { get; set; }
     }
 }

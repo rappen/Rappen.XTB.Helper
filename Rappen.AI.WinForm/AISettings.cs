@@ -8,11 +8,12 @@ namespace Rappen.AI.WinForm
         public string Supplier { get; set; }
         public string Model { get; set; }
         public string ApiKey { get; set; }
+        public string CallMe { get; set; }
     }
 
-    public class AiSupported : List<AiSupplier>
+    public class AiSuppliers : List<AiSupplier>
     {
-        public AiSupported() { }
+        public AiSuppliers() { }
 
         public AiSupplier Supplier(string supplier) => this.FirstOrDefault(n => n.Name.Equals(supplier));
     }
