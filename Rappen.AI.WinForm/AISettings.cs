@@ -5,7 +5,6 @@ namespace Rappen.AI.WinForm
 {
     public class AiSettings
     {
-        public bool Active { get; set; }
         public string Supplier { get; set; }
         public string Model { get; set; }
         public string ApiKey { get; set; }
