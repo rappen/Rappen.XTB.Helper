@@ -31,6 +31,10 @@ namespace Rappen.AI.WinForm
 
         public void Save(string file)
         {
+            if (Messages?.Any() != true)
+            {
+                return;
+            }
             var folder = Path.GetDirectoryName(file);
             if (!Directory.Exists(folder))
             {
@@ -42,6 +46,10 @@ namespace Rappen.AI.WinForm
 
         public string Save(string folder, string tool)
         {
+            if (Messages?.Any() != true)
+            {
+                return null;
+            }
             var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
