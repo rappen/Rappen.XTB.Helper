@@ -11,7 +11,8 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
-        private readonly string supplier;
+        private readonly AiSupplier supplier;
+        private readonly AiModel model;
         private readonly string user;
         private DateTime starttime;
 
@@ -25,15 +26,23 @@ namespace Rappen.AI.WinForm
         public List<ChatLog> Messages { get; private set; }
         public ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string supplier = null, string user = null)
+        public ChatMessageHistory(Panel parent, AiSupplier supplier, AiModel model, string user = null)
         {
             this.parent = parent;
             this.supplier = supplier;
+            this.model = model;
             this.user = user;
             starttime = DateTime.Now;
             Messages = new List<ChatLog>();
             Responses = new ChatResponseList();
             this.parent.Controls.Clear();
+        }
+
+        public override string ToString()
+        {
+            return $"Started:  {starttime:G}{Environment.NewLine}Supplier: {supplier}{Environment.NewLine}Model:    {model}" +
+                $"{Environment.NewLine}{Environment.NewLine}" +
+                $"{string.Join(Environment.NewLine, Messages.Select(m => m.ToString()))}";
         }
 
         public void Save(string file)
@@ -57,12 +66,10 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} {supplier?.Name ?? "AI"} Chat {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
-
-        public override string ToString() => string.Join(Environment.NewLine, Messages.Select(m => m.ToString()));
 
         public void Add(ChatRole role, string content, bool hidden)
         {
@@ -70,7 +77,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier : "";
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier?.Name : "";
             var chatLog = new ChatLog(role, content.Trim(), sender);
             Messages.Add(chatLog);
             if (!hidden)
