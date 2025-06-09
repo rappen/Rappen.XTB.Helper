@@ -11,7 +11,7 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, string introMessage, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<string> handleResponse)
+        public static void CallingAI(string prompt, string introMessage, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<ChatResponse> handleResponse)
         {
             tool.Cursor = Cursors.WaitCursor;
 
@@ -54,7 +54,7 @@ namespace Rappen.AI.WinForm
                     else if (w.Result is ChatResponse response)
                     {
                         chatMessageHistory.Add(response);
-                        handleResponse?.Invoke(response.ToString());
+                        handleResponse?.Invoke(response);
                     }
                 }
             });
