@@ -23,7 +23,7 @@ namespace Rappen.AI.WinForm
         internal static Color OtherTextColor = Color.Black;
 
         public List<ChatLog> Messages { get; private set; }
-        public UsageDetailsList Usages { get; private set; }
+        public ChatResponseList Responses { get; private set; }
 
         public ChatMessageHistory(Panel parent, string supplier = null, string user = null)
         {
@@ -32,7 +32,7 @@ namespace Rappen.AI.WinForm
             this.user = user;
             starttime = DateTime.Now;
             Messages = new List<ChatLog>();
-            Usages = new UsageDetailsList();
+            Responses = new ChatResponseList();
             this.parent.Controls.Clear();
         }
 
@@ -83,7 +83,7 @@ namespace Rappen.AI.WinForm
 
         public void Add(ChatResponse response)
         {
-            Usages.Add(response.Usage);
+            Responses.Add(response);
             response.Messages.ToList().ForEach(x => Add(x));
         }
 
@@ -229,8 +229,8 @@ namespace Rappen.AI.WinForm
         }
     }
 
-    public class UsageDetailsList : List<UsageDetails>
+    public class ChatResponseList : List<ChatResponse>
     {
-        public override string ToString() => $"Tokens: In {this.Sum(u => u.InputTokenCount)}, Out {this.Sum(u => u.OutputTokenCount)}, Total {this.Sum(u => u.TotalTokenCount)}";
+        public string UsageToString() => $"Tokens: In {this.Sum(r => r.Usage.InputTokenCount)}, Out {this.Sum(r => r.Usage.OutputTokenCount)}, Total {this.Sum(r => r.Usage.TotalTokenCount)}";
     }
 }
