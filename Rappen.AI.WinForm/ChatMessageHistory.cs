@@ -23,6 +23,7 @@ namespace Rappen.AI.WinForm
         internal static Color OtherTextColor = Color.Black;
 
         public List<ChatLog> Messages { get; private set; }
+        public UsageDetailsList Usages { get; private set; }
 
         public ChatMessageHistory(Panel parent, string supplier = null, string user = null)
         {
@@ -31,6 +32,8 @@ namespace Rappen.AI.WinForm
             this.user = user;
             starttime = DateTime.Now;
             Messages = new List<ChatLog>();
+            Usages = new UsageDetailsList();
+            this.parent.Controls.Clear();
         }
 
         public void Save(string file)
@@ -59,31 +62,30 @@ namespace Rappen.AI.WinForm
             return path;
         }
 
-        public void Restart()
-        {
-            Messages = new List<ChatLog>();
-            parent.Controls.Clear();
-        }
-
         public override string ToString() => string.Join(Environment.NewLine, Messages.Select(m => m.ToString()));
 
         public void Add(ChatRole role, string content, bool hidden)
         {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return;
+            }
             var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier : "";
             var chatLog = new ChatLog(role, content.Trim(), sender);
-            if (!string.IsNullOrWhiteSpace(chatLog.Text))
+            Messages.Add(chatLog);
+            if (!hidden)
             {
-                Messages.Add(chatLog);
-                if (!hidden)
-                {
-                    parent.Controls.Add(chatLog.Panel);
-                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
-                    parent.PerformLayout();
-                }
+                parent.Controls.Add(chatLog.Panel);
+                parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                parent.PerformLayout();
             }
         }
 
-        public void Add(ChatResponse response) => response.Messages.ToList().ForEach(x => Add(x));
+        public void Add(ChatResponse response)
+        {
+            Usages.Add(response.Usage);
+            response.Messages.ToList().ForEach(x => Add(x));
+        }
 
         private void Add(ChatMessage message) => Add(message.Role, message.Text, false);
     }
@@ -225,5 +227,10 @@ namespace Rappen.AI.WinForm
                 Role == ChatRole.User ? width - contentPanel.Width :
                 (width - contentPanel.Width) / 2;
         }
+    }
+
+    public class UsageDetailsList : List<UsageDetails>
+    {
+        public override string ToString() => $"Tokens: In {this.Sum(u => u.InputTokenCount)}, Out {this.Sum(u => u.OutputTokenCount)}, Total {this.Sum(u => u.TotalTokenCount)}";
     }
 }
