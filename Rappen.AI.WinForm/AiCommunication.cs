@@ -35,21 +35,24 @@ namespace Rappen.AI.WinForm
                     tool.Cursor = Cursors.Default;
                     if (w.Error != null)
                     {
+                        tool.LogError($"Error while communicating with {supplier.Name}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
-                        if (apiEx != null)
+                        if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                            {
-                                tool.ShowErrorDialog(new Exception("ApiKey may be incorrect."));
-                                return;
-                            }
-                            else if ((int)apiEx.StatusCode == 529) // Anthropic service overloaded
-                            {
-                                tool.ShowErrorDialog(new Exception("AI service is overloaded, please try again later."));
-                                return;
-                            }
+                            tool.ShowErrorDialog(new Exception("ApiKey may be incorrect."), "AI Communitation", w.Error.ExceptionDetails());
                         }
-                        tool.ShowErrorDialog(w.Error);
+                        else if (apiEx != null && (int)apiEx.StatusCode == 529) // Anthropic service overloaded
+                        {
+                            tool.ShowErrorDialog(new Exception("AI service is overloaded, please try again later."), "AI Communitation", w.Error.ExceptionDetails());
+                        }
+                        else if (w.Error is MissingMethodException missmeth)
+                        {
+                            tool.ShowErrorDialog(new Exception("There might be a conflict between tools, where the other tool loads a too old version, probably about Microsoft.Bcl.AsyncInterfaces."), "AI Communitation", w.Error.ExceptionDetails());
+                        }
+                        else
+                        {
+                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{supplier} {model}");
+                        }
                     }
                     else if (w.Result is ChatResponse response)
                     {
@@ -86,5 +89,8 @@ namespace Rappen.AI.WinForm
                 return response;
             }
         }
+
+        internal static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
+            $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
     }
 }
