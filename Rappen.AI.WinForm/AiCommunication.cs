@@ -3,7 +3,6 @@ using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -11,15 +10,17 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, string introMessage, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<ChatResponse> handleResponse)
+        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<ChatResponse> handleResponse)
         {
-            tool.Cursor = Cursors.WaitCursor;
-
-            if (!string.IsNullOrWhiteSpace(introMessage) &&
-                !chatMessageHistory.Messages.Where(m => m.Role == ChatRole.System).Any()) //Only add system message once.
+            if (string.IsNullOrWhiteSpace(prompt))
             {
-                chatMessageHistory.Add(ChatRole.System, introMessage, true);
+                return;
             }
+            if (!chatMessageHistory.Initialized)
+            {
+                throw new InvalidOperationException("ChatMessageHistory is not initialized. Please call InitializeIfNeeded with a system prompt before using this method.");
+            }
+            tool.Cursor = Cursors.WaitCursor;
 
             chatMessageHistory.Add(ChatRole.User, prompt, false);
 

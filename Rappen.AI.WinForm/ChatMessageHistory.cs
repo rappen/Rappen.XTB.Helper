@@ -45,6 +45,16 @@ namespace Rappen.AI.WinForm
                 $"{string.Join(Environment.NewLine, Messages.Select(m => m.ToString()))}";
         }
 
+        public void Initialize(string intro)
+        {
+            if (Messages?.Any(m => m.Role == ChatRole.System) != true && !string.IsNullOrWhiteSpace(intro))
+            {
+                Add(ChatRole.System, intro, true);
+            }
+        }
+
+        public bool Initialized => Messages?.Any(m => m.Role == ChatRole.System) == true;
+
         public void Save(string file)
         {
             if (Messages?.Any() != true)

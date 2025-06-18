@@ -23,19 +23,11 @@ namespace Rappen.AI.WinForm
         public string Name { get; set; }
         public string Url { get; set; }
         public string SystemPrompt { get; set; }
+        public string UpdatePrompt { get; set; }
         public string CallMe { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
-
-        public string GetSystemPrompt(string fetchxml)
-        {
-            if (string.IsNullOrWhiteSpace(SystemPrompt))
-            {
-                return string.Empty;
-            }
-            return SystemPrompt.Replace("{fetchxml}", fetchxml);
-        }
 
         public string GetCallMe(string callme)
         {
