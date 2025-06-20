@@ -10,7 +10,7 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Action<ChatResponse> handleResponse)
+        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Func<string, string> updateRequest, Action<ChatResponse> handleResponse)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -29,7 +29,7 @@ namespace Rappen.AI.WinForm
                 Message = $"Asking the {supplier.Name}...",
                 Work = (w, a) =>
                 {
-                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, executeRequest);
+                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, executeRequest, updateRequest);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -64,7 +64,7 @@ namespace Rappen.AI.WinForm
             });
         }
 
-        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest)
+        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest, Func<string, string> updateRequest)
         {
             using (IChatClient client =
                 supplier.Name == "Anthropic" ? new AnthropicClient(apikey) :
@@ -80,7 +80,7 @@ namespace Rappen.AI.WinForm
                 var chatOptions = new ChatOptions();
                 if (executeRequest != null)
                 {
-                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest) };
+                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest), AIFunctionFactory.Create(updateRequest) };
                 }
 
                 var response = chatClient
