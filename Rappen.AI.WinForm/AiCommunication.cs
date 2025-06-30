@@ -23,6 +23,7 @@ namespace Rappen.AI.WinForm
             tool.Cursor = Cursors.WaitCursor;
 
             chatMessageHistory.Add(ChatRole.User, prompt, false);
+            chatMessageHistory.Running = true;
 
             tool.WorkAsync(new WorkAsyncInfo
             {
@@ -34,6 +35,7 @@ namespace Rappen.AI.WinForm
                 PostWorkCallBack = (w) =>
                 {
                     tool.Cursor = Cursors.Default;
+                    chatMessageHistory.Running = false;
                     if (w.Error != null)
                     {
                         tool.LogError($"Error while communicating with {supplier.Name}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");

@@ -14,7 +14,10 @@ namespace Rappen.AI.WinForm
         private readonly AiSupplier supplier;
         private readonly AiModel model;
         private readonly string user;
-        private DateTime starttime;
+        private readonly DateTime starttime;
+        private readonly Timer timer;
+        private int timerno = 0;
+        private TextBox waitingtxt;
 
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
         internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
@@ -22,8 +25,11 @@ namespace Rappen.AI.WinForm
         internal static Color UserTextColor = Color.FromArgb(255, 255, 0);
         internal static Color OtherBackgroundColor = Color.LightGray;
         internal static Color OtherTextColor = Color.Black;
+        internal static Color BackColor = Color.White;
+        internal static Color WaitingBackColor = Color.LightGray;
 
         public List<ChatLog> Messages { get; private set; }
+
         public ChatResponseList Responses { get; private set; }
 
         public ChatMessageHistory(Panel parent, AiSupplier supplier, AiModel model, string user = null)
@@ -32,9 +38,24 @@ namespace Rappen.AI.WinForm
             this.supplier = supplier;
             this.model = model;
             this.user = user;
+            timer = new Timer
+            {
+                Interval = 100,
+                Enabled = false,
+            };
+            timer.Tick += Timer_Tick;
+            waitingtxt = new TextBox
+            {
+                BorderStyle = BorderStyle.None,
+                BackColor = WaitingBackColor,
+                ForeColor = Color.Black,
+                Dock = DockStyle.Bottom,
+                TextAlign = HorizontalAlignment.Center,
+            };
             starttime = DateTime.Now;
             Messages = new List<ChatLog>();
             Responses = new ChatResponseList();
+            this.parent.BackColor = BackColor;
             this.parent.Controls.Clear();
         }
 
@@ -105,6 +126,37 @@ namespace Rappen.AI.WinForm
         }
 
         private void Add(ChatMessage message) => Add(message.Role, message.Text, false);
+
+        public bool Running
+        {
+            get => parent.BackColor == WaitingBackColor;
+            set
+            {
+                parent.BackColor = value ? WaitingBackColor : BackColor;
+                if (value)
+                {
+                    parent.Controls.Add(waitingtxt);
+                    waitingtxt.Text = $"oooooooooo";
+                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                    parent.PerformLayout();
+                    timer.Start();
+                }
+                else
+                {
+                    timer.Stop();
+                    parent.Controls.Remove(waitingtxt);
+                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                    parent.PerformLayout();
+                }
+            }
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            timerno = timerno < 15 ? timerno + 1 : 0;
+            var pos = timerno <= 10 ? timerno : 0;
+            waitingtxt.Text = new String('o', pos) + (timerno <= 10 ? '0' : 'o') + new String('o', 10 - pos);
+        }
     }
 
     public class ChatLog : ChatMessage
