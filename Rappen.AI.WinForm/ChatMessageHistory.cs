@@ -127,7 +127,11 @@ namespace Rappen.AI.WinForm
 
         private void Add(ChatMessage message) => Add(message.Role, message.Text, false);
 
-        public bool Running
+        public bool HasDialog =>
+            Messages?.Any(m => m.Role == ChatRole.User) == true &&
+            Messages?.Any(m => m.Role == ChatRole.Assistant) == true;
+
+        public bool IsRunning
         {
             get => parent.BackColor == WaitingBackColor;
             set
@@ -135,6 +139,7 @@ namespace Rappen.AI.WinForm
                 parent.BackColor = value ? WaitingBackColor : BackColor;
                 if (value)
                 {
+                    parent.Controls.Remove(waitingtxt);
                     parent.Controls.Add(waitingtxt);
                     waitingtxt.Text = $"oooooooooo";
                     parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
@@ -247,13 +252,13 @@ namespace Rappen.AI.WinForm
                 ScrollBars = RichTextBoxScrollBars.Both,
                 WordWrap = true,
             };
-            if (false && this.Text.Contains("`"))
+            if (false && Text.Contains("`"))
             {
                 //messageTextBox.Rtf = MarkdownToRtfConverter.Convert(this.Text);
             }
             else
             {
-                messageTextBox.Text = this.Text ?? "(no message)";
+                messageTextBox.Text = Text ?? "(no message)";
             }
             messageTextBox.ContentsResized += Message_ContentsResized;
             stampTextBox = new TextBox
@@ -300,6 +305,6 @@ namespace Rappen.AI.WinForm
 
     public class ChatResponseList : List<ChatResponse>
     {
-        public string UsageToString() => $"Tokens: In {this.Sum(r => r.Usage.InputTokenCount)}, Out {this.Sum(r => r.Usage.OutputTokenCount)}, Total {this.Sum(r => r.Usage.TotalTokenCount)}";
+        public string UsageToString() => $"Answers: {Count} Tokens: In {this.Sum(r => r.Usage.InputTokenCount)}, Out {this.Sum(r => r.Usage.OutputTokenCount)}, Total {this.Sum(r => r.Usage.TotalTokenCount)}";
     }
 }
