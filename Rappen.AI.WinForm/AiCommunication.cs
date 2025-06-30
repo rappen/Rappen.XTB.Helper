@@ -23,7 +23,7 @@ namespace Rappen.AI.WinForm
             tool.Cursor = Cursors.WaitCursor;
 
             chatMessageHistory.Add(ChatRole.User, prompt, false);
-            chatMessageHistory.Running = true;
+            chatMessageHistory.IsRunning = true;
 
             tool.WorkAsync(new WorkAsyncInfo
             {
@@ -35,7 +35,7 @@ namespace Rappen.AI.WinForm
                 PostWorkCallBack = (w) =>
                 {
                     tool.Cursor = Cursors.Default;
-                    chatMessageHistory.Running = false;
+                    chatMessageHistory.IsRunning = false;
                     if (w.Error != null)
                     {
                         tool.LogError($"Error while communicating with {supplier.Name}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
@@ -50,12 +50,13 @@ namespace Rappen.AI.WinForm
                         }
                         else if (w.Error is MissingMethodException missmeth)
                         {
-                            tool.ShowErrorDialog(new Exception("There might be a conflict between tools, where the other tool loads a too old version, probably about Microsoft.Bcl.AsyncInterfaces."), "AI Communitation", w.Error.ExceptionDetails());
+                            tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communitation", w.Error.ExceptionDetails());
                         }
                         else
                         {
                             tool.ShowErrorDialog(w.Error, "AI Communitation", $"{supplier} {model}");
                         }
+                        handleResponse?.Invoke(null);
                     }
                     else if (w.Result is ChatResponse response)
                     {
