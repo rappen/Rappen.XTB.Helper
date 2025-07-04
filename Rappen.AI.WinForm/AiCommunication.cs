@@ -10,7 +10,7 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
+        public static void CallingAI(string prompt, string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -27,7 +27,7 @@ namespace Rappen.AI.WinForm
 
             tool.WorkAsync(new WorkAsyncInfo
             {
-                Message = $"Asking the {supplier.Name}...",
+                Message = $"Asking {supplier}...",
                 Work = (w, a) =>
                 {
                     a.Result = AskAI(supplier, model, apikey, chatMessageHistory, internalTools);
@@ -38,7 +38,7 @@ namespace Rappen.AI.WinForm
                     chatMessageHistory.IsRunning = false;
                     if (w.Error != null)
                     {
-                        tool.LogError($"Error while communicating with {supplier.Name}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+                        tool.LogError($"Error while communicating with {supplier}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
                         if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -67,16 +67,16 @@ namespace Rappen.AI.WinForm
             });
         }
 
-        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
+        private static ChatResponse AskAI(string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
             using (IChatClient client =
-                supplier.Name == "Anthropic" ? new AnthropicClient(apikey) :
-                supplier.Name == "OpenAI" ? new ChatClient(model.Name, apikey).AsIChatClient() :
-                throw new NotImplementedException(String.Format("AI Supplier {0} not implemented!", supplier.Name)))
+                supplier == "Anthropic" ? new AnthropicClient(apikey) :
+                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
+                throw new NotImplementedException($"AI Supplier {supplier} not implemented!"))
             {
                 var chatClient = client.AsBuilder().ConfigureOptions(options =>
                 {
-                    options.ModelId = model.Name;
+                    options.ModelId = model;
                     options.MaxOutputTokens = 4096;
                 }).UseFunctionInvocation().Build();
 
