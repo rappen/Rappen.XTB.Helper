@@ -2,7 +2,7 @@
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -10,7 +10,7 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
-        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Func<string, string> executeRequest, Func<string, string> updateRequest, Action<ChatResponse> handleResponse)
+        public static void CallingAI(string prompt, AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -30,7 +30,7 @@ namespace Rappen.AI.WinForm
                 Message = $"Asking the {supplier.Name}...",
                 Work = (w, a) =>
                 {
-                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, executeRequest, updateRequest);
+                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, internalTools);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -67,7 +67,7 @@ namespace Rappen.AI.WinForm
             });
         }
 
-        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, Func<string, string> executeRequest, Func<string, string> updateRequest)
+        private static ChatResponse AskAI(AiSupplier supplier, AiModel model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
             using (IChatClient client =
                 supplier.Name == "Anthropic" ? new AnthropicClient(apikey) :
@@ -81,9 +81,9 @@ namespace Rappen.AI.WinForm
                 }).UseFunctionInvocation().Build();
 
                 var chatOptions = new ChatOptions();
-                if (executeRequest != null)
+                if (internalTools?.Count() > 0)
                 {
-                    chatOptions.Tools = new List<AITool> { AIFunctionFactory.Create(executeRequest), AIFunctionFactory.Create(updateRequest) };
+                    chatOptions.Tools = internalTools.Select(tool => AIFunctionFactory.Create(tool) as AITool).ToList();
                 }
 
                 var response = chatClient
