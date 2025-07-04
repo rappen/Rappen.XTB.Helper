@@ -11,8 +11,8 @@ namespace Rappen.AI.WinForm
     public class ChatMessageHistory
     {
         private Panel parent;
-        private readonly AiSupplier supplier;
-        private readonly AiModel model;
+        private readonly string supplier;
+        private readonly string model;
         private readonly string user;
         private readonly DateTime starttime;
         private readonly Timer timer;
@@ -32,7 +32,7 @@ namespace Rappen.AI.WinForm
 
         public ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, AiSupplier supplier, AiModel model, string user = null)
+        public ChatMessageHistory(Panel parent, string supplier, string model, string user = null)
         {
             this.parent = parent;
             this.supplier = supplier;
@@ -97,7 +97,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{supplier?.Name ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{supplier ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
@@ -108,7 +108,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier?.Name : "";
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier : "";
             var chatLog = new ChatLog(role, content.Trim(), sender);
             Messages.Add(chatLog);
             if (!hidden)
