@@ -8,35 +8,36 @@ namespace Rappen.AI.WinForm
         public string Supplier { get; set; }
         public string Model { get; set; }
         public string ApiKey { get; set; }
-        public string CallMe { get; set; }
+        public string MyName { get; set; }
     }
 
-    public class AiSuppliers : List<AiSupplier>
+    public class AiSupport
     {
-        public AiSuppliers() { }
+        public Prompts Prompts { get; set; } = new Prompts();
+        public List<AiSupplier> AiSuppliers { get; set; } = new List<AiSupplier>();
 
-        public AiSupplier Supplier(string supplier) => this.FirstOrDefault(n => n.Name.Equals(supplier));
+        public AiSupport() { }
+
+        public AiSupplier Supplier(string aisupplier) => AiSuppliers.FirstOrDefault(n => n.Name.Equals(aisupplier));
+    }
+
+    public class Prompts
+    {
+        public string System { get; set; }
+        public string CallMe { get; set; }
+        public string Update { get; set; }
+        public string EntityMeta { get; set; }
+        public string AttributeMeta { get; set; }
     }
 
     public class AiSupplier
     {
         public string Name { get; set; }
         public string Url { get; set; }
-        public string SystemPrompt { get; set; }
-        public string UpdatePrompt { get; set; }
-        public string CallMe { get; set; }
+        public Prompts Prompts { get; set; } = new Prompts();
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
-
-        public string GetCallMe(string callme)
-        {
-            if (string.IsNullOrWhiteSpace(CallMe) || string.IsNullOrWhiteSpace(callme))
-            {
-                return string.Empty;
-            }
-            return CallMe.Replace("{callme}", callme);
-        }
 
         public override string ToString() => Name;
     }
