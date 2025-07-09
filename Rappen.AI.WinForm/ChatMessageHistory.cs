@@ -136,23 +136,27 @@ namespace Rappen.AI.WinForm
             get => parent.BackColor == WaitingBackColor;
             set
             {
-                parent.BackColor = value ? WaitingBackColor : BackColor;
-                if (value)
+                MethodInvoker mi = () =>
                 {
-                    parent.Controls.Remove(waitingtxt);
-                    parent.Controls.Add(waitingtxt);
-                    waitingtxt.Text = $"oooooooooo";
-                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
-                    parent.PerformLayout();
-                    timer.Start();
-                }
-                else
-                {
-                    timer.Stop();
-                    parent.Controls.Remove(waitingtxt);
-                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
-                    parent.PerformLayout();
-                }
+                    parent.BackColor = value ? WaitingBackColor : BackColor;
+                    if (value)
+                    {
+                        parent.Controls.Remove(waitingtxt);
+                        parent.Controls.Add(waitingtxt);
+                        waitingtxt.Text = $"oooooooooo";
+                        parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                        parent.PerformLayout();
+                        timer.Start();
+                    }
+                    else
+                    {
+                        timer.Stop();
+                        parent.Controls.Remove(waitingtxt);
+                        parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                        parent.PerformLayout();
+                    }
+                };
+                if (parent.InvokeRequired) parent.Invoke(mi); else mi();
             }
         }
 
