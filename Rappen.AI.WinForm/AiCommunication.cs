@@ -11,6 +11,18 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
+        /// <summary>
+        /// Calls the AI model with the given prompt and handles the response.
+        /// </summary>
+        /// <param name="prompt">The question/statement from you to the AI</param>
+        /// <param name="supplier">AI supplier, e.g. 'OpenAI' or 'Anthropic'</param>
+        /// <param name="model">The model/version of the supplier</param>
+        /// <param name="apikey">The API key needed to know you account</param>
+        /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
+        /// <param name="tool">The tool in XrmToolBox that is calling this method</param>
+        /// <param name="handleResponse">The method that handles the response from AI</param>
+        /// <param name="internalTools">This may containg 0-x methods that can be called inside this method, bepending on what the AI may need/help us</param>
+        /// <exception cref="InvalidOperationException"></exception>
         public static void CallingAI(string prompt, string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
