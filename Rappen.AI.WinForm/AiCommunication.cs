@@ -2,6 +2,7 @@
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
@@ -65,6 +66,37 @@ namespace Rappen.AI.WinForm
                     }
                 }
             });
+        }
+
+
+        /// <summary>
+        /// Perform a 'Sampling' request to the AI model. 'Sampling' is a concept from Model Context Protocol (MCP) where an AI-function can call the AI internally, without any support for function calling.
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static string AiSamplingRequest(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
+        {
+            using (IChatClient client =
+                supplier == "Anthropic" ? new AnthropicClient(apikey) :
+                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
+                throw new NotImplementedException($"AI Supplier {supplier} not implemented!"))
+            {
+                var chatClient = client.AsBuilder().ConfigureOptions(options =>
+                {
+                    options.ModelId = model;
+                    options.MaxOutputTokens = 4096;
+                }).Build();
+
+                List<Microsoft.Extensions.AI.ChatMessage> chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>();
+                chatMessages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
+                chatMessages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, userPrompt));
+
+                var response = chatClient
+                    .GetResponseAsync(chatMessages)
+                    .GetAwaiter()
+                    .GetResult();
+                return response.Text;
+            }
         }
 
         private static ChatResponse AskAI(string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
