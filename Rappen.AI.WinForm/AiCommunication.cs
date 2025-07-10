@@ -68,7 +68,6 @@ namespace Rappen.AI.WinForm
             });
         }
 
-
         /// <summary>
         /// Perform a 'Sampling' request to the AI model. 'Sampling' is a concept from Model Context Protocol (MCP) where an AI-function can call the AI internally, without any support for function calling.
         /// </summary>
@@ -76,10 +75,7 @@ namespace Rappen.AI.WinForm
         /// <exception cref="InvalidOperationException"></exception>
         public static string AiSamplingRequest(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
         {
-            using (IChatClient client =
-                supplier == "Anthropic" ? new AnthropicClient(apikey) :
-                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
-                throw new NotImplementedException($"AI Supplier {supplier} not implemented!"))
+            using (IChatClient client = GetClient(supplier, model, apikey))
             {
                 var chatClient = client.AsBuilder().ConfigureOptions(options =>
                 {
@@ -87,9 +83,11 @@ namespace Rappen.AI.WinForm
                     options.MaxOutputTokens = 4096;
                 }).Build();
 
-                List<Microsoft.Extensions.AI.ChatMessage> chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>();
-                chatMessages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt));
-                chatMessages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, userPrompt));
+                var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
+                {
+                    new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt),
+                    new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, userPrompt)
+                };
 
                 var response = chatClient
                     .GetResponseAsync(chatMessages)
@@ -101,10 +99,7 @@ namespace Rappen.AI.WinForm
 
         private static ChatResponse AskAI(string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
-            using (IChatClient client =
-                supplier == "Anthropic" ? new AnthropicClient(apikey) :
-                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
-                throw new NotImplementedException($"AI Supplier {supplier} not implemented!"))
+            using (IChatClient client = GetClient(supplier, model, apikey))
             {
                 var chatClient = client.AsBuilder().ConfigureOptions(options =>
                 {
@@ -126,7 +121,12 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        internal static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
+        private static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
             $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
+
+        private static IChatClient GetClient(string supplier, string model, string apikey) =>
+            supplier == "Anthropic" ? new AnthropicClient(apikey) :
+            supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
+            throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
     }
 }
