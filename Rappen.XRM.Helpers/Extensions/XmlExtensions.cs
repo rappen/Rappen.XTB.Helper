@@ -69,7 +69,7 @@ namespace Rappen.XRM.Helpers.Extensions
             }
         }
 
-        public static bool EqualXml(string s1, string s2)
+        public static bool EqualXml(this string s1, string s2)
         {
             var x1 = new XmlDocument();
             try
