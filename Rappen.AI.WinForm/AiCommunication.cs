@@ -123,9 +123,10 @@ namespace Rappen.AI.WinForm
 
         private static ChatClientBuilder GetChatClient(string supplier, string model, string apikey)
         {
-            IChatClient client = supplier == "Anthropic" ? new AnthropicClient(apikey) :
-            supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
-            throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
+            IChatClient client =
+                supplier == "Anthropic" ? new AnthropicClient(apikey) :
+                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
+                throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
 
             return client.AsBuilder().ConfigureOptions(options =>
             {
