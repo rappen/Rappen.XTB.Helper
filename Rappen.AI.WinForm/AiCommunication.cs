@@ -85,16 +85,10 @@ namespace Rappen.AI.WinForm
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static string AiSamplingRequest(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
+        public static string SamplingAI(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
         {
-            using (IChatClient client = GetClient(supplier, model, apikey))
+            using (IChatClient chatClient = GetChatClient(supplier, model, apikey).Build())
             {
-                var chatClient = client.AsBuilder().ConfigureOptions(options =>
-                {
-                    options.ModelId = model;
-                    options.MaxOutputTokens = 4096;
-                }).Build();
-
                 var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
                 {
                     new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt),
@@ -111,14 +105,8 @@ namespace Rappen.AI.WinForm
 
         private static ChatResponse AskAI(string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
-            using (IChatClient client = GetClient(supplier, model, apikey))
+            using (IChatClient chatClient = GetChatClient(supplier, model, apikey).UseFunctionInvocation().Build())
             {
-                var chatClient = client.AsBuilder().ConfigureOptions(options =>
-                {
-                    options.ModelId = model;
-                    options.MaxOutputTokens = 4096;
-                }).UseFunctionInvocation().Build();
-
                 var chatOptions = new ChatOptions();
                 if (internalTools?.Count() > 0)
                 {
@@ -133,12 +121,20 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
-            $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
-
-        private static IChatClient GetClient(string supplier, string model, string apikey) =>
-            supplier == "Anthropic" ? new AnthropicClient(apikey) :
+        private static ChatClientBuilder GetChatClient(string supplier, string model, string apikey)
+        {
+            IChatClient client = supplier == "Anthropic" ? new AnthropicClient(apikey) :
             supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
             throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
+
+            return client.AsBuilder().ConfigureOptions(options =>
+            {
+                options.ModelId = model;
+                options.MaxOutputTokens = 4096;
+            });
+        }
+
+        private static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
+            $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
     }
 }
