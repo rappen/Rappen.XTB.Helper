@@ -46,6 +46,7 @@ namespace Rappen.AI.WinForm
     {
         public string Name { get; set; }
         public string Url { get; set; }
+        public Prompts Prompts { get; set; } = new Prompts();
 
         public override string ToString() => Name;
     }
