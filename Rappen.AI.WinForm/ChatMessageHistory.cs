@@ -125,7 +125,15 @@ namespace Rappen.AI.WinForm
             response.Messages.ToList().ForEach(x => Add(x));
         }
 
+        public void Add(ChatResponse response, bool hidden)
+        {
+            Responses.Add(response);
+            response.Messages.ToList().ForEach(x => Add(x, hidden));
+        }
+
         private void Add(ChatMessage message) => Add(message.Role, message.Text, false);
+
+        private void Add(ChatMessage message, bool hidden) => Add(message.Role, message.Text, hidden);
 
         public bool HasDialog =>
             Messages?.Any(m => m.Role == ChatRole.User) == true &&
