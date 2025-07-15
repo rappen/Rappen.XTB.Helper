@@ -85,7 +85,7 @@ namespace Rappen.AI.WinForm
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static string SamplingAI(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
+        public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
         {
             using (IChatClient chatClient = GetChatClient(supplier, model, apikey).Build())
             {
@@ -99,7 +99,8 @@ namespace Rappen.AI.WinForm
                     .GetResponseAsync(chatMessages)
                     .GetAwaiter()
                     .GetResult();
-                return response.Text;
+
+                return response;
             }
         }
 
