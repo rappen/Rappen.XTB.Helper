@@ -238,15 +238,13 @@ namespace Rappen.AI.WinForm
 
         private void GetPanel()
         {
-            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            var copyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { copyMenuItem });
-            contextMenu.Name = "contextMenu";
-            contextMenu.Size = new System.Drawing.Size(181, 48);
-            copyMenuItem.Name = "copyMenuItem";
-            copyMenuItem.Size = new System.Drawing.Size(180, 22);
-            copyMenuItem.Text = "Copy";
+            // Create the context menu for the message panel and text boxes
+            var contextMenu = new ContextMenuStrip();
+            var copyMenuItem = new ToolStripMenuItem { Text = "Copy" };
+            contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem });
             copyMenuItem.Click += new System.EventHandler(copyMenuItem_Click);
+
+            // Create the container panel and content panel
             containerPanel = new Panel
             {
                 Tag = this,
@@ -255,6 +253,8 @@ namespace Rappen.AI.WinForm
             };
             containerPanel.ContextMenuStrip = contextMenu;
             containerPanel.Resize += Panel_Resize;
+
+            // Add the container panel to contain the message and stamp
             contentPanel = new Panel
             {
                 BackColor = BackColor,
@@ -265,6 +265,8 @@ namespace Rappen.AI.WinForm
             };
             contentPanel.ContextMenuStrip = contextMenu;
             containerPanel.Controls.Add(contentPanel);
+
+            // Create the message text box
             messageTextBox = new RichTextBox
             {
                 BackColor = BackColor,
@@ -273,6 +275,7 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Fill,
                 ScrollBars = RichTextBoxScrollBars.Both,
                 WordWrap = true,
+                ReadOnly = true,
             };
             if (false && Text.Contains("`"))
             {
@@ -284,6 +287,8 @@ namespace Rappen.AI.WinForm
             }
             messageTextBox.ContextMenuStrip = contextMenu;
             messageTextBox.ContentsResized += Message_ContentsResized;
+
+            // Create the stamp text box
             stampTextBox = new TextBox
             {
                 BackColor = BackColor,
@@ -291,9 +296,12 @@ namespace Rappen.AI.WinForm
                 BorderStyle = BorderStyle.None,
                 Text = $"{Sender} @ {TimeStamp:T}",
                 TextAlign = HorizontalAlignment.Right,
-                Dock = DockStyle.Bottom
+                Dock = DockStyle.Bottom,
+                ReadOnly = true,
             };
             stampTextBox.ContextMenuStrip = contextMenu;
+
+            // Adding message and stamp text boxes to the content panel
             contentPanel.Controls.Add(stampTextBox);
             contentPanel.Controls.Add(messageTextBox);
         }
