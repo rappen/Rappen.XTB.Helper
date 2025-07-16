@@ -88,7 +88,6 @@ namespace Rappen.AI.WinForm
                 Directory.CreateDirectory(folder);
             }
             File.WriteAllText(file, ToString());
-            //XmlSerializerHelper.SerializeToFile(Messages.Select(m=>m.ser), Path.Combine(folder, $"{tool} AI Chat {starttime:yyyyMMdd HHmmssfff}.xml"));
         }
 
         public string Save(string folder, string tool)
@@ -239,12 +238,22 @@ namespace Rappen.AI.WinForm
 
         private void GetPanel()
         {
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            var copyMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            contextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { copyMenuItem });
+            contextMenu.Name = "contextMenu";
+            contextMenu.Size = new System.Drawing.Size(181, 48);
+            copyMenuItem.Name = "copyMenuItem";
+            copyMenuItem.Size = new System.Drawing.Size(180, 22);
+            copyMenuItem.Text = "Copy";
+            copyMenuItem.Click += new System.EventHandler(copyMenuItem_Click);
             containerPanel = new Panel
             {
                 Tag = this,
                 Padding = new Padding(2, 4, 2, 0),
                 Dock = DockStyle.Bottom,
             };
+            containerPanel.ContextMenuStrip = contextMenu;
             containerPanel.Resize += Panel_Resize;
             contentPanel = new Panel
             {
@@ -254,6 +263,7 @@ namespace Rappen.AI.WinForm
                 Height = 60,
                 Dock = DockStyle
             };
+            contentPanel.ContextMenuStrip = contextMenu;
             containerPanel.Controls.Add(contentPanel);
             messageTextBox = new RichTextBox
             {
@@ -272,6 +282,7 @@ namespace Rappen.AI.WinForm
             {
                 messageTextBox.Text = Text ?? "(no message)";
             }
+            messageTextBox.ContextMenuStrip = contextMenu;
             messageTextBox.ContentsResized += Message_ContentsResized;
             stampTextBox = new TextBox
             {
@@ -282,6 +293,7 @@ namespace Rappen.AI.WinForm
                 TextAlign = HorizontalAlignment.Right,
                 Dock = DockStyle.Bottom
             };
+            stampTextBox.ContextMenuStrip = contextMenu;
             contentPanel.Controls.Add(stampTextBox);
             contentPanel.Controls.Add(messageTextBox);
         }
@@ -312,6 +324,11 @@ namespace Rappen.AI.WinForm
             contentPanel.Left = Role == ChatRole.Assistant ? 0 :
                 Role == ChatRole.User ? width - contentPanel.Width :
                 (width - contentPanel.Width) / 2;
+        }
+
+        private void copyMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText($"{Text}{Environment.NewLine}// {Sender} @ {TimeStamp:T}");
         }
     }
 
