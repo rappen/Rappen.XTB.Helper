@@ -1,6 +1,7 @@
 ﻿using Anthropic;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
+using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,12 +39,14 @@ namespace Rappen.AI.WinForm
             chatMessageHistory.Add(ChatRole.User, prompt, false);
             chatMessageHistory.IsRunning = true;
 
+            var clientBuilder = GetChatClientBuilder(supplier, model, apikey);
+
             tool.WorkAsync(new WorkAsyncInfo
             {
                 Message = $"Asking {supplier}...",
                 Work = (w, a) =>
                 {
-                    a.Result = AskAI(supplier, model, apikey, chatMessageHistory, internalTools);
+                    a.Result = AskAI(clientBuilder, chatMessageHistory, internalTools);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -87,7 +90,7 @@ namespace Rappen.AI.WinForm
         /// <exception cref="InvalidOperationException"></exception>
         public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
         {
-            using (IChatClient chatClient = GetChatClient(supplier, model, apikey).Build())
+            using (IChatClient chatClient = GetChatClientBuilder(supplier, model, apikey).Build())
             {
                 var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
                 {
@@ -104,9 +107,9 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static ChatResponse AskAI(string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
+        private static ChatResponse AskAI(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
-            using (IChatClient chatClient = GetChatClient(supplier, model, apikey).UseFunctionInvocation().Build())
+            using (IChatClient chatClient = clientBuilder.UseFunctionInvocation().Build())
             {
                 var chatOptions = new ChatOptions();
                 if (internalTools?.Count() > 0)
@@ -122,7 +125,7 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static ChatClientBuilder GetChatClient(string supplier, string model, string apikey)
+        private static ChatClientBuilder GetChatClientBuilder(string supplier, string model, string apikey)
         {
             IChatClient client =
                 supplier == "Anthropic" ? new AnthropicClient(apikey) :
@@ -135,8 +138,5 @@ namespace Rappen.AI.WinForm
                 options.MaxOutputTokens = 4096;
             });
         }
-
-        private static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
-            $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
     }
 }
