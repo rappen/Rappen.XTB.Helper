@@ -10,15 +10,6 @@ namespace Rappen.AI.WinForm
 {
     public class ChatMessageHistory
     {
-        private Panel parent;
-        private readonly string supplier;
-        private readonly string model;
-        private readonly string user;
-        private readonly DateTime starttime;
-        private readonly Timer timer;
-        private int timerno = 0;
-        private TextBox waitingtxt;
-
         internal static Color AssistansBackgroundColor = Color.FromArgb(0, 99, 255);
         internal static Color AssistansTextColor = Color.FromArgb(0, 66, 173);
         internal static Color UserBackgroundColor = Color.FromArgb(0, 99, 255);
@@ -28,15 +19,27 @@ namespace Rappen.AI.WinForm
         internal static Color BackColor = Color.White;
         internal static Color WaitingBackColor = Color.LightGray;
 
-        public List<ChatLog> Messages { get; private set; }
+        private Panel parent;
+        private readonly string user;
+        private readonly DateTime starttime;
+        private readonly Timer timer;
+        private int timerno = 0;
+        private TextBox waitingtxt;
 
-        public ChatResponseList Responses { get; private set; }
+        internal readonly string Supplier;
+        internal readonly string Model;
+        internal readonly string ApiKey;
 
-        public ChatMessageHistory(Panel parent, string supplier, string model, string user = null)
+        internal List<ChatMessageLog> Messages { get; private set; }
+
+        internal ChatResponseList Responses { get; private set; }
+
+        public ChatMessageHistory(Panel parent, string supplier, string model, string apikey, string user = null)
         {
             this.parent = parent;
-            this.supplier = supplier;
-            this.model = model;
+            Supplier = supplier;
+            Model = model;
+            ApiKey = apikey;
             this.user = user;
             timer = new Timer
             {
@@ -53,7 +56,7 @@ namespace Rappen.AI.WinForm
                 TextAlign = HorizontalAlignment.Center,
             };
             starttime = DateTime.Now;
-            Messages = new List<ChatLog>();
+            Messages = new List<ChatMessageLog>();
             Responses = new ChatResponseList();
             this.parent.BackColor = BackColor;
             this.parent.Controls.Clear();
@@ -61,7 +64,7 @@ namespace Rappen.AI.WinForm
 
         public override string ToString()
         {
-            return $"Started:  {starttime:G}{Environment.NewLine}Supplier: {supplier}{Environment.NewLine}Model:    {model}" +
+            return $"Started:  {starttime:G}{Environment.NewLine}Supplier: {Supplier}{Environment.NewLine}Model:    {Model}" +
                 $"{Environment.NewLine}{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, Messages.Select(m => m.ToString()))}";
         }
@@ -96,7 +99,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{supplier ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{Supplier ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
@@ -107,8 +110,8 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? supplier : "";
-            var chatLog = new ChatLog(role, content.Trim(), sender);
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? Supplier : "";
+            var chatLog = new ChatMessageLog(role, content.Trim(), sender);
             Messages.Add(chatLog);
             if (!hidden)
             {
@@ -172,171 +175,6 @@ namespace Rappen.AI.WinForm
             timerno = timerno < 15 ? timerno + 1 : 0;
             var pos = timerno <= 10 ? timerno : 0;
             waitingtxt.Text = new String('o', pos) + (timerno <= 10 ? '0' : 'o') + new String('o', 10 - pos);
-        }
-    }
-
-    public class ChatLog : ChatMessage
-    {
-        private const int messageWidthPercent = 70;
-        private Panel containerPanel;
-        private Panel contentPanel;
-        private RichTextBox messageTextBox;
-        private TextBox stampTextBox;
-
-        public readonly DateTime TimeStamp;
-        public readonly string Sender;
-
-        public ChatLog()
-        {
-            TimeStamp = DateTime.Now;
-        }
-
-        public ChatLog(ChatMessage message) : base(message.Role, message.Text)
-        {
-            TimeStamp = DateTime.Now;
-        }
-
-        public ChatLog(ChatRole role, string content, string sender) : base(role, content)
-        {
-            TimeStamp = DateTime.Now;
-            Sender = string.IsNullOrEmpty(sender) ? role.ToString() : sender;
-        }
-
-        public override string ToString() => $"{TimeStamp:G} - {Sender}{Environment.NewLine}{Text}{Environment.NewLine}";
-
-        internal Panel Panel
-        {
-            get
-            {
-                if (containerPanel == null)
-                {
-                    GetPanel();
-                }
-                return containerPanel;
-            }
-        }
-
-        private HorizontalAlignment Position =>
-            Role == ChatRole.Assistant ? HorizontalAlignment.Left :
-            Role == ChatRole.User ? HorizontalAlignment.Left :
-            HorizontalAlignment.Center;
-
-        private DockStyle DockStyle =>
-            Role == ChatRole.Assistant ? DockStyle.Left :
-            Role == ChatRole.User ? DockStyle.Right :
-            DockStyle.Top;
-
-        private Color BackColor =>
-            Role == ChatRole.User ? ChatMessageHistory.UserBackgroundColor :
-            Role == ChatRole.Assistant ? ChatMessageHistory.AssistansBackgroundColor :
-            ChatMessageHistory.OtherBackgroundColor;
-
-        private Color ForeColor =>
-            Role == ChatRole.User ? ChatMessageHistory.UserTextColor :
-            Role == ChatRole.Assistant ? ChatMessageHistory.AssistansTextColor :
-            ChatMessageHistory.OtherTextColor;
-
-        private void GetPanel()
-        {
-            // Create the context menu for the message panel and text boxes
-            var contextMenu = new ContextMenuStrip();
-            var copyMenuItem = new ToolStripMenuItem { Text = "Copy" };
-            contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem });
-            copyMenuItem.Click += new System.EventHandler(copyMenuItem_Click);
-
-            // Create the container panel and content panel
-            containerPanel = new Panel
-            {
-                Tag = this,
-                Padding = new Padding(2, 4, 2, 0),
-                Dock = DockStyle.Bottom,
-            };
-            containerPanel.ContextMenuStrip = contextMenu;
-            containerPanel.Resize += Panel_Resize;
-
-            // Add the container panel to contain the message and stamp
-            contentPanel = new Panel
-            {
-                BackColor = BackColor,
-                Padding = new Padding(4),
-                Width = (containerPanel.Width * messageWidthPercent) / 100,
-                Height = 60,
-                Dock = DockStyle
-            };
-            contentPanel.ContextMenuStrip = contextMenu;
-            containerPanel.Controls.Add(contentPanel);
-
-            // Create the message text box
-            messageTextBox = new RichTextBox
-            {
-                BackColor = BackColor,
-                ForeColor = ForeColor,
-                BorderStyle = BorderStyle.None,
-                Dock = DockStyle.Fill,
-                ScrollBars = RichTextBoxScrollBars.Both,
-                WordWrap = true,
-                ReadOnly = true,
-            };
-            if (false && Text.Contains("`"))
-            {
-                //messageTextBox.Rtf = MarkdownToRtfConverter.Convert(this.Text);
-            }
-            else
-            {
-                messageTextBox.Text = Text ?? "(no message)";
-            }
-            messageTextBox.ContextMenuStrip = contextMenu;
-            messageTextBox.ContentsResized += Message_ContentsResized;
-
-            // Create the stamp text box
-            stampTextBox = new TextBox
-            {
-                BackColor = BackColor,
-                ForeColor = ForeColor,
-                BorderStyle = BorderStyle.None,
-                Text = $"{Sender} @ {TimeStamp:T}",
-                TextAlign = HorizontalAlignment.Right,
-                Dock = DockStyle.Bottom,
-                ReadOnly = true,
-            };
-            stampTextBox.ContextMenuStrip = contextMenu;
-
-            // Adding message and stamp text boxes to the content panel
-            contentPanel.Controls.Add(stampTextBox);
-            contentPanel.Controls.Add(messageTextBox);
-        }
-
-        private void Message_ContentsResized(object sender, ContentsResizedEventArgs e)
-        {
-            if (sender == messageTextBox)
-            {
-                var cntheight =
-                    e.NewRectangle.Height +         // text height
-                    stampTextBox.Height +           // stamp height
-                    containerPanel.Padding.Top +    // panel padding
-                    containerPanel.Padding.Bottom +
-                    contentPanel.Padding.Top +      // content padding
-                    contentPanel.Padding.Bottom;
-                containerPanel.Height = cntheight;
-            }
-        }
-
-        private void Panel_Resize(object sender, EventArgs e)
-        {
-            if (!(sender is Panel panel))
-            {
-                return;
-            }
-            var width = panel.Width;
-            contentPanel.Width = (width * messageWidthPercent) / 100;
-            contentPanel.Left = Role == ChatRole.Assistant ? 0 :
-                Role == ChatRole.User ? width - contentPanel.Width :
-                (width - contentPanel.Width) / 2;
-        }
-
-        private void copyMenuItem_Click(object sender, EventArgs e)
-        {
-            Clipboard.SetText($"{Text}{Environment.NewLine}// {Sender} @ {TimeStamp:T}");
         }
     }
 

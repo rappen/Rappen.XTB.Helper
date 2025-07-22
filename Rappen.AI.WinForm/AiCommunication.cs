@@ -15,16 +15,14 @@ namespace Rappen.AI.WinForm
         /// <summary>
         /// Calls the AI model with the given prompt and handles the response.
         /// </summary>
-        /// <param name="prompt">The question/statement from you to the AI</param>
-        /// <param name="supplier">AI supplier, e.g. 'OpenAI' or 'Anthropic'</param>
-        /// <param name="model">The model/version of the supplier</param>
-        /// <param name="apikey">The API key needed to know you account</param>
-        /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
         /// <param name="tool">The tool in XrmToolBox that is calling this method</param>
+        /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
+        /// <param name="apikey">The API key needed to know you account</param>
+        /// <param name="prompt">The question/statement from you to the AI</param>
         /// <param name="handleResponse">The method that handles the response from AI</param>
         /// <param name="internalTools">This may containg 0-x methods that can be called inside this method, bepending on what the AI may need/help us</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public static void CallingAI(string prompt, string supplier, string model, string apikey, ChatMessageHistory chatMessageHistory, PluginControlBase tool, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
+        public static void CallingAIAsync(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -39,14 +37,14 @@ namespace Rappen.AI.WinForm
             chatMessageHistory.Add(ChatRole.User, prompt, false);
             chatMessageHistory.IsRunning = true;
 
-            var clientBuilder = GetChatClientBuilder(supplier, model, apikey);
+            var clientBuilder = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey);
 
             tool.WorkAsync(new WorkAsyncInfo
             {
-                Message = $"Asking {supplier}...",
+                Message = $"Asking {chatMessageHistory.Supplier}...",
                 Work = (w, a) =>
                 {
-                    a.Result = AskAI(clientBuilder, chatMessageHistory, internalTools);
+                    a.Result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -54,7 +52,7 @@ namespace Rappen.AI.WinForm
                     chatMessageHistory.IsRunning = false;
                     if (w.Error != null)
                     {
-                        tool.LogError($"Error while communicating with {supplier}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+                        tool.LogError($"Error while communicating with {chatMessageHistory.Supplier}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
                         if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -70,7 +68,7 @@ namespace Rappen.AI.WinForm
                         }
                         else
                         {
-                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{supplier} {model}");
+                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.Supplier} {chatMessageHistory.Model}");
                         }
                         handleResponse?.Invoke(null);
                     }
@@ -84,13 +82,48 @@ namespace Rappen.AI.WinForm
         }
 
         /// <summary>
+        /// Calls the AI model with the given prompt and returns the response.
+        /// </summary>
+        /// <param name="chatMessageHistory"></param>
+        /// <param name="apikey"></param>
+        /// <param name="prompt"></param>
+        /// <param name="internalTools"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static ChatResponse CallingAI(ChatMessageHistory chatMessageHistory, string prompt, params Func<string, string>[] internalTools)
+        {
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                return null;
+            }
+            if (!chatMessageHistory.Initialized)
+            {
+                throw new InvalidOperationException("ChatMessageHistory is not initialized. Please call InitializeIfNeeded with a system prompt before using this method.");
+            }
+
+            chatMessageHistory.Add(ChatRole.User, prompt, false);
+            chatMessageHistory.IsRunning = true;
+
+            var clientBuilder = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey);
+
+            var result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
+            chatMessageHistory.IsRunning = false;
+            if (result == null)
+            {
+                throw new InvalidOperationException("AI response is null. Please check the AI communication.");
+            }
+            chatMessageHistory.Add(result);
+            return result;
+        }
+
+        /// <summary>
         /// Perform a 'Sampling' request to the AI model. 'Sampling' is a concept from Model Context Protocol (MCP) where an AI-function can call the AI internally, without any support for function calling.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, string supplier, string model, string apikey)
+        public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, ChatMessageHistory chatMessageHistory)
         {
-            using (IChatClient chatClient = GetChatClientBuilder(supplier, model, apikey).Build())
+            using (IChatClient chatClient = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey).Build())
             {
                 var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
                 {
@@ -107,7 +140,7 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static ChatResponse AskAI(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
+        private static ChatResponse CallingAI(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
             using (IChatClient chatClient = clientBuilder.UseFunctionInvocation().Build())
             {
