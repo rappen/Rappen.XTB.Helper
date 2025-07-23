@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DateTimeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\EntityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\Exception.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataForAI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimplyTokensExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringFormats.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LCGConstsEnvironment.cs" />
