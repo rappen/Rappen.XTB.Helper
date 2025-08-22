@@ -1,4 +1,6 @@
 ﻿using Anthropic;
+using Azure;
+using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using Rappen.XRM.Helpers.Extensions;
@@ -12,6 +14,8 @@ namespace Rappen.AI.WinForm
 {
     public static class AiCommunication
     {
+        private const string azureAiFoundryUrl = "https://jonas-memkd5sa-eastus2.cognitiveservices.azure.com/";
+
         /// <summary>
         /// Calls the AI model with the given prompt and handles the response.
         /// </summary>
@@ -163,12 +167,13 @@ namespace Rappen.AI.WinForm
             IChatClient client =
                 supplier == "Anthropic" ? new AnthropicClient(apikey) :
                 supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
+                supplier == "Azure AI Foundry" ? new AzureOpenAIClient(new Uri(azureAiFoundryUrl), new AzureKeyCredential(apikey)).GetChatClient(model).AsIChatClient() :
                 throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
 
             return client.AsBuilder().ConfigureOptions(options =>
             {
                 options.ModelId = model;
-                options.MaxOutputTokens = 4096;
+                //options.MaxOutputTokens = 4096;       // accepterar inte Azure.AI !
             });
         }
     }
