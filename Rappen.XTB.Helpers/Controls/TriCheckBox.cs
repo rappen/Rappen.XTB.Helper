@@ -82,5 +82,17 @@ namespace Rappen.XTB.Helpers.Controls
                 TriCheckBox_CheckStateChanged(null, null);
             }
         }
+
+        [ReadOnly(true)]
+        [Browsable(false)]
+        public new bool Checked => CheckState == CheckState.Checked;
+
+        [ReadOnly(true)]
+        [Browsable(false)]
+        public bool Unchecked => CheckState == CheckState.Unchecked;
+
+        [ReadOnly(true)]
+        [Browsable(false)]
+        public bool Indeterminate => CheckState == CheckState.Indeterminate;
     }
 }
