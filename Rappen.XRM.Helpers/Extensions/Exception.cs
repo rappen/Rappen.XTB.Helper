@@ -13,5 +13,8 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             return type;
         }
+
+        public static string ExceptionDetails(this Exception ex, int level = 0) => ex == null ? string.Empty :
+              $"{new string(' ', level * 2)}{ex.Message}{Environment.NewLine}{ex.InnerException.ExceptionDetails(level + 1)}".Trim();
     }
 }

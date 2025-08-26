@@ -68,5 +68,28 @@ namespace Rappen.XRM.Helpers.Extensions
                 return stringWriter.ToString();
             }
         }
+
+        public static bool EqualXml(this string s1, string s2)
+        {
+            var x1 = new XmlDocument();
+            try
+            {
+                x1.LoadXml(s1);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            var x2 = new XmlDocument();
+            try
+            {
+                x2.LoadXml(s2);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            return x1.OuterXml.Equals(x2.OuterXml, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
