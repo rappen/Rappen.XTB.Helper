@@ -17,6 +17,8 @@ namespace Rappen.AI.WinForm
         public Prompts Prompts { get; set; } = new Prompts();
         public List<AiSupplier> AiSuppliers { get; set; } = new List<AiSupplier>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
+        public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
+        public string WpfToUseForFree { get; set; } = "18554";
 
         public AiSupport() { }
 
@@ -42,12 +44,16 @@ namespace Rappen.AI.WinForm
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
         public override string ToString() => Name;
+
+        public bool IsFree => Name.ToLowerInvariant().Contains("free");
     }
 
     public class AiModel
     {
         public string Name { get; set; }
         public string Url { get; set; }
+        public string Endpoint { get; set; }
+        public string ApiKey { get; set; }
         public Prompts Prompts { get; set; } = new Prompts();
 
         public override string ToString() => Name;
