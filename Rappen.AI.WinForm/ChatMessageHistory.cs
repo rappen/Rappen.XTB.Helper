@@ -27,6 +27,7 @@ namespace Rappen.AI.WinForm
         private TextBox waitingtxt;
 
         internal readonly string Supplier;
+        internal readonly string Endpoint;
         internal readonly string Model;
         internal readonly string ApiKey;
 
@@ -34,10 +35,11 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string supplier, string model, string apikey, string user = null)
+        public ChatMessageHistory(Panel parent, string supplier, string endpoint, string model, string apikey, string user)
         {
             this.parent = parent;
             Supplier = supplier;
+            Endpoint = endpoint;
             Model = model;
             ApiKey = apikey;
             this.user = user;
