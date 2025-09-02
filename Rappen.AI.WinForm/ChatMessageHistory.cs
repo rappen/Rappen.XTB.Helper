@@ -172,6 +172,12 @@ namespace Rappen.AI.WinForm
             }
         }
 
+        public long? TokensOut => Responses?.TokensOut;
+
+        public long? TokensIn => Responses?.TokensIn;
+
+        public long? TokensTotal => Responses?.TokensTotal;
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             timerno = timerno < 15 ? timerno + 1 : 0;
@@ -182,6 +188,10 @@ namespace Rappen.AI.WinForm
 
     public class ChatResponseList : List<ChatResponse>
     {
-        public string UsageToString() => $"Answers: {Count} Tokens: In {this.Sum(r => r.Usage.InputTokenCount)}, Out {this.Sum(r => r.Usage.OutputTokenCount)}, Total {this.Sum(r => r.Usage.TotalTokenCount)}";
+        public long TokensOut => this.Sum(r => r.Usage.OutputTokenCount) ?? 0;
+        public long TokensIn => this.Sum(r => r.Usage.InputTokenCount) ?? 0;
+        public long TokensTotal => this.Sum(r => r.Usage.TotalTokenCount) ?? 0;
+
+        public string UsageToString() => $"Answers: {Count} Tokens: Out {TokensOut}, In {TokensIn}, Total {TokensTotal}";
     }
 }
