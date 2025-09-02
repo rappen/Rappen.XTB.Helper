@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Rappen.AI.WinForm
@@ -10,6 +11,7 @@ namespace Rappen.AI.WinForm
         public string ApiKey { get; set; }
         public string MyName { get; set; }
         public int Calls { get; set; }
+        public bool LogConversation { get; set; } = true;
     }
 
     public class AiSupport
@@ -19,6 +21,8 @@ namespace Rappen.AI.WinForm
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
         public string WpfToUseForFree { get; set; } = "18554";
+        public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
+        public Guid InstrumentationKey { get; set; } = new Guid("20d1c6c6-ff92-4d00-aa6b-6d6d3f7f5ad6");
 
         public AiSupport() { }
 
