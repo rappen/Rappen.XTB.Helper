@@ -22,7 +22,7 @@ namespace Rappen.AI.WinForm
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
         public string WpfToUseForFree { get; set; } = "18554";
         public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
-        public Guid InstrumentationKey { get; set; } = new Guid("20d1c6c6-ff92-4d00-aa6b-6d6d3f7f5ad6");
+        public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
 
         public AiSupport() { }
 
