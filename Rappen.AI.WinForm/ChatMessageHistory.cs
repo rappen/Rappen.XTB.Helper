@@ -88,11 +88,18 @@ namespace Rappen.AI.WinForm
                 return;
             }
             var folder = Path.GetDirectoryName(file);
-            if (!Directory.Exists(folder))
+            try
             {
-                Directory.CreateDirectory(folder);
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+                File.WriteAllText(file, ToString());
             }
-            File.WriteAllText(file, ToString());
+            catch (Exception ex)
+            {
+                MessageBoxEx.Show($"Could not save chat history to file:{Environment.NewLine}  {file}{Environment.NewLine}{Environment.NewLine}{ex.Message}", "Error saving chat history", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public string Save(string folder, string tool)

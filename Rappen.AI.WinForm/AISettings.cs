@@ -11,7 +11,7 @@ namespace Rappen.AI.WinForm
         public string ApiKey { get; set; }
         public string MyName { get; set; }
         public int Calls { get; set; }
-        public bool LogConversation { get; set; } = true;
+        public bool LogConversation { get; set; }
     }
 
     public class AiSupport
