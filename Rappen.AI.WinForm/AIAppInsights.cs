@@ -12,13 +12,13 @@ using XrmToolBox.Extensibility;
 
 namespace Rappen.AI.WinForm
 {
-    //public static class Extensions
-    //{
-    //    public static string PaddedVersion(this Version version, int majorpad, int minorpad, int buildpad, int revisionpad)
-    //    {
-    //        return string.Format($"{{0:D{majorpad}}}.{{1:D{minorpad}}}.{{2:D{buildpad}}}.{{3:D{revisionpad}}}", version.Major, version.Minor, version.Build, version.Revision);
-    //    }
-    //}
+    public static class Extensions
+    {
+        public static string Padded(this Version version, int majorpad, int minorpad, int buildpad, int revisionpad)
+        {
+            return string.Format($"{{0:D{majorpad}}}.{{1:D{minorpad}}}.{{2:D{buildpad}}}.{{3:D{revisionpad}}}", version.Major, version.Minor, version.Build, version.Revision);
+        }
+    }
 
     public class AIAiConfig
     {
@@ -39,9 +39,9 @@ namespace Rappen.AI.WinForm
             InstrumentationKey = ikey;
             UserId = InstallationInfo.Instance.InstallationId;
             XTB = GetLastDotPart(Assembly.GetEntryAssembly().GetName().Name);
-            Version = Assembly.GetEntryAssembly().GetName().Version.PaddedVersion(1, 4, 2, 2);
+            Version = Assembly.GetEntryAssembly().GetName().Version.Padded(1, 4, 2, 2);
             PluginName = Tool.ToolName;
-            PluginVersion = assembly.GetName().Version.PaddedVersion(1, 4, 2, 2);
+            PluginVersion = assembly.GetName().Version.Padded(1, 4, 2, 2);
             OperationName = provider;
             OperationId = model;
 
