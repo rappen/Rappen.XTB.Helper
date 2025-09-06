@@ -42,7 +42,7 @@ namespace Rappen.AI.WinForm
     {
         public string Name { get; set; }
         public string Url { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public Prompts Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
@@ -54,13 +54,41 @@ namespace Rappen.AI.WinForm
 
     public class AiModel
     {
+        private const int interval = 5;
         public string Name { get; set; }
         public string Url { get; set; }
         public string Endpoint { get; set; }
         public string ApiKey { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public Prompts Prompts { get; set; }
 
         public override string ToString() => Name;
+
+        internal string ApiKeyDecrypted
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(ApiKey))
+                {
+                    return string.Empty;
+                }
+                var x = "";
+                for (int i = 0; i < ApiKey.Length; i++) if ((i + 1) % (interval + 1) != 0) x += ApiKey[i];
+                try
+                {
+                    return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(x));
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+            set
+            {
+                var random = new Random();
+                ApiKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(value));
+                for (int i = interval; i < ApiKey.Length; i += interval + 1) ApiKey = ApiKey.Insert(i, ((char)random.Next('a', 'z')).ToString());
+            }
+        }
     }
 
     public class PopupByCallNo
