@@ -68,12 +68,6 @@ namespace Rappen.AI.WinForm
 
         private void GetPanel()
         {
-            // Create the context menu for the message panel and text boxes
-            var contextMenu = new ContextMenuStrip();
-            var copyMenuItem = new ToolStripMenuItem { Text = "Copy" };
-            contextMenu.Items.AddRange(new ToolStripItem[] { copyMenuItem });
-            copyMenuItem.Click += new System.EventHandler(copyMenuItem_Click);
-
             // Create the container panel and content panel
             containerPanel = new Panel
             {
@@ -81,7 +75,6 @@ namespace Rappen.AI.WinForm
                 Padding = new Padding(2, 4, 2, 0),
                 Dock = DockStyle.Bottom,
             };
-            containerPanel.ContextMenuStrip = contextMenu;
             containerPanel.Resize += Panel_Resize;
 
             // Add the container panel to contain the message and stamp
@@ -93,7 +86,6 @@ namespace Rappen.AI.WinForm
                 Height = 60,
                 Dock = DockStyle
             };
-            contentPanel.ContextMenuStrip = contextMenu;
             containerPanel.Controls.Add(contentPanel);
 
             // Create the message text box
@@ -115,8 +107,8 @@ namespace Rappen.AI.WinForm
             {
                 messageTextBox.Text = Text ?? "(no message)";
             }
-            messageTextBox.ContextMenuStrip = contextMenu;
             messageTextBox.ContentsResized += Message_ContentsResized;
+            messageTextBox.LinkClicked += Message_LinkClicked;
 
             // Create the stamp text box
             stampTextBox = new TextBox
@@ -129,7 +121,6 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Bottom,
                 ReadOnly = true,
             };
-            stampTextBox.ContextMenuStrip = contextMenu;
 
             // Adding message and stamp text boxes to the content panel
             contentPanel.Controls.Add(stampTextBox);
@@ -149,6 +140,15 @@ namespace Rappen.AI.WinForm
                     contentPanel.Padding.Bottom;
                 containerPanel.Height = cntheight;
             }
+        }
+
+        private void Message_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = e.LinkText,
+                UseShellExecute = true
+            });
         }
 
         private void Panel_Resize(object sender, EventArgs e)
