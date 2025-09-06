@@ -1,4 +1,6 @@
 ﻿using Anthropic;
+using Azure;
+using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using Rappen.XRM.Helpers.Extensions;
@@ -37,7 +39,7 @@ namespace Rappen.AI.WinForm
             chatMessageHistory.Add(ChatRole.User, prompt, false);
             chatMessageHistory.IsRunning = true;
 
-            var clientBuilder = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey);
+            var clientBuilder = GetChatClientBuilder(chatMessageHistory);
 
             tool.WorkAsync(new WorkAsyncInfo
             {
@@ -104,7 +106,7 @@ namespace Rappen.AI.WinForm
             chatMessageHistory.Add(ChatRole.User, prompt, false);
             chatMessageHistory.IsRunning = true;
 
-            var clientBuilder = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey);
+            var clientBuilder = GetChatClientBuilder(chatMessageHistory);
 
             var result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
             chatMessageHistory.IsRunning = false;
@@ -123,7 +125,7 @@ namespace Rappen.AI.WinForm
         /// <exception cref="InvalidOperationException"></exception>
         public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, ChatMessageHistory chatMessageHistory)
         {
-            using (IChatClient chatClient = GetChatClientBuilder(chatMessageHistory.Supplier, chatMessageHistory.Model, chatMessageHistory.ApiKey).Build())
+            using (IChatClient chatClient = GetChatClientBuilder(chatMessageHistory).Build())
             {
                 var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
                 {
@@ -158,17 +160,24 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static ChatClientBuilder GetChatClientBuilder(string supplier, string model, string apikey)
+        private static ChatClientBuilder GetChatClientBuilder(ChatMessageHistory chatMessageHistory)
         {
             IChatClient client =
-                supplier == "Anthropic" ? new AnthropicClient(apikey) :
-                supplier == "OpenAI" ? new ChatClient(model, apikey).AsIChatClient() :
-                throw new NotImplementedException($"AI Supplier {supplier} not implemented!");
+                chatMessageHistory.Supplier == "Anthropic" ?
+                    new AnthropicClient(chatMessageHistory.ApiKey) :
+                chatMessageHistory.Supplier == "OpenAI" ?
+                    new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient() :
+                chatMessageHistory.Supplier.Contains("Azure AI Foundry") ?
+                    new AzureOpenAIClient(
+                        new Uri(chatMessageHistory.Endpoint),
+                        new AzureKeyCredential(chatMessageHistory.ApiKey))
+                    .GetChatClient(chatMessageHistory.Model).AsIChatClient() :
+                throw new NotImplementedException($"AI Supplier {chatMessageHistory.Supplier} not implemented!");
 
             return client.AsBuilder().ConfigureOptions(options =>
             {
-                options.ModelId = model;
-                options.MaxOutputTokens = 4096;
+                options.ModelId = chatMessageHistory.Model;
+                //options.MaxOutputTokens = 4096;       // accepterar inte Azure.AI !
             });
         }
     }

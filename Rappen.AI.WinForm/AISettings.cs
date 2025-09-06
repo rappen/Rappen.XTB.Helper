@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Rappen.AI.WinForm
@@ -10,6 +11,7 @@ namespace Rappen.AI.WinForm
         public string ApiKey { get; set; }
         public string MyName { get; set; }
         public int Calls { get; set; }
+        public bool LogConversation { get; set; }
     }
 
     public class AiSupport
@@ -17,6 +19,10 @@ namespace Rappen.AI.WinForm
         public Prompts Prompts { get; set; } = new Prompts();
         public List<AiSupplier> AiSuppliers { get; set; } = new List<AiSupplier>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
+        public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
+        public string WpfToUseForFree { get; set; } = "18554";
+        public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
+        public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
 
         public AiSupport() { }
 
@@ -36,21 +42,53 @@ namespace Rappen.AI.WinForm
     {
         public string Name { get; set; }
         public string Url { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public Prompts Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
         public override string ToString() => Name;
+
+        public bool IsFree => Name.ToLowerInvariant().Contains("free");
     }
 
     public class AiModel
     {
+        private const int interval = 5;
         public string Name { get; set; }
         public string Url { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public string Endpoint { get; set; }
+        public string ApiKey { get; set; }
+        public Prompts Prompts { get; set; }
 
         public override string ToString() => Name;
+
+        internal string ApiKeyDecrypted
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(ApiKey))
+                {
+                    return string.Empty;
+                }
+                var x = "";
+                for (int i = 0; i < ApiKey.Length; i++) if ((i + 1) % (interval + 1) != 0) x += ApiKey[i];
+                try
+                {
+                    return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(x));
+                }
+                catch
+                {
+                    return string.Empty;
+                }
+            }
+            set
+            {
+                var random = new Random();
+                ApiKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(value));
+                for (int i = interval; i < ApiKey.Length; i += interval + 1) ApiKey = ApiKey.Insert(i, ((char)random.Next('a', 'z')).ToString());
+            }
+        }
     }
 
     public class PopupByCallNo

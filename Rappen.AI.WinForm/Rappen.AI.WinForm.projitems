@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AiCommunication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AISettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AIAppInsights.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageHistory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageLog.cs" />
   </ItemGroup>

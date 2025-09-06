@@ -27,6 +27,7 @@ namespace Rappen.AI.WinForm
         private TextBox waitingtxt;
 
         internal readonly string Supplier;
+        internal readonly string Endpoint;
         internal readonly string Model;
         internal readonly string ApiKey;
 
@@ -34,10 +35,11 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string supplier, string model, string apikey, string user = null)
+        public ChatMessageHistory(Panel parent, string supplier, string endpoint, string model, string apikey, string user)
         {
             this.parent = parent;
             Supplier = supplier;
+            Endpoint = endpoint;
             Model = model;
             ApiKey = apikey;
             this.user = user;
@@ -86,11 +88,18 @@ namespace Rappen.AI.WinForm
                 return;
             }
             var folder = Path.GetDirectoryName(file);
-            if (!Directory.Exists(folder))
+            try
             {
-                Directory.CreateDirectory(folder);
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+                File.WriteAllText(file, ToString());
             }
-            File.WriteAllText(file, ToString());
+            catch (Exception ex)
+            {
+                MessageBoxEx.Show($"Could not save chat history to file:{Environment.NewLine}  {file}{Environment.NewLine}{Environment.NewLine}{ex.Message}", "Error saving chat history", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public string Save(string folder, string tool)
@@ -170,6 +179,12 @@ namespace Rappen.AI.WinForm
             }
         }
 
+        public long? TokensOut => Responses?.TokensOut;
+
+        public long? TokensIn => Responses?.TokensIn;
+
+        public long? TokensTotal => Responses?.TokensTotal;
+
         private void Timer_Tick(object sender, EventArgs e)
         {
             timerno = timerno < 15 ? timerno + 1 : 0;
@@ -180,6 +195,10 @@ namespace Rappen.AI.WinForm
 
     public class ChatResponseList : List<ChatResponse>
     {
-        public string UsageToString() => $"Answers: {Count} Tokens: In {this.Sum(r => r.Usage.InputTokenCount)}, Out {this.Sum(r => r.Usage.OutputTokenCount)}, Total {this.Sum(r => r.Usage.TotalTokenCount)}";
+        public long TokensOut => this.Sum(r => r.Usage.OutputTokenCount) ?? 0;
+        public long TokensIn => this.Sum(r => r.Usage.InputTokenCount) ?? 0;
+        public long TokensTotal => this.Sum(r => r.Usage.TotalTokenCount) ?? 0;
+
+        public string UsageToString() => $"Answers: {Count} Tokens: Out {TokensOut}, In {TokensIn}, Total {TokensTotal}";
     }
 }
