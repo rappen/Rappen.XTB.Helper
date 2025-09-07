@@ -162,17 +162,27 @@ namespace Rappen.AI.WinForm
 
         private static ChatClientBuilder GetChatClientBuilder(ChatMessageHistory chatMessageHistory)
         {
-            IChatClient client =
-                chatMessageHistory.Supplier == "Anthropic" ?
-                    new AnthropicClient(chatMessageHistory.ApiKey) :
-                chatMessageHistory.Supplier == "OpenAI" ?
-                    new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient() :
-                chatMessageHistory.Supplier.ToLowerInvariant().Contains("foundry") && chatMessageHistory.Model.ToLowerInvariant().Contains("gpt") ?
-                    new AzureOpenAIClient(
-                        new Uri(chatMessageHistory.Endpoint),
-                        new AzureKeyCredential(chatMessageHistory.ApiKey))
-                    .GetChatClient(chatMessageHistory.Model).AsIChatClient() :
-                throw new NotImplementedException($"AI provider '{chatMessageHistory.Supplier}' not implemented!");
+            IChatClient client = null;
+            if (chatMessageHistory.Supplier == "Anthropic")
+            {
+                client = new AnthropicClient(chatMessageHistory.ApiKey);
+            }
+            else if (chatMessageHistory.Supplier == "OpenAI")
+            {
+                client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
+            }
+            else if (chatMessageHistory.Supplier.ToLowerInvariant().Contains("foundry") &&
+                     chatMessageHistory.Model.ToLowerInvariant().Contains("gpt"))
+            {
+                client = new AzureOpenAIClient(
+                    new Uri(chatMessageHistory.Endpoint),
+                    new AzureKeyCredential(chatMessageHistory.ApiKey))
+                .GetChatClient(chatMessageHistory.Model).AsIChatClient();
+            }
+            if (client == null)
+            {
+                throw new NotImplementedException($"AI provider '{chatMessageHistory.Supplier}' not (yet?) implemented.");
+            }
 
             return client.AsBuilder().ConfigureOptions(options =>
             {
