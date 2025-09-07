@@ -26,7 +26,7 @@ namespace Rappen.AI.WinForm
 
         public AiSupport() { }
 
-        public AiSupplier Supplier(string aisupplier) => AiSuppliers.FirstOrDefault(n => n.Name.Equals(aisupplier));
+        public AiSupplier Supplier(string aisupplier) => AiSuppliers.FirstOrDefault(n => n.ToString().Equals(aisupplier));
     }
 
     public class Prompts
@@ -41,15 +41,15 @@ namespace Rappen.AI.WinForm
     public class AiSupplier
     {
         public string Name { get; set; }
+        public string FullName { get; set; }
         public string Url { get; set; }
+        public bool Free { get; set; }
         public Prompts Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
-        public override string ToString() => Name;
-
-        public bool IsFree => Name.ToLowerInvariant().Contains("free");
+        public override string ToString() => string.IsNullOrWhiteSpace(FullName) ? Name : FullName;
     }
 
     public class AiModel
@@ -97,10 +97,11 @@ namespace Rappen.AI.WinForm
         public int RepeatEvery { get; set; } = 0; // 0 means no repeat
         public int StopAtCallNo { get; set; } = 0; // 0 means no stop
         public bool SuggestsSupporting { get; set; } = true; // Only show this popup if the user has not supported the tool yet
+        public bool ForFreeProviders { get; set; } = false; // Only show this popup if the user is using a free provider
         public string Message { get; set; }
         public string HelpUrl { get; set; }
 
-        public bool TimeToPopup(int CallNo, bool IsSupporting)
+        public bool TimeToPopup(int CallNo, bool IsSupporting, bool IsFree)
         {
             if (CallNo < StartAtCallNo)
             {   // Too early, no popup
@@ -112,6 +113,10 @@ namespace Rappen.AI.WinForm
             }
             if (SuggestsSupporting && IsSupporting)
             {   // User has already supported the tool, no need to suggest again
+                return false;
+            }
+            if (ForFreeProviders && !IsFree)
+            {   // User is not using a free provider, no need to popup
                 return false;
             }
             if (CallNo == StartAtCallNo)
