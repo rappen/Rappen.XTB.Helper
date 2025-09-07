@@ -167,12 +167,12 @@ namespace Rappen.AI.WinForm
                     new AnthropicClient(chatMessageHistory.ApiKey) :
                 chatMessageHistory.Supplier == "OpenAI" ?
                     new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient() :
-                chatMessageHistory.Supplier.Contains("Azure AI Foundry") ?
+                chatMessageHistory.Supplier.ToLowerInvariant().Contains("foundry") && chatMessageHistory.Model.ToLowerInvariant().Contains("gpt") ?
                     new AzureOpenAIClient(
                         new Uri(chatMessageHistory.Endpoint),
                         new AzureKeyCredential(chatMessageHistory.ApiKey))
                     .GetChatClient(chatMessageHistory.Model).AsIChatClient() :
-                throw new NotImplementedException($"AI Supplier {chatMessageHistory.Supplier} not implemented!");
+                throw new NotImplementedException($"AI provider '{chatMessageHistory.Supplier}' not implemented!");
 
             return client.AsBuilder().ConfigureOptions(options =>
             {
