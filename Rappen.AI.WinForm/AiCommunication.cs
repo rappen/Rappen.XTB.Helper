@@ -1,13 +1,18 @@
 ﻿using Anthropic;
 using Azure;
 using Azure.AI.OpenAI;
+using Azure.Core;
+using Azure.Core.Pipeline;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using Rappen.XRM.Helpers.Extensions;
 using System;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
+using XrmToolBox.AppCode.AppInsights;
 using XrmToolBox.Extensibility;
 
 namespace Rappen.AI.WinForm
@@ -168,9 +173,7 @@ namespace Rappen.AI.WinForm
                 chatMessageHistory.Supplier == "OpenAI" ?
                     new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient() :
                 chatMessageHistory.Supplier.Contains("Azure AI Foundry") ?
-                    new AzureOpenAIClient(
-                        new Uri(chatMessageHistory.Endpoint),
-                        new AzureKeyCredential(chatMessageHistory.ApiKey))
+                     getAzureOpenAiClient(chatMessageHistory)
                     .GetChatClient(chatMessageHistory.Model).AsIChatClient() :
                 throw new NotImplementedException($"AI Supplier {chatMessageHistory.Supplier} not implemented!");
 
@@ -179,6 +182,47 @@ namespace Rappen.AI.WinForm
                 options.ModelId = chatMessageHistory.Model;
                 //options.MaxOutputTokens = 4096;       // accepterar inte Azure.AI !
             });
+        }
+
+        private static AzureOpenAIClient getAzureOpenAiClient(ChatMessageHistory chatMessageHistory)
+        {
+
+            var options = new AzureOpenAIClientOptions();
+            options.AddPolicy(new XmsClientRequestIdPolicy(() => InstallationInfo.Instance.InstallationId.ToString()), PipelinePosition.PerCall);
+
+            var client = new AzureOpenAIClient(
+                              new Uri(chatMessageHistory.Endpoint),
+                              new AzureKeyCredential(chatMessageHistory.ApiKey), options);
+
+            return client;
+        }
+
+        sealed class XmsClientRequestIdPolicy : PipelinePolicy
+        {
+            private readonly Func<string> _valueProvider;
+            public XmsClientRequestIdPolicy(Func<string> valueProvider) => _valueProvider = valueProvider;
+
+            public override void Process(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
+            {
+                var id = _valueProvider?.Invoke();
+                if (!string.IsNullOrEmpty(id) &&
+                    !message.Request.Headers.TryGetValue("x-ms-client-request-id", out _))
+                {
+                    message.Request.Headers.Set("x-ms-client-request-id", id);
+                }
+                ProcessNext(message, pipeline, index);
+            }
+
+            public override ValueTask ProcessAsync(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int index)
+            {
+                var id = _valueProvider?.Invoke();
+                if (!string.IsNullOrEmpty(id) &&
+                    !message.Request.Headers.TryGetValue("x-ms-client-request-id", out _))
+                {
+                    message.Request.Headers.Set("x-ms-client-request-id", id);
+                }
+                return ProcessNextAsync(message, pipeline, index);
+            }
         }
     }
 }
