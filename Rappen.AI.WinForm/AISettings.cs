@@ -59,6 +59,7 @@ namespace Rappen.AI.WinForm
         public string Url { get; set; }
         public string Endpoint { get; set; }
         public string ApiKey { get; set; }
+        public bool? LogConversation { get; set; } = null;
         public Prompts Prompts { get; set; }
 
         public override string ToString() => Name;
