@@ -123,8 +123,12 @@ namespace Rappen.AI.WinForm
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static ChatResponse SamplingAI(string systemPrompt, string userPrompt, ChatMessageHistory chatMessageHistory)
+        public static ChatResponse SamplingAI(ChatMessageHistory chatMessageHistory, string systemPrompt, string userPrompt, string internalMessage)
         {
+            if (!string.IsNullOrWhiteSpace(internalMessage))
+            {
+                chatMessageHistory.Add(ChatRole.Assistant, internalMessage, false, true);
+            }
             using (IChatClient chatClient = GetChatClientBuilder(chatMessageHistory).Build())
             {
                 var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
