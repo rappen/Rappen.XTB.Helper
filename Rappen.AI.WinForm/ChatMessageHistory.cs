@@ -25,13 +25,14 @@ namespace Rappen.AI.WinForm
         private readonly Timer timer;
         private int timerno = 0;
         private TextBox waitingtxt;
-
+        private List<ChatMessageLog> messages = new List<ChatMessageLog>();
         internal readonly string Provider;
         internal readonly string Endpoint;
         internal readonly string Model;
         internal readonly string ApiKey;
 
-        internal List<ChatMessageLog> Messages { get; private set; }
+        internal List<ChatMessageLog> Messages => messages.Where(m => !m.OnlyInfo).ToList();
+        internal List<ChatMessageLog> AllMessages => messages;
 
         internal ChatResponseList Responses { get; private set; }
 
@@ -58,7 +59,7 @@ namespace Rappen.AI.WinForm
                 TextAlign = HorizontalAlignment.Center,
             };
             starttime = DateTime.Now;
-            Messages = new List<ChatMessageLog>();
+            messages = new List<ChatMessageLog>();
             Responses = new ChatResponseList();
             this.parent.BackColor = BackColor;
             this.parent.Controls.Clear();
@@ -68,7 +69,7 @@ namespace Rappen.AI.WinForm
         {
             return $"Started:  {starttime:G}{Environment.NewLine}Provider: {Provider}{Environment.NewLine}Model:    {Model}" +
                 $"{Environment.NewLine}{Environment.NewLine}" +
-                $"{string.Join(Environment.NewLine, Messages.Select(m => m.ToString()))}";
+                $"{string.Join(Environment.NewLine, messages.Select(m => m.ToString()))}";
         }
 
         public void Initialize(string intro)
@@ -83,7 +84,7 @@ namespace Rappen.AI.WinForm
 
         public void Save(string file)
         {
-            if (Messages?.Any() != true)
+            if (messages?.Any() != true)
             {
                 return;
             }
@@ -104,7 +105,7 @@ namespace Rappen.AI.WinForm
 
         public string Save(string folder, string tool)
         {
-            if (Messages?.Any() != true)
+            if (messages?.Any() != true)
             {
                 return null;
             }
@@ -113,20 +114,24 @@ namespace Rappen.AI.WinForm
             return path;
         }
 
-        public void Add(ChatRole role, string content, bool hidden)
+        public void Add(ChatRole role, string content, bool hidden, bool onlyinfo = false)
         {
             if (string.IsNullOrWhiteSpace(content))
             {
                 return;
             }
             var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? Provider : "";
-            var chatLog = new ChatMessageLog(role, content.Trim(), sender);
-            Messages.Add(chatLog);
+            var chatLog = new ChatMessageLog(role, content.Trim(), sender, onlyinfo);
+            messages.Add(chatLog);
             if (!hidden)
             {
-                parent.Controls.Add(chatLog.Panel);
-                parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
-                parent.PerformLayout();
+                MethodInvoker mi = () =>
+                {
+                    parent.Controls.Add(chatLog.Panel);
+                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                    parent.PerformLayout();
+                };
+                if (parent.InvokeRequired) parent.Invoke(mi); else mi();
             }
         }
 

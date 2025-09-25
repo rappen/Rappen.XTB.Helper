@@ -13,6 +13,8 @@ namespace Rappen.AI.WinForm
         private RichTextBox messageTextBox;
         private TextBox stampTextBox;
 
+        public bool OnlyInfo { get; }
+
         public readonly DateTime TimeStamp;
         public readonly string Sender;
 
@@ -26,13 +28,14 @@ namespace Rappen.AI.WinForm
             TimeStamp = DateTime.Now;
         }
 
-        public ChatMessageLog(ChatRole role, string content, string sender) : base(role, content)
+        public ChatMessageLog(ChatRole role, string content, string sender, bool onlyinfo) : base(role, content)
         {
+            OnlyInfo = onlyinfo;
             TimeStamp = DateTime.Now;
             Sender = string.IsNullOrEmpty(sender) ? role.ToString() : sender;
         }
 
-        public override string ToString() => $"{TimeStamp:G} - {Sender}{Environment.NewLine}{Text}{Environment.NewLine}";
+        public override string ToString() => $"{TimeStamp:G} - {Sender}{(OnlyInfo ? " - only for info" : "")}{Environment.NewLine}{Text}{Environment.NewLine}";
 
         internal Panel Panel
         {
@@ -121,6 +124,11 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Bottom,
                 ReadOnly = true,
             };
+            if (OnlyInfo)
+            {
+                messageTextBox.Font = new Font(messageTextBox.Font, FontStyle.Italic);
+                stampTextBox.Font = new Font(stampTextBox.Font, FontStyle.Italic);
+            }
 
             // Adding message and stamp text boxes to the content panel
             contentPanel.Controls.Add(stampTextBox);
