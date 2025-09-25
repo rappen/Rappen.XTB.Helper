@@ -6,7 +6,7 @@ namespace Rappen.AI.WinForm
 {
     public class AiSettings
     {
-        public string Supplier { get; set; }
+        public string Provider { get; set; }
         public string Model { get; set; }
         public string ApiKey { get; set; }
         public string MyName { get; set; }
@@ -17,7 +17,7 @@ namespace Rappen.AI.WinForm
     public class AiSupport
     {
         public Prompts Prompts { get; set; } = new Prompts();
-        public List<AiSupplier> AiSuppliers { get; set; } = new List<AiSupplier>();
+        public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
         public string WpfToUseForFree { get; set; } = "18554";
@@ -26,7 +26,7 @@ namespace Rappen.AI.WinForm
 
         public AiSupport() { }
 
-        public AiSupplier Supplier(string aisupplier) => AiSuppliers.FirstOrDefault(n => n.ToString().Equals(aisupplier));
+        public AiProvider Provider(string aiprovider) => AiProviders.FirstOrDefault(n => n.ToString().Equals(aiprovider));
     }
 
     public class Prompts
@@ -38,11 +38,13 @@ namespace Rappen.AI.WinForm
         public string AttributeMeta { get; set; }
     }
 
-    public class AiSupplier
+    public class AiProvider
     {
+        private const int interval = 5;
         public string Name { get; set; }
         public string FullName { get; set; }
         public string Url { get; set; }
+        public string ApiKey { get; set; }
         public bool Free { get; set; }
         public Prompts Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
@@ -50,19 +52,6 @@ namespace Rappen.AI.WinForm
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
         public override string ToString() => string.IsNullOrWhiteSpace(FullName) ? Name : FullName;
-    }
-
-    public class AiModel
-    {
-        private const int interval = 5;
-        public string Name { get; set; }
-        public string Url { get; set; }
-        public string Endpoint { get; set; }
-        public string ApiKey { get; set; }
-        public bool? LogConversation { get; set; } = null;
-        public Prompts Prompts { get; set; }
-
-        public override string ToString() => Name;
 
         internal string ApiKeyDecrypted
         {
@@ -90,6 +79,17 @@ namespace Rappen.AI.WinForm
                 for (int i = interval; i < ApiKey.Length; i += interval + 1) ApiKey = ApiKey.Insert(i, ((char)random.Next('a', 'z')).ToString());
             }
         }
+    }
+
+    public class AiModel
+    {
+        public string Name { get; set; }
+        public string Url { get; set; }
+        public string Endpoint { get; set; }
+        public bool? LogConversation { get; set; } = null;
+        public Prompts Prompts { get; set; }
+
+        public override string ToString() => Name;
     }
 
     public class PopupByCallNo

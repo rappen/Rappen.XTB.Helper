@@ -26,7 +26,7 @@ namespace Rappen.AI.WinForm
         private int timerno = 0;
         private TextBox waitingtxt;
 
-        internal readonly string Supplier;
+        internal readonly string Provider;
         internal readonly string Endpoint;
         internal readonly string Model;
         internal readonly string ApiKey;
@@ -35,10 +35,10 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string supplier, string endpoint, string model, string apikey, string user)
+        public ChatMessageHistory(Panel parent, string provider, string endpoint, string model, string apikey, string user)
         {
             this.parent = parent;
-            Supplier = supplier;
+            Provider = provider;
             Endpoint = endpoint;
             Model = model;
             ApiKey = apikey;
@@ -66,7 +66,7 @@ namespace Rappen.AI.WinForm
 
         public override string ToString()
         {
-            return $"Started:  {starttime:G}{Environment.NewLine}Supplier: {Supplier}{Environment.NewLine}Model:    {Model}" +
+            return $"Started:  {starttime:G}{Environment.NewLine}Provider: {Provider}{Environment.NewLine}Model:    {Model}" +
                 $"{Environment.NewLine}{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, Messages.Select(m => m.ToString()))}";
         }
@@ -108,7 +108,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{Supplier ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{Provider ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
@@ -119,7 +119,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? Supplier : "";
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? Provider : "";
             var chatLog = new ChatMessageLog(role, content.Trim(), sender);
             Messages.Add(chatLog);
             if (!hidden)

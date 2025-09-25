@@ -43,7 +43,7 @@ namespace Rappen.AI.WinForm
 
             tool.WorkAsync(new WorkAsyncInfo
             {
-                Message = $"Asking {chatMessageHistory.Supplier}...",
+                Message = $"Asking {chatMessageHistory.Provider}...",
                 Work = (w, a) =>
                 {
                     a.Result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
@@ -54,7 +54,7 @@ namespace Rappen.AI.WinForm
                     chatMessageHistory.IsRunning = false;
                     if (w.Error != null)
                     {
-                        tool.LogError($"Error while communicating with {chatMessageHistory.Supplier}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+                        tool.LogError($"Error while communicating with {chatMessageHistory.Provider}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
                         if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -70,7 +70,7 @@ namespace Rappen.AI.WinForm
                         }
                         else
                         {
-                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.Supplier} {chatMessageHistory.Model}");
+                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.Provider} {chatMessageHistory.Model}");
                         }
                         handleResponse?.Invoke(null);
                     }
@@ -163,15 +163,15 @@ namespace Rappen.AI.WinForm
         private static ChatClientBuilder GetChatClientBuilder(ChatMessageHistory chatMessageHistory)
         {
             IChatClient client = null;
-            if (chatMessageHistory.Supplier == "Anthropic")
+            if (chatMessageHistory.Provider == "Anthropic")
             {
                 client = new AnthropicClient(chatMessageHistory.ApiKey);
             }
-            else if (chatMessageHistory.Supplier == "OpenAI")
+            else if (chatMessageHistory.Provider == "OpenAI")
             {
                 client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
             }
-            else if (chatMessageHistory.Supplier.ToLowerInvariant().Contains("foundry") &&
+            else if (chatMessageHistory.Provider.ToLowerInvariant().Contains("foundry") &&
                      chatMessageHistory.Model.ToLowerInvariant().Contains("gpt"))
             {
                 client = new AzureOpenAIClient(
@@ -181,7 +181,7 @@ namespace Rappen.AI.WinForm
             }
             if (client == null)
             {
-                throw new NotImplementedException($"AI provider '{chatMessageHistory.Supplier}' not (yet?) implemented.");
+                throw new NotImplementedException($"AI provider '{chatMessageHistory.Provider}' not (yet?) implemented.");
             }
 
             return client.AsBuilder().ConfigureOptions(options =>
