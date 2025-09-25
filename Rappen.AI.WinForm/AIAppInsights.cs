@@ -91,7 +91,10 @@ namespace Rappen.AI.WinForm
         public void WriteEvent(string eventName, double? count = null, double? duration = null, long? tokensout = null, long? tokensin = null, string message = null, Action<string> resultHandler = null)
         {
             _aiConfig.Tool.LogInfo($"{eventName}{(count != null ? $" Count: {count}" : "")}{(duration != null ? $" Duration: {duration}" : "")}");
-            //if (!_aiConfig.LogEvents) return;
+            if (!_aiConfig.LogEvents)
+            {
+                return;
+            }
             var logRequest = GetLogRequest("Event");
             logRequest.Data.BaseData.Name = eventName;
             logRequest.Data.BaseData.Measurements = new AIAiMeasurements
@@ -131,7 +134,7 @@ namespace Rappen.AI.WinForm
         private async void SendToAi(string json, Action<string> handleresult = null)
         {
             var result = string.Empty;
-#if DEBUGx
+#if DEBUG
 #else
             try
             {
