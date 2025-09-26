@@ -21,6 +21,7 @@ namespace Rappen.AI.WinForm
 
         private Panel parent;
         private readonly string user;
+        private readonly string onlyinfouser;
         private readonly DateTime starttime;
         private readonly Timer timer;
         private int timerno = 0;
@@ -36,7 +37,7 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string provider, string endpoint, string model, string apikey, string user)
+        public ChatMessageHistory(Panel parent, string provider, string endpoint, string model, string apikey, string user, string onlyinfouser)
         {
             this.parent = parent;
             Provider = provider;
@@ -44,6 +45,7 @@ namespace Rappen.AI.WinForm
             Model = model;
             ApiKey = apikey;
             this.user = user;
+            this.onlyinfouser = string.IsNullOrWhiteSpace(onlyinfouser) ? user : onlyinfouser;
             timer = new Timer
             {
                 Interval = 100,
@@ -120,7 +122,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? Provider : "";
+            var sender = onlyinfo ? onlyinfouser : role == ChatRole.User ? user : role == ChatRole.Assistant ? Provider : "";
             var chatLog = new ChatMessageLog(role, content.Trim(), sender, onlyinfo);
             messages.Add(chatLog);
             if (!hidden)

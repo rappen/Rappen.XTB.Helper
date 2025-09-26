@@ -17,6 +17,7 @@ namespace Rappen.AI.WinForm
     public class AiSupport
     {
         public string TextToRequestFreeAi { get; set; }
+        public string OnlyInfoName { get; set; }
         public Prompts Prompts { get; set; } = new Prompts();
         public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
