@@ -71,6 +71,8 @@ namespace Rappen.AI.WinForm
 
         private void GetPanel()
         {
+            var backcolor = OnlyInfo ? ChangeColorBrightness(BackColor, 0.5f) : BackColor;
+
             // Create the container panel and content panel
             containerPanel = new Panel
             {
@@ -83,7 +85,7 @@ namespace Rappen.AI.WinForm
             // Add the container panel to contain the message and stamp
             contentPanel = new Panel
             {
-                BackColor = BackColor,
+                BackColor = backcolor,
                 Padding = new Padding(4),
                 Width = (containerPanel.Width * messageWidthPercent) / 100,
                 Height = 60,
@@ -94,7 +96,7 @@ namespace Rappen.AI.WinForm
             // Create the message text box
             messageTextBox = new RichTextBox
             {
-                BackColor = BackColor,
+                BackColor = backcolor,
                 ForeColor = ForeColor,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
@@ -116,7 +118,7 @@ namespace Rappen.AI.WinForm
             // Create the stamp text box
             stampTextBox = new TextBox
             {
-                BackColor = BackColor,
+                BackColor = backcolor,
                 ForeColor = ForeColor,
                 BorderStyle = BorderStyle.None,
                 Text = $"{Sender} @ {TimeStamp:T}",
@@ -124,11 +126,6 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Bottom,
                 ReadOnly = true,
             };
-            if (OnlyInfo)
-            {
-                messageTextBox.Font = new Font(messageTextBox.Font, FontStyle.Italic);
-                stampTextBox.Font = new Font(stampTextBox.Font, FontStyle.Italic);
-            }
 
             // Adding message and stamp text boxes to the content panel
             contentPanel.Controls.Add(stampTextBox);
@@ -175,6 +172,29 @@ namespace Rappen.AI.WinForm
         private void copyMenuItem_Click(object sender, EventArgs e)
         {
             Clipboard.SetText($"{Text}{Environment.NewLine}// {Sender} @ {TimeStamp:T}");
+        }
+
+        public static Color ChangeColorBrightness(Color color, float correctionFactor)
+        {
+            float red = color.R;
+            float green = color.G;
+            float blue = color.B;
+
+            if (correctionFactor < 0)
+            {
+                correctionFactor = 1 + correctionFactor; // Reduce brightness
+                red *= correctionFactor;
+                green *= correctionFactor;
+                blue *= correctionFactor;
+            }
+            else
+            {
+                red = (255 - red) * correctionFactor + red; // Increase brightness
+                green = (255 - green) * correctionFactor + green;
+                blue = (255 - blue) * correctionFactor + blue;
+            }
+
+            return Color.FromArgb(color.A, (int)red, (int)green, (int)blue);
         }
     }
 }
