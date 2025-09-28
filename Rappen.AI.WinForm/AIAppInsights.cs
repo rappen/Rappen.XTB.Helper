@@ -90,7 +90,7 @@ namespace Rappen.AI.WinForm
 
         public void WriteEvent(string eventName, double? count = null, double? duration = null, long? tokensout = null, long? tokensin = null, string message = null, Action<string> resultHandler = null)
         {
-            _aiConfig.Tool.LogInfo($"{eventName}{(count != null ? $" Count: {count}" : "")}{(duration != null ? $" Duration: {duration}" : "")}");
+            _aiConfig.Tool.LogInfo($"AI: {eventName}{(count != null ? $" Count: {count}" : "")}{(duration != null ? $" Duration: {duration}" : "")}{(tokensout != null ? $" TokensOut: {tokensout}" : "")}{(tokensin != null ? $" TokensIn: {tokensin}" : "")}");
             if (!_aiConfig.LogEvents)
             {
                 return;
