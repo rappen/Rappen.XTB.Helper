@@ -13,6 +13,8 @@ namespace Rappen.XRM.Helpers
         /// <summary>DisplayName</summary>
         public string D { get; set; }
 
+        public string Desc { get; set; }
+
         public override string ToString() => $"{L} = {D}";
     }
 
@@ -42,7 +44,7 @@ namespace Rappen.XRM.Helpers
             {
                 return null;
             }
-            return new MetadataForAIEntity { L = em.LogicalName, D = em.ToDisplayName() };
+            return new MetadataForAIEntity { L = em.LogicalName, D = em.ToDisplayName(), Desc = em.ToDescription() };
         }
     }
 
@@ -78,7 +80,7 @@ namespace Rappen.XRM.Helpers
             {
                 return null;
             }
-            var result = new MetadataForAIAttribute { L = am.LogicalName, D = am.ToDisplayName() };
+            var result = new MetadataForAIAttribute { L = am.LogicalName, D = am.ToDisplayName(), Desc = am.ToDescription() };
             if (IncludeType)
             {
                 result.T = am.ToTypeName();

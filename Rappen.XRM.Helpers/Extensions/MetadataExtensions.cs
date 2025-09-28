@@ -205,6 +205,23 @@ namespace Rappen.XRM.Helpers.Extensions
             return entity.LogicalName;
         }
 
+        public static string ToDescription(this EntityMetadata entity)
+        {
+            if (entity == null)
+            {
+                return string.Empty;
+            }
+            if (entity.Description?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
+            {
+                return label1;
+            }
+            if (entity.Description?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
+            {
+                return label2;
+            }
+            return string.Empty;
+        }
+
         public static string ToCollectionDisplayName(this EntityMetadata entity)
         {
             if (entity == null)
@@ -237,6 +254,23 @@ namespace Rappen.XRM.Helpers.Extensions
                 return label2 + (includetype ? $" ({attribute.ToTypeName()})" : string.Empty);
             }
             return attribute.LogicalName;
+        }
+
+        public static string ToDescription(this AttributeMetadata attribute)
+        {
+            if (attribute == null)
+            {
+                return string.Empty;
+            }
+            if (attribute.Description?.UserLocalizedLabel?.Label is string label1 && !string.IsNullOrWhiteSpace(label1))
+            {
+                return label1;
+            }
+            if (attribute.Description?.LocalizedLabels?.FirstOrDefault()?.Label is string label2 && !string.IsNullOrWhiteSpace(label2))
+            {
+                return label2;
+            }
+            return string.Empty;
         }
 
         public static string ToTypeName(this AttributeMetadata attribute, bool friendlier = false)
