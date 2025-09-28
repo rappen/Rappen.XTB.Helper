@@ -36,7 +36,7 @@ namespace Rappen.AI.WinForm
             }
             tool.Cursor = Cursors.WaitCursor;
 
-            chatMessageHistory.Add(ChatRole.User, prompt, false);
+            chatMessageHistory.Add(ChatRole.User, prompt);
             chatMessageHistory.IsRunning = true;
 
             var clientBuilder = GetChatClientBuilder(chatMessageHistory);
@@ -103,7 +103,7 @@ namespace Rappen.AI.WinForm
                 throw new InvalidOperationException("ChatMessageHistory is not initialized. Please call InitializeIfNeeded with a system prompt before using this method.");
             }
 
-            chatMessageHistory.Add(ChatRole.User, prompt, false);
+            chatMessageHistory.Add(ChatRole.User, prompt);
             chatMessageHistory.IsRunning = true;
 
             var clientBuilder = GetChatClientBuilder(chatMessageHistory);

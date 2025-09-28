@@ -116,7 +116,7 @@ namespace Rappen.AI.WinForm
             return path;
         }
 
-        public void Add(ChatRole role, string content, bool hidden, bool onlyinfo = false)
+        public void Add(ChatRole role, string content, bool hidden = false, bool onlyinfo = false)
         {
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -149,9 +149,7 @@ namespace Rappen.AI.WinForm
             response.Messages.ToList().ForEach(x => Add(x, hidden));
         }
 
-        private void Add(ChatMessage message) => Add(message.Role, message.Text, false);
-
-        private void Add(ChatMessage message, bool hidden) => Add(message.Role, message.Text, hidden);
+        private void Add(ChatMessage message, bool hidden = false) => Add(message.Role, message.Text, hidden);
 
         public bool HasDialog =>
             Messages?.Any(m => m.Role == ChatRole.User) == true &&
