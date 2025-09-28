@@ -13,6 +13,8 @@ namespace Rappen.AI.WinForm
         public int Calls { get; set; }
         public bool LogConversation { get; set; }
         public bool PreferDisplayName { get; set; }
+
+        public override string ToString() => $"{Provider} - {Model} - {ApiKey} - {MyName} - {PreferDisplayName}";
     }
 
     public class AiSupport
