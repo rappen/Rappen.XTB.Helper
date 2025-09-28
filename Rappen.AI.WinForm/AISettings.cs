@@ -12,6 +12,7 @@ namespace Rappen.AI.WinForm
         public string MyName { get; set; }
         public int Calls { get; set; }
         public bool LogConversation { get; set; }
+        public bool PreferDisplayName { get; set; }
     }
 
     public class AiSupport
@@ -35,6 +36,7 @@ namespace Rappen.AI.WinForm
     {
         public string System { get; set; }
         public string CallMe { get; set; }
+        public string PreferNames { get; set; }
         public string Update { get; set; }
         public string EntityMeta { get; set; }
         public string AttributeMeta { get; set; }
