@@ -37,12 +37,12 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string provider, string endpoint, string model, string apikey, string user, string onlyinfouser)
+        public ChatMessageHistory(Panel parent, string provider, string model, string endpoint, string apikey, string user, string onlyinfouser)
         {
             this.parent = parent;
             Provider = provider;
-            Endpoint = endpoint;
             Model = model;
+            Endpoint = endpoint;
             ApiKey = apikey;
             this.user = user;
             this.onlyinfouser = string.IsNullOrWhiteSpace(onlyinfouser) ? user : onlyinfouser;

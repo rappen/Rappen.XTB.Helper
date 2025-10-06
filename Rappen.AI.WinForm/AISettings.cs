@@ -8,13 +8,14 @@ namespace Rappen.AI.WinForm
     {
         public string Provider { get; set; }
         public string Model { get; set; }
+        public string Endpoint { get; set; }    // When the user has her own provider/model
         public string ApiKey { get; set; }
         public string MyName { get; set; }
         public int Calls { get; set; }
         public bool LogConversation { get; set; }
         public bool PreferDisplayName { get; set; }
 
-        public override string ToString() => $"{Provider} - {Model} - {ApiKey} - {MyName} - {PreferDisplayName}";
+        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName}";
     }
 
     public class AiSupport
@@ -50,6 +51,7 @@ namespace Rappen.AI.WinForm
         public string Name { get; set; }
         public string FullName { get; set; }
         public string Url { get; set; }
+        public bool EndpointFixed { get; set; }
         public string ApiKey { get; set; }
         public bool Free { get; set; }
         public Prompts Prompts { get; set; }
@@ -91,7 +93,7 @@ namespace Rappen.AI.WinForm
     {
         public string Name { get; set; }
         public string Url { get; set; }
-        public string Endpoint { get; set; }
+        public string Endpoint { get; set; }    // For this who are fixed for this provider/model
         public bool? LogConversation { get; set; } = null;
         public Prompts Prompts { get; set; }
 
@@ -105,6 +107,7 @@ namespace Rappen.AI.WinForm
         public int StopAtCallNo { get; set; } = 0; // 0 means no stop
         public bool SuggestsSupporting { get; set; } = true; // Only show this popup if the user has not supported the tool yet
         public bool ForFreeProviders { get; set; } = false; // Only show this popup if the user is using a free provider
+        public string Title { get; set; }
         public string Message { get; set; }
         public string HelpUrl { get; set; }
 
