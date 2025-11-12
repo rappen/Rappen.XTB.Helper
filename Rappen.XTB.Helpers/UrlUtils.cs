@@ -3,8 +3,6 @@ using Microsoft.Xrm.Sdk;
 using Rappen.XTB.Helpers.Controls;
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Net;
 using System.Web;
 using System.Windows.Forms;
 using static System.Windows.Forms.LinkLabel;
@@ -137,7 +135,7 @@ namespace Rappen.XTB.Helpers
             return url.ToString();
         }
 
-        public static string GetEntityUrl(this Entity entity, ConnectionDetail ConnectionDetail)
+        public static string GetEntityUrl(this Entity entity, ConnectionDetail ConnectionDetail, bool swallowerrors = false)
         {
             if (entity == null)
             {
@@ -149,7 +147,10 @@ namespace Rappen.XTB.Helpers
                 case "activitypointer":
                     if (!entity.Contains("activitytypecode"))
                     {
-                        MessageBox.Show("To open records of type activitypointer, attribute 'activitytypecode' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (!swallowerrors)
+                        {
+                            MessageBox.Show("To open records of type activitypointer, attribute 'activitytypecode' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                         entref.LogicalName = string.Empty;
                     }
                     else
@@ -161,7 +162,10 @@ namespace Rappen.XTB.Helpers
                 case "activityparty":
                     if (!entity.Contains("partyid"))
                     {
-                        MessageBox.Show("To open records of type activityparty, attribute 'partyid' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        if (!swallowerrors)
+                        {
+                            MessageBox.Show("To open records of type activityparty, attribute 'partyid' must be included in the query.", "Open Record", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                         entref.LogicalName = string.Empty;
                     }
                     else
@@ -177,39 +181,35 @@ namespace Rappen.XTB.Helpers
 
         public static string GetEntityUrl(this EntityReference entref, ConnectionDetail ConnectionDetail)
         {
-            if (entref == null || string.IsNullOrEmpty(entref.LogicalName) || entref.Id.Equals(Guid.Empty))
+            if (entref == null || string.IsNullOrEmpty(entref.LogicalName) || entref.Id.Equals(Guid.Empty) || ConnectionDetail == null)
             {
                 return string.Empty;
             }
-            var url = ConnectionDetail.GetFullWebApplicationUrl();
-            url = string.Concat(url,
-                url.EndsWith("/") ? "" : "/",
-                "main.aspx?etn=",
-                entref.LogicalName,
-                "&pagetype=entityrecord&id=",
-                entref.Id.ToString());
-            return url;
-        }
 
-        public static T DownloadXml<T>(this Uri uri, T defaultvalue = default(T))
-        {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            var webRequestXml = HttpWebRequest.Create(uri) as HttpWebRequest;
-            webRequestXml.Accept = "text/html, application/xhtml+xml, */*";
-            try
+            var baseUrl = ConnectionDetail.GetFullWebApplicationUrl();
+            if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var root))
             {
-                using (var response = webRequestXml.GetResponse())
-                using (var content = response.GetResponseStream())
-                using (var reader = new StreamReader(content))
-                {
-                    var strContent = reader.ReadToEnd();
-                    return (T)XmlSerializerHelper.Deserialize(strContent, typeof(T));
-                }
+                return string.Empty;
             }
-            catch
+
+            // Build main.aspx relative to the root, preserving any org path (on-prem)
+            var ub = new UriBuilder(root);
+            var basePath = string.IsNullOrEmpty(ub.Path) ? "/" : ub.Path;
+            if (!basePath.EndsWith("/"))
             {
-                return defaultvalue;
+                basePath += "/";
             }
+            ub.Path = basePath + "main.aspx";
+
+            // Build encoded query string
+            var qs = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            qs["etn"] = entref.LogicalName;          // logical name (kept as-is, server expects raw)
+            qs["pagetype"] = "entityrecord";
+            qs["id"] = entref.Id.ToString();         // Guid
+
+            ub.Query = qs.ToString();
+
+            return ub.Uri.ToString();
         }
 
         private static string GetUrl(object holder)
