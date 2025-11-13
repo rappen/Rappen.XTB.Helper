@@ -86,6 +86,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MessageBoxEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ToastHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UrlUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XmlAtomicStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)XrmToolBoxToolIds.cs" />
