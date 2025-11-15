@@ -9,6 +9,9 @@ namespace Rappen.XTB.Helpers
 {
     public static class ToastHelper
     {
+        // Consistent with ExcelHelper.Try: best-effort operations without surfacing exceptions
+        private static void Try(Action action) { try { action(); } catch { } }
+
         /// <summary>
         /// Displays a toast notification with customizable content, images, and action buttons for the specified
         /// plugin.
@@ -28,28 +31,39 @@ namespace Rappen.XTB.Helpers
         /// <param name="buttons">An array of tuples representing action buttons to include in the notification. Each tuple contains the
         /// button label and the associated action argument. If no buttons are provided, the notification will not
         /// include any action buttons.</param>
-        public static void ToastIt(PluginControlBase plugin, string header, string text, string attribution = null, string logo = null, string image = null, string hero = null, params (string, string)[] buttons)
+        public static void ToastIt(
+            PluginControlBase plugin,
+            string sender,
+            string header,
+            string text,
+            string attribution = null,
+            string logo = null,
+            string image = null,
+            string hero = null,
+            params (string, string)[] buttons)
         {
             var toast = new ToastContentBuilder()
                 .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
                 .AddArgument("action", "default")
+                .AddArgument("sender", sender)
+                .SetToastDuration(ToastDuration.Long)
                 .AddHeader(plugin.ToolName, header, InstallationInfo.Instance.InstallationId.ToString())
                 .AddText(text);
             if (!string.IsNullOrEmpty(attribution))
             {
                 toast.AddAttributionText(attribution);
             }
-            var logourl = VerifyLocalLogoUri(logo);
+            var logourl = VerifyLocalImageUri(logo);
             if (logourl != null)
             {
                 toast.AddAppLogoOverride(logourl);
             }
-            var imageurl = VerifyLocalLogoUri(image);
+            var imageurl = VerifyLocalImageUri(image);
             if (imageurl != null)
             {
                 toast.AddInlineImage(imageurl);
             }
-            var herourl = VerifyLocalLogoUri(hero);
+            var herourl = VerifyLocalImageUri(hero);
             if (herourl != null)
             {
                 toast.AddHeroImage(herourl);
@@ -64,41 +78,48 @@ namespace Rappen.XTB.Helpers
             toast.Show();
         }
 
-        private static Uri VerifyLocalLogoUri(string logourl)
+        private static Uri VerifyLocalImageUri(string imageuri)
         {
-            if (string.IsNullOrWhiteSpace(logourl))
-                return null;
-
-            var expanded = Environment.ExpandEnvironmentVariables(logourl);
-
-            // Absolute URI?
-            if (Uri.TryCreate(expanded, UriKind.Absolute, out var uri))
+            if (string.IsNullOrWhiteSpace(imageuri))
             {
-                if (uri.IsFile && File.Exists(uri.LocalPath))
-                    return uri;
-
-                if (IsHttp(uri))
-                    return CacheRemote(uri);
+                return null;
             }
 
-            // Try as filesystem path (relative or unqualified)
             try
             {
-                var full = Path.GetFullPath(expanded);
-                if (File.Exists(full))
-                    return new Uri(full);
-            }
-            catch { /* ignore */ }
+                // Stage 1: expand environment variables (best-effort)
+                var imageexpanded = imageuri;
+                Try(() => imageexpanded = Environment.ExpandEnvironmentVariables(imageuri));
 
-            // Last attempt: treat as http/https if it parses now
-            if (Uri.TryCreate(expanded, UriKind.Absolute, out uri) && IsHttp(uri))
-                return CacheRemote(uri);
+                // Stage 2: handle absolute URIs
+                if (Uri.TryCreate(imageexpanded, UriKind.Absolute, out var uri))
+                {
+                    // Stage 2a: Absolute http/https
+                    if (IsHttp(uri))
+                    {
+                        return CacheRemote(uri);
+                    }
+                    // Stage 2b: Absolute file:// and exists
+                    if (uri.IsFile && File.Exists(uri.LocalPath))
+                    {
+                        return uri;
+                    }
+                }
+
+                // Stage 3: treat as filesystem path (relative or unqualified)
+                string imagefull = null;
+                Try(() => imagefull = Path.GetFullPath(imageexpanded));
+                if (!string.IsNullOrEmpty(imagefull) && File.Exists(imagefull))
+                {
+                    return new Uri(imagefull);
+                }
+            }
+            catch { }
 
             return null;
         }
 
-        private static bool IsHttp(Uri uri) =>
-            uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+        private static bool IsHttp(Uri uri) => uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
 
         private static Uri CacheRemote(Uri remote)
         {
@@ -109,20 +130,30 @@ namespace Rappen.XTB.Helpers
 
                 var fileName = Path.GetFileName(remote.LocalPath);
                 if (string.IsNullOrEmpty(fileName) || !fileName.Contains("."))
+                {
                     return remote;
+                }
 
                 var localPath = Path.GetFullPath(Path.Combine(folder, fileName));
 
-                if (!File.Exists(localPath) || new FileInfo(localPath).Length == 0)
+                // Redownload if missing, empty, or older than 24 hours
+                if (!File.Exists(localPath) ||
+                    new FileInfo(localPath).Length == 0 ||
+                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromMinutes(24))
                 {
-                    ServicePointManager.SecurityProtocol |=
-                        SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                    // Ensure we don't reuse any stale content by deleting the existing file first
+                    if (File.Exists(localPath))
+                    {
+                        Try(() => File.SetAttributes(localPath, FileAttributes.Normal));
+                        Try(() => File.Delete(localPath));
+                    }
+
+                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
                     using (var wc = new WebClient())
                     {
                         wc.DownloadFile(remote, localPath);
                     }
                 }
-
                 return new Uri(localPath); // Prefer file:// for toast reliability
             }
             catch
