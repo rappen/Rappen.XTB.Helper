@@ -139,7 +139,7 @@ namespace Rappen.XTB.Helpers
                 // Redownload if missing, empty, or older than 24 hours
                 if (!File.Exists(localPath) ||
                     new FileInfo(localPath).Length == 0 ||
-                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromMinutes(24))
+                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(24))
                 {
                     // Ensure we don't reuse any stale content by deleting the existing file first
                     if (File.Exists(localPath))
