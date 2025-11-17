@@ -56,7 +56,6 @@ namespace Rappen.XTB.Helpers
                 .AddArgument("action", "default")
                 .AddArgument("sender", sender)
                 .SetToastDuration(ToastDuration.Long)
-                .SetToastScenario(ToastScenario.)
                 .AddHeader(plugin.ToolName, header, InstallationInfo.Instance.InstallationId.ToString())
                 .AddText(text);
 
@@ -129,16 +128,16 @@ namespace Rappen.XTB.Helpers
         {
             try
             {
-                var folder = Path.Combine(Paths.PluginsPath, "ToastImages");
+                string folder = Path.Combine(Paths.PluginsPath, "ToastImages");
                 Directory.CreateDirectory(folder);
 
-                var fileName = Path.GetFileName(remote.LocalPath);
+                string fileName = Path.GetFileName(remote.LocalPath);
                 if (string.IsNullOrEmpty(fileName) || !fileName.Contains("."))
                 {
                     return remote;
                 }
 
-                var localPath = Path.Combine(folder, fileName);
+                string localPath = Path.Combine(folder, fileName);
                 if (!File.Exists(localPath) ||
                     new FileInfo(localPath).Length == 0 ||
                     (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(24))
