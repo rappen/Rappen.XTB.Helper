@@ -76,7 +76,16 @@ namespace Rappen.XTB.Helpers.Extensions
                 },
                 ProgressChanged = (changeargs) =>
                 {
-                    try { plugin.SetWorkingMessage(changeargs.UserState.ToString()); } catch { }
+                    if (plugin != null && !plugin.IsDisposed && !plugin.Disposing && changeargs?.UserState != null)
+                    {
+                        try
+                        {
+                            plugin.SetWorkingMessage(changeargs.UserState.ToString());
+                        }
+                        catch
+                        {
+                        }
+                    }
                 },
                 PostWorkCallBack = (completedargs) =>
                 {
