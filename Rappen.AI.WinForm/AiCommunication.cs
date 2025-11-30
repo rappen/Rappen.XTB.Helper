@@ -176,10 +176,17 @@ namespace Rappen.AI.WinForm
         /// <param name="chatOptions"></param>
         private static void optionallyAddReasoningEffortLevel(ChatMessageHistory chatMessageHistory, ChatOptions chatOptions)
         {
+            var allowedModels = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano"
+            };
+
             if (chatMessageHistory.Provider == "OpenAI" && chatMessageHistory.Model.ToLowerInvariant().Equals("gpt-5.1")) {
                 return; // gpt-5.1 already defaults to reasoning level = "None", meaning no reasoning.
             }
-            else if (chatMessageHistory.Provider == "OpenAI" && chatMessageHistory.Model.ToLowerInvariant().StartsWith("gpt-5"))
+            else if (chatMessageHistory.Provider == "OpenAI" && allowedModels.Contains(chatMessageHistory.Model))
             {
                 // Other gpt-5 models (gpt-5, gpt-5-mini, gpt-5-nano) defaults to reasoning level "medium".
                 var chatCompletionOptions = new ChatCompletionOptions();
