@@ -137,8 +137,11 @@ namespace Rappen.AI.WinForm
                     new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, userPrompt)
                 };
 
+                var chatOptions = new ChatOptions();
+                optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
+
                 var response = chatClient
-                    .GetResponseAsync(chatMessages)
+                    .GetResponseAsync(chatMessages, chatOptions)
                     .GetAwaiter()
                     .GetResult();
 
@@ -156,11 +159,41 @@ namespace Rappen.AI.WinForm
                     chatOptions.Tools = internalTools.Select(tool => AIFunctionFactory.Create(tool) as AITool).ToList();
                 }
 
+                optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
+
                 var response = chatClient
                     .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
                     .GetAwaiter()
                     .GetResult();
                 return response;
+            }
+        }
+
+        /// <summary>
+        /// Set reasoning level to lowest value for OpenAI models, to increase inference speed.
+        /// </summary>
+        /// <param name="chatMessageHistory"></param>
+        /// <param name="chatOptions"></param>
+        private static void optionallyAddReasoningEffortLevel(ChatMessageHistory chatMessageHistory, ChatOptions chatOptions)
+        {
+            var allowedModels = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano"
+            };
+
+            if (chatMessageHistory.Provider == "OpenAI" && chatMessageHistory.Model.ToLowerInvariant().Equals("gpt-5.1")) {
+                return; // gpt-5.1 already defaults to reasoning level = "None", meaning no reasoning.
+            }
+            else if (chatMessageHistory.Provider == "OpenAI" && allowedModels.Contains(chatMessageHistory.Model))
+            {
+                // Other gpt-5 models (gpt-5, gpt-5-mini, gpt-5-nano) defaults to reasoning level "medium".
+                var chatCompletionOptions = new ChatCompletionOptions();
+
+#pragma warning disable OPENAI001
+                chatCompletionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
+                chatOptions.RawRepresentationFactory = _ => chatCompletionOptions;
             }
         }
 
