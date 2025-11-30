@@ -129,44 +129,40 @@ namespace Rappen.AI.WinForm
             {
                 chatMessageHistory.Add(ChatRole.Assistant, internalMessage, false, true);
             }
-            using (IChatClient chatClient = GetChatClientBuilder(chatMessageHistory).Build())
-            {
-                var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
+            using var chatClient = GetChatClientBuilder(chatMessageHistory).Build();
+            var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
                 {
                     new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt),
                     new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, userPrompt)
                 };
 
-                var chatOptions = new ChatOptions();
-                optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
+            var chatOptions = new ChatOptions();
+            optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
 
-                var response = chatClient
-                    .GetResponseAsync(chatMessages, chatOptions)
-                    .GetAwaiter()
-                    .GetResult();
+            var response = chatClient
+                .GetResponseAsync(chatMessages, chatOptions)
+                .GetAwaiter()
+                .GetResult();
 
-                return response;
-            }
+            return response;
         }
 
         private static ChatResponse CallingAI(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
         {
-            using (IChatClient chatClient = clientBuilder.UseFunctionInvocation().Build())
+            using var chatClient = clientBuilder.UseFunctionInvocation().Build();
+            var chatOptions = new ChatOptions();
+            if (internalTools?.Count() > 0)
             {
-                var chatOptions = new ChatOptions();
-                if (internalTools?.Count() > 0)
-                {
-                    chatOptions.Tools = internalTools.Select(tool => AIFunctionFactory.Create(tool) as AITool).ToList();
-                }
-
-                optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
-
-                var response = chatClient
-                    .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
-                    .GetAwaiter()
-                    .GetResult();
-                return response;
+                chatOptions.Tools = internalTools.Select(tool => AIFunctionFactory.Create(tool) as AITool).ToList();
             }
+
+            optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
+
+            var response = chatClient
+                .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
+                .GetAwaiter()
+                .GetResult();
+            return response;
         }
 
         /// <summary>
@@ -183,7 +179,8 @@ namespace Rappen.AI.WinForm
                 "gpt-5-nano"
             };
 
-            if (chatMessageHistory.Provider == "OpenAI" && chatMessageHistory.Model.ToLowerInvariant().Equals("gpt-5.1")) {
+            if (chatMessageHistory.Provider == "OpenAI" && chatMessageHistory.Model.ToLowerInvariant().Equals("gpt-5.1"))
+            {
                 return; // gpt-5.1 already defaults to reasoning level = "None", meaning no reasoning.
             }
             else if (chatMessageHistory.Provider == "OpenAI" && allowedModels.Contains(chatMessageHistory.Model))
@@ -194,6 +191,7 @@ namespace Rappen.AI.WinForm
 #pragma warning disable OPENAI001
                 chatCompletionOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
                 chatOptions.RawRepresentationFactory = _ => chatCompletionOptions;
+#pragma warning restore OPENAI001
             }
         }
 
