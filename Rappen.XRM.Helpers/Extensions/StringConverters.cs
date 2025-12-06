@@ -2,7 +2,9 @@
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Rappen.XRM.Helpers.Extensions
 {
@@ -304,6 +306,201 @@ namespace Rappen.XRM.Helpers.Extensions
             }
 
             return new string(result);
+        }
+
+        public static string RemoveTrailingDigits(this string input) =>
+            string.IsNullOrEmpty(input) ? string.Empty :
+            new string(input.Reverse()
+                .SkipWhile(char.IsDigit)
+                .Reverse()
+                .ToArray());
+
+        public static string KeepLettersAndDigits(this string? input) =>
+            string.IsNullOrEmpty(input) ? string.Empty :
+            new string(input.Where(char.IsLetterOrDigit).ToArray());
+
+        /// <summary>
+        /// Acronym / short-name generator.
+        /// Designed for FetchXML aliases and general short identifiers.
+        ///
+        /// Behavior:
+        /// - Y is a vowel.
+        /// - Diacritics & ligatures removed via NFKD (ÅÄÖ→AAO, Æ→AE, Ø→O, Œ→OE, ü→u; plus ß→ss).
+        /// - Word splitting: non-alnum boundaries + Camel/PascalCase.
+        /// - If length == 0: return acronym (initials), uppercased unless preserveCasing=true.
+        /// - Else:
+        ///   Prefix = initials of all words except LAST (single-word: first letter).
+        ///   Fill Phase 1: consonants (non-AEIOUY) from words LAST→FIRST; per word left→right (skip first char).
+        ///   Fill Phase 2: vowels from end across words LAST→FIRST; per word right→left (skip first char).
+        ///   Emit in natural left→right order.
+        ///   Uppercase unless preserveCasing=true.
+        /// - If returnOriginalIfLonger && length > input.Length:
+        ///   returns original unchanged (or sanitized if identifierSafe = true).
+        /// - If identifierSafe = true: ASCII-only [A-Za-z0-9_], and never starts with a digit (prefix '_' if needed).
+        /// </summary>
+        /// <param name="input">Source text (e.g., entity/table display or logical name).</param>
+        /// <param name="length">Target length. 0 returns acronym.</param>
+        /// <param name="identifierSafe">Force C#-identifier-safe output (use for FetchXML alias).</param>
+        /// <param name="preserveCasing">Keep original casing; otherwise uppercase shortened outputs.</param>
+        /// <param name="returnOriginalIfLonger">If true and length > input.Length, return original (or sanitized if identifierSafe).</param>
+        /// <param name="includeAllWordInitials">If true, include initials from all words as mandatory prefix.</param>
+        public static string ToAcronym(this string input, int length = 0,
+                                          bool identifierSafe = false,
+                                          bool preserveCasing = false,
+                                          bool returnOriginalIfLonger = true,
+                                          bool includeAllWordInitials = false)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return identifierSafe ? "_" : string.Empty;
+            }
+
+            // If asked longer than original, keep original (sanitize iff identifierSafe)
+            if (returnOriginalIfLonger && length > input.Length)
+            {
+                return identifierSafe ? MakeIdentifierSafe(input) : input;
+            }
+
+            var normalized = RemoveDiacritics(input);
+
+            // Split words: non-alnum + CamelCase
+            var words = Regex.Split(normalized, @"[^A-Za-z0-9]+")
+                             .SelectMany(w => Regex.Split(w, @"(?<!^)(?=[A-Z])"))
+                             .Where(w => !string.IsNullOrEmpty(w))
+                             .ToList();
+            if (words.Count == 0)
+            {
+                return identifierSafe ? "_" : string.Empty;
+            }
+
+            // Acronym (initials)
+            var acronym = string.Concat(words.Select(w => w[0]));
+
+            if (length == 0)
+            {
+                var res0 = preserveCasing ? acronym : acronym.ToUpperInvariant();
+                return identifierSafe ? MakeIdentifierSafe(res0) : res0;
+            }
+
+            // Prefix selection
+            string prefix;
+            if (includeAllWordInitials)
+            {
+                // Use initials from all words (e.g., Jonas and Linda -> JAL)
+                prefix = acronym;
+            }
+            else
+            {
+                // Prefix = initials of all words except LAST (single-word: first letter)
+                prefix = (words.Count == 1)
+                    ? words[0][0].ToString()
+                    : string.Concat(words.Take(words.Count - 1).Select(w => w[0]));
+            }
+
+            var needed = Math.Max(0, length - prefix.Length);
+            if (needed == 0)
+            {
+                var baseRes = preserveCasing ? prefix : prefix.ToUpperInvariant();
+                return identifierSafe ? MakeIdentifierSafe(baseRes) : baseRes;
+            }
+
+            // Fill from LAST→FIRST: include first char of LAST word (to match acronym for minimal lengths),
+            // then consonants L→R, then vowels R→L (Y is vowel)
+            var fill = new StringBuilder();
+            const string vowels = "AEIOUYaeiouy";
+
+            var reversed = words.AsEnumerable().Reverse().ToList();
+            for (int widx = 0; widx < reversed.Count && fill.Length < needed; widx++)
+            {
+                var w = reversed[widx];
+
+                // Special-case: for the very last word in natural order (first in reversed),
+                // include its first character before other fill rules. This ensures length == number of words
+                // yields the expected acronym.
+                if (!includeAllWordInitials && widx == 0 && w.Length > 0 && fill.Length < needed)
+                {
+                    fill.Append(w[0]);
+                }
+
+                if (fill.Length >= needed)
+                {
+                    break;
+                }
+
+                var chars = w.Skip(1).ToList(); // skip first char for subsequent rules
+
+                // Consonants L->R
+                foreach (var c in chars)
+                {
+                    if (fill.Length >= needed)
+                    {
+                        break;
+                    }
+
+                    if (!vowels.Contains(c))
+                    {
+                        fill.Append(c);
+                    }
+                }
+                if (fill.Length >= needed)
+                {
+                    break;
+                }
+
+                // Vowels from end R->L
+                for (var i = chars.Count - 1; i >= 0 && fill.Length < needed; i--)
+                {
+                    var c = chars[i];
+                    if (vowels.Contains(c))
+                    {
+                        fill.Append(c);
+                    }
+                }
+            }
+
+            var result = (prefix + fill).Substring(0, Math.Min(length, prefix.Length + fill.Length));
+            if (!preserveCasing)
+            {
+                result = result.ToUpperInvariant();
+            }
+
+            return identifierSafe ? MakeIdentifierSafe(result) : result;
+        }
+
+        // --- helpers ---
+
+        private static string RemoveDiacritics(string text)
+        {
+            var normalized = text.Normalize(NormalizationForm.FormKD); // NFKD
+            var sb = new StringBuilder(normalized.Length);
+            foreach (var ch in normalized)
+            {
+                var uc = CharUnicodeInfo.GetUnicodeCategory(ch);
+                if (uc != UnicodeCategory.NonSpacingMark &&
+                    uc != UnicodeCategory.SpacingCombiningMark &&
+                    uc != UnicodeCategory.EnclosingMark)
+                {
+                    sb.Append(ch);
+                }
+            }
+            // Common case-fold not covered by NFKD
+            return sb.ToString().Replace("ß", "ss").Normalize(NormalizationForm.FormC);
+        }
+
+        private static string MakeIdentifierSafe(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return "_";
+            }
+
+            s = Regex.Replace(s, @"[^A-Za-z0-9_]", "_");
+            if (char.IsDigit(s[0]))
+            {
+                s = "_" + s;
+            }
+
+            return s.Length == 0 ? "_" : s;
         }
     }
 }
