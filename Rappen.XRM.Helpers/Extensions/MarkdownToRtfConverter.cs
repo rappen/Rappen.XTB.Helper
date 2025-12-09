@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Rappen.AI.WinForm
+namespace Rappen.XRM.Helpers.Extensions
 {
     /// <summary>
     /// Converts markdown text to RTF format for display in RichTextBox.
@@ -142,7 +142,7 @@ namespace Rappen.AI.WinForm
         private static string ProcessBold(string text)
         {
             // Match **bold text**
-            var pattern = new Regex(@"\*\*([^*]+)\*\*");
+            var pattern = new Regex(@"\*\*(.+?)\*\*");
             return pattern.Replace(text, match =>
             {
                 var boldText = match.Groups[1].Value;
