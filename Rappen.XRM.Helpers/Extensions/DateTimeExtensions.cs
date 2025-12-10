@@ -33,5 +33,26 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             return new Tuple<string, string>($"{span.TotalMilliseconds:0}", "ms");
         }
+
+        public static string ToSmartStringLong(this TimeSpan span)
+        {
+            if (span.TotalDays >= 1)
+            {
+                return $"{span.TotalDays:0} days, {span.Hours:00} hours, {span.Minutes:00}:{span.Seconds:00}";
+            }
+            if (span.TotalHours >= 1)
+            {
+                return $"{span.Hours:0}:{span.Minutes:00}:{span.Seconds:00}";
+            }
+            if (span.TotalMinutes >= 1)
+            {
+                return $"{span.Minutes:0}:{span.Seconds:00}.{span:fff}";
+            }
+            if (span.TotalSeconds >= 1)
+            {
+                return $"{span.Seconds:0}.{span:fff} secs";
+            }
+            return $"{span.TotalMilliseconds:0} ms";
+        }
     }
 }
