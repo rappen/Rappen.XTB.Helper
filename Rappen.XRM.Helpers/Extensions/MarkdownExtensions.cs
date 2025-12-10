@@ -3,13 +3,13 @@ using System.Drawing;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Rappen.XRM.Helpers.Extensions
+namespace Rappen.XRM.Helpers.Extensions.Markdown
 {
     /// <summary>
     /// Converts markdown text to RTF format for display in RichTextBox.
     /// Supports: **bold**, *italic*, `inline code`, ```code blocks```, bullet lists (- or *), and # headers.
     /// </summary>
-    internal static class MarkdownToRtfConverter
+    internal static class MarkdownExtensions
     {
         // Font indices in the font table
         private const int FontDefault = 0;
@@ -28,7 +28,7 @@ namespace Rappen.XRM.Helpers.Extensions
         /// <param name="backColor">The background color (used for code blocks styling hint).</param>
         /// <param name="fontSize">The base font size in points.</param>
         /// <returns>RTF formatted string.</returns>
-        public static string Convert(string markdown, Color foreColor, Color backColor, int fontSize = 9)
+        public static string ConvertMarkdownToRtf(this string markdown, Color foreColor, Color backColor, int fontSize = 9)
         {
             if (string.IsNullOrEmpty(markdown))
             {
@@ -46,7 +46,7 @@ namespace Rappen.XRM.Helpers.Extensions
             var lines = markdown.Split('\n');
             var result = new StringBuilder();
 
-            for (int i = 0; i < lines.Length; i++)
+            for (var i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
                 var processedLine = ProcessLine(line, codeBlocks, fontSize);
@@ -62,6 +62,39 @@ namespace Rappen.XRM.Helpers.Extensions
             return BuildRtfDocument(result.ToString(), foreColor, backColor, fontSize);
         }
 
+        public static bool IsMarkdown(this string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+            // Check for common markdown patterns:
+            // - Bold: **text**
+            // - Italic: *text* (single asterisk not at line start)
+            // - Inline code: `code`
+            // - Code blocks: ```
+            // - Headers: # Header
+            // - Bullet lists: - item or * item
+            var patterns = new[]
+            {
+                @"\*\*(.+?)\*\*",          // Bold
+                @"(?<!\*)\*(.+?)\*(?!\*)", // Italic
+                @"`([^`]*)`",              // Inline code
+                @"```[\s\S]*?```",         // Code blocks
+                @"^#{1,6}\s+.+$",          // Headers
+                @"^(\s*)([-*])\s+.+$"      // Bullet lists
+            };
+            foreach (var pattern in patterns)
+            {
+                if (Regex.IsMatch(text, pattern, RegexOptions.Multiline))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static string ExtractCodeBlocks(string markdown, List<string> codeBlocks)
         {
             // Match code blocks: ```[language]\n...\n``` or ```...```
@@ -69,7 +102,7 @@ namespace Rappen.XRM.Helpers.Extensions
 
             return codeBlockPattern.Replace(markdown, match =>
             {
-                var codeContent = match.Groups[1].Value.Trim();
+                var codeContent = match.Groups[1].Value.TrimEnd('\n', '\r');
                 var index = codeBlocks.Count;
                 codeBlocks.Add(codeContent);
                 // Use a unique placeholder that won't appear in normal text
@@ -176,24 +209,52 @@ namespace Rappen.XRM.Helpers.Extensions
             // Escape RTF special characters in code
             code = EscapeRtf(code);
 
-            // Replace newlines with RTF line breaks
-            code = code.Replace("\n", "\\line\n");
+            // Replace newlines with RTF line breaks, preserving indentation
+            var lines = code.Split('\n');
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                var indentMatch = Regex.Match(line, @"^(\s*)");
+                var indent = indentMatch.Success ? indentMatch.Groups[1].Value : string.Empty;
+                var escapedIndent = indent.Replace(" ", " ").Replace("\t", "    ");
+                lines[i] = escapedIndent + line.Substring(indent.Length);
+            }
+            code = string.Join("\\line\n", lines);
 
-            // Use monospace font and code color for the entire block
-            return $"{{\\f{FontMono}\\cf{ColorCode} {code}}}";
+            // Wrap the whole code block in a slightly indented paragraph so the block stands out
+            // Use monospace font and code color for the text
+            return "\\pard\\li240" +            // 1/6 inch left indent for the block
+                   $" {{\\f{FontMono}\\cf{ColorCode} {code}}}" +
+                   "\\par\\pard";              // end block and reset paragraph settings
         }
 
         private static string FormatHeader(string text, int level, int baseFontSize)
         {
-            // Process inline formatting within the header
             text = ProcessInlineFormatting(text);
 
-            // Calculate header font size (larger for smaller level numbers)
-            // Level 1 = 1.5x, Level 2 = 1.3x, Level 3+ = 1.15x
-            double multiplier = level == 1 ? 1.5 : level == 2 ? 1.3 : 1.15;
-            int headerSize = (int)(baseFontSize * multiplier * 2); // RTF uses half-points
+            // Stronger size differences by level
+            double multiplier;
+            switch (level)
+            {
+                case 1:
+                    multiplier = 2.0;   // H1: 2x
+                    break;
 
-            // Format as bold with larger font and header color, using braces for scoping
+                case 2:
+                    multiplier = 1.6;   // H2: 1.6x
+                    break;
+
+                case 3:
+                    multiplier = 1.3;   // H3: 1.3x
+                    break;
+
+                default:
+                    multiplier = 1.15;  // H4+ : slightly larger than body
+                    break;
+            }
+
+            var headerSize = (int)(baseFontSize * multiplier * 2); // RTF uses half-points
+
             return $"{{\\fs{headerSize}\\b\\cf{ColorHeader} {text}}}";
         }
 
@@ -203,10 +264,12 @@ namespace Rappen.XRM.Helpers.Extensions
             content = ProcessInlineFormatting(content);
 
             // Calculate indent in twips (1 inch = 1440 twips, use 360 twips per indent level)
-            int indent = 360 + (indentLevel * 180);
+            var indent = 360 + (indentLevel * 180);
 
-            // Use bullet character (Unicode 2022) with indentation
-            return $"\\li{indent}\\bullet  {content}\\li0";
+            // Place bullet at left margin and text just to the right, minimal gap
+            var textStart = indent + 80;   // small gap (~0.05 inch)
+
+            return $"\\pard\\li{textStart}\\tx{textStart}\\fi-80\\bullet\\tab {content}\\pard";
         }
 
         private static string FormatHorizontalRule()
@@ -224,10 +287,12 @@ namespace Rappen.XRM.Helpers.Extensions
         private static string EscapeRtf(string text)
         {
             if (string.IsNullOrEmpty(text))
+            {
                 return text;
+            }
 
             var result = new StringBuilder(text.Length);
-            foreach (char c in text)
+            foreach (var c in text)
             {
                 switch (c)
                 {
@@ -251,6 +316,7 @@ namespace Rappen.XRM.Helpers.Extensions
                         }
                         else
                         {
+                            // ASCII characters including '"' are written as-is
                             result.Append(c);
                         }
                         break;
@@ -261,8 +327,9 @@ namespace Rappen.XRM.Helpers.Extensions
 
         private static string BuildRtfDocument(string content, Color foreColor, Color backColor, int fontSize)
         {
-            // Calculate a code color - slightly different from foreground
-            var codeColor = BlendColors(foreColor, Color.Gray, 0.3);
+            // Decide code foreground: black on light background, white on dark background
+            var backBrightness = backColor.R * 0.299 + backColor.G * 0.587 + backColor.B * 0.114;
+            var codeForeColor = backBrightness < 128 ? Color.White : Color.Black;
 
             // Header color - same as foreground but could be customized
             var headerColor = foreColor;
@@ -272,24 +339,24 @@ namespace Rappen.XRM.Helpers.Extensions
             // RTF header
             rtf.Append("{\\rtf1\\ansi\\deff0");
 
-            // Font table: f0 = default UI font, f1 = monospace for code
+            // Font table: f0 = default UI font (Calibri), f1 = monospace for code
             rtf.Append("{\\fonttbl");
-            rtf.Append("{\\f0\\fswiss\\fcharset0 Segoe UI;}");
+            rtf.Append("{\\f0\\fswiss\\fcharset0 Calibri;}");
             rtf.Append("{\\f1\\fmodern\\fcharset0 Consolas;}");
             rtf.Append("}");
 
             // Color table
             rtf.Append("{\\colortbl;");
-            rtf.Append($"\\red{foreColor.R}\\green{foreColor.G}\\blue{foreColor.B};");     // cf1 - default
-            rtf.Append($"\\red{codeColor.R}\\green{codeColor.G}\\blue{codeColor.B};");     // cf2 - code
-            rtf.Append($"\\red{headerColor.R}\\green{headerColor.G}\\blue{headerColor.B};"); // cf3 - header
+            rtf.Append($"\\red{foreColor.R}\\green{foreColor.G}\\blue{foreColor.B};");          // cf1 - default text
+            rtf.Append($"\\red{codeForeColor.R}\\green{codeForeColor.G}\\blue{codeForeColor.B};"); // cf2 - code text (black/white vs background)
+            rtf.Append($"\\red{headerColor.R}\\green{headerColor.G}\\blue{headerColor.B};");     // cf3 - headers
             rtf.Append("}");
 
             // Document settings
             rtf.Append("\\viewkind4\\uc1");
 
             // Initialize paragraph and set default font, size, and color
-            int rtfFontSize = fontSize * 2; // RTF uses half-points
+            var rtfFontSize = fontSize * 2; // RTF uses half-points
             rtf.Append($"\\pard\\f{FontDefault}\\fs{rtfFontSize}\\cf{ColorDefault} ");
 
             // Content
@@ -299,14 +366,6 @@ namespace Rappen.XRM.Helpers.Extensions
             rtf.Append("}");
 
             return rtf.ToString();
-        }
-
-        private static Color BlendColors(Color color1, Color color2, double amount)
-        {
-            int r = (int)(color1.R + (color2.R - color1.R) * amount);
-            int g = (int)(color1.G + (color2.G - color1.G) * amount);
-            int b = (int)(color1.B + (color2.B - color1.B) * amount);
-            return Color.FromArgb(r, g, b);
         }
     }
 }

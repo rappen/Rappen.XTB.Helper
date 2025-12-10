@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.AI;
+using Rappen.XRM.Helpers.Extensions.Markdown;
 using System;
 using System.Drawing;
 using System.Windows.Forms;
-using Rappen.XRM.Helpers.Extensions;
 
 namespace Rappen.AI.WinForm
 {
@@ -107,10 +107,10 @@ namespace Rappen.AI.WinForm
             };
 
             // Check if we need to apply RTF formatting
-            if (ContainsMarkdown(Text))
+            if (Text.IsMarkdown())
             {
                 // Generate the RTF content
-                var rtfContent = MarkdownToRtfConverter.Convert(Text, ForeColor, backcolor);
+                var rtfContent = Text.ConvertMarkdownToRtf(ForeColor, backcolor);
 
                 // Defer RTF assignment until the control has a window handle
                 void ApplyRtf(object s, EventArgs ev)
@@ -219,30 +219,6 @@ namespace Rappen.AI.WinForm
             }
 
             return Color.FromArgb(color.A, (int)red, (int)green, (int)blue);
-        }
-
-        private static bool ContainsMarkdown(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-            // Check for common markdown patterns:
-            // - Bold: **text**
-            // - Italic: *text* (single asterisk not at line start)
-            // - Inline code: `code`
-            // - Code blocks: ```
-            // - Headers: # at line start
-            // - Bullet lists: - or * at line start followed by space
-            return text.Contains("**") ||
-                   text.Contains("`") ||
-                   text.Contains("\n# ") ||
-                   text.StartsWith("# ") ||
-                   text.Contains("\n- ") ||
-                   text.StartsWith("- ") ||
-                   text.Contains("\n* ") ||
-                   text.StartsWith("* ") ||
-                   System.Text.RegularExpressions.Regex.IsMatch(text, @"(?<!\*)\*(?!\s)[^*\n]+(?<!\s)\*(?!\*)");
         }
     }
 }
