@@ -2,6 +2,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Rappen.XRM.Helpers.Extensions;
 
 namespace Rappen.AI.WinForm
 {
@@ -104,14 +105,37 @@ namespace Rappen.AI.WinForm
                 WordWrap = true,
                 ReadOnly = true,
             };
-            if (false && Text.Contains("`"))
+
+            // Check if we need to apply RTF formatting
+            if (ContainsMarkdown(Text))
             {
-                //messageTextBox.Rtf = MarkdownToRtfConverter.Convert(this.Text);
+                // Generate the RTF content
+                var rtfContent = MarkdownToRtfConverter.Convert(Text, ForeColor, backcolor);
+
+                // Defer RTF assignment until the control has a window handle
+                void ApplyRtf(object s, EventArgs ev)
+                {
+                    messageTextBox.HandleCreated -= ApplyRtf;
+                    messageTextBox.Rtf = rtfContent;
+                }
+
+                // If handle already exists, apply immediately; otherwise wait for HandleCreated
+                if (messageTextBox.IsHandleCreated)
+                {
+                    messageTextBox.Rtf = rtfContent;
+                }
+                else
+                {
+                    messageTextBox.HandleCreated += ApplyRtf;
+                    // Set plain text as initial content (will be replaced when handle is created)
+                    messageTextBox.Text = Text ?? "(no message)";
+                }
             }
             else
             {
                 messageTextBox.Text = Text ?? "(no message)";
             }
+
             messageTextBox.ContentsResized += Message_ContentsResized;
             messageTextBox.LinkClicked += Message_LinkClicked;
 
@@ -195,6 +219,30 @@ namespace Rappen.AI.WinForm
             }
 
             return Color.FromArgb(color.A, (int)red, (int)green, (int)blue);
+        }
+
+        private static bool ContainsMarkdown(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return false;
+            }
+            // Check for common markdown patterns:
+            // - Bold: **text**
+            // - Italic: *text* (single asterisk not at line start)
+            // - Inline code: `code`
+            // - Code blocks: ```
+            // - Headers: # at line start
+            // - Bullet lists: - or * at line start followed by space
+            return text.Contains("**") ||
+                   text.Contains("`") ||
+                   text.Contains("\n# ") ||
+                   text.StartsWith("# ") ||
+                   text.Contains("\n- ") ||
+                   text.StartsWith("- ") ||
+                   text.Contains("\n* ") ||
+                   text.StartsWith("* ") ||
+                   System.Text.RegularExpressions.Regex.IsMatch(text, @"(?<!\*)\*(?!\s)[^*\n]+(?<!\s)\*(?!\*)");
         }
     }
 }
