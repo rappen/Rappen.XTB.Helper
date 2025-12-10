@@ -156,7 +156,7 @@ namespace Rappen.XRM.Helpers.Extensions
         {
             // Match *italic text* but not ** (bold markers)
             // Use negative lookbehind and lookahead to avoid matching bold markers
-            var pattern = new Regex(@"(?<!\*)\*([^*]+)\*(?!\*)");
+            var pattern = new Regex(@"(?<!\*)\*(.+?)\*(?!\*)");
             return pattern.Replace(text, match =>
             {
                 var italicText = match.Groups[1].Value;
