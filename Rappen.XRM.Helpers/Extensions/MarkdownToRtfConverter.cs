@@ -130,8 +130,8 @@ namespace Rappen.XRM.Helpers.Extensions
 
         private static string ProcessInlineCode(string text)
         {
-            // Match `code` but not inside already processed markers
-            var pattern = new Regex(@"`([^`]+)`");
+            // Match `code` (including empty) but not inside already processed markers
+            var pattern = new Regex(@"`([^`]*)`");
             return pattern.Replace(text, match =>
             {
                 var code = match.Groups[1].Value;
