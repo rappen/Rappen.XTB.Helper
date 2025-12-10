@@ -98,11 +98,12 @@ namespace Rappen.XRM.Helpers.Extensions
             }
 
             // Check for bullet lists (- item or * item, but not **bold**)
-            var bulletMatch = Regex.Match(line, @"^(\s*)([-*])\s+(?!\*)(.+)$");
+            var bulletMatch = Regex.Match(line, @"^(\s*)([-])\s+(.+)$|^(\s*)(\*)\s+(?!\*)(.+)$");
             if (bulletMatch.Success)
             {
-                var indent = bulletMatch.Groups[1].Value;
-                var content = bulletMatch.Groups[3].Value;
+                // For '-' bullets, use groups 1 and 3; for '*' bullets, use groups 4 and 6
+                var indent = bulletMatch.Groups[1].Success ? bulletMatch.Groups[1].Value : bulletMatch.Groups[4].Value;
+                var content = bulletMatch.Groups[3].Success ? bulletMatch.Groups[3].Value : bulletMatch.Groups[6].Value;
                 return FormatBullet(content, indent.Length);
             }
 
