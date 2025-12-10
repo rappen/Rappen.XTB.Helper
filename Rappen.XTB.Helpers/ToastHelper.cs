@@ -51,7 +51,7 @@ namespace Rappen.XTB.Helpers
                 return;
             }
 
-            ToastContentBuilder toast = new ToastContentBuilder()
+            var toast = new ToastContentBuilder()
                 .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
                 .AddArgument("action", "default")
                 .AddArgument("sender", sender)
@@ -76,7 +76,7 @@ namespace Rappen.XTB.Helpers
                 Try(() => toast.AddHeroImage(heroUri));
             }
 
-            foreach ((string, string) button in buttons ?? Array.Empty<(string, string)>())
+            foreach (var button in buttons ?? Array.Empty<(string, string)>())
             {
                 Try(() => toast.AddButton(new ToastButton()
                     .SetContent(button.Item1)
@@ -95,11 +95,11 @@ namespace Rappen.XTB.Helpers
             }
 
             // Expand env vars (ignore errors)
-            string expanded = value;
+            var expanded = value;
             Try(() => expanded = Environment.ExpandEnvironmentVariables(value));
 
             // Absolute URI
-            if (Uri.TryCreate(expanded, UriKind.Absolute, out Uri uri))
+            if (Uri.TryCreate(expanded, UriKind.Absolute, out var uri))
             {
                 if (uri.IsFile && File.Exists(uri.LocalPath))
                 {
@@ -128,16 +128,16 @@ namespace Rappen.XTB.Helpers
         {
             try
             {
-                string folder = Path.Combine(Paths.PluginsPath, "ToastImages");
+                var folder = Path.Combine(Paths.PluginsPath, "ToastImages");
                 Directory.CreateDirectory(folder);
 
-                string fileName = Path.GetFileName(remote.LocalPath);
+                var fileName = Path.GetFileName(remote.LocalPath);
                 if (string.IsNullOrEmpty(fileName) || !fileName.Contains("."))
                 {
                     return remote;
                 }
 
-                string localPath = Path.Combine(folder, fileName);
+                var localPath = Path.Combine(folder, fileName);
                 if (!File.Exists(localPath) ||
                     new FileInfo(localPath).Length == 0 ||
                     (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(24))
@@ -152,10 +152,8 @@ namespace Rappen.XTB.Helpers
                     ServicePointManager.SecurityProtocol |=
                         SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
 
-                    using (var wc = new WebClient())
-                    {
-                        wc.DownloadFile(remote, localPath);
-                    }
+                    using var wc = new WebClient();
+                    wc.DownloadFile(remote, localPath);
                 }
 
                 return new Uri(Path.GetFullPath(localPath));
