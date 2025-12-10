@@ -242,7 +242,7 @@ namespace Rappen.AI.WinForm
                    text.StartsWith("- ") ||
                    text.Contains("\n* ") ||
                    text.StartsWith("* ") ||
-                   System.Text.RegularExpressions.Regex.IsMatch(text, @"(?<!\*)\*[^*\n]+\*(?!\*)");
+                   System.Text.RegularExpressions.Regex.IsMatch(text, @"(?<!\*)\*(?!\s)[^*\n]+(?<!\s)\*(?!\*)");
         }
     }
 }
