@@ -88,6 +88,12 @@ namespace Rappen.XRM.Helpers.Extensions
                 return FormatCodeBlock(codeContent);
             }
 
+            // Horizontal rule: line of exactly three or more dashes
+            if (Regex.IsMatch(line.Trim(), @"^-{3,}$"))
+            {
+                return FormatHorizontalRule();
+            }
+
             // Check for headers (# Header, ## Header, etc.)
             var headerMatch = Regex.Match(line, @"^(#{1,6})\s+(.+)$");
             if (headerMatch.Success)
@@ -203,6 +209,18 @@ namespace Rappen.XRM.Helpers.Extensions
             return $"\\li{indent}\\bullet  {content}\\li0";
         }
 
+        private static string FormatHorizontalRule()
+        {
+            // Simple horizontal rule using ASCII dashes so it works with plain fonts
+
+            // RichTextBox doesn't support true <hr>, so draw a text-based line
+            // won't work with this unicode escapes... :/
+            //return "\\pard\\qc\\u8212 ?\\u8212 ?\\u8212 ?\\pard";
+
+            // Center it using paragraph alignment
+            return "\\pard\\qc------------------------------\\pard";
+        }
+
         private static string EscapeRtf(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -216,12 +234,15 @@ namespace Rappen.XRM.Helpers.Extensions
                     case '\\':
                         result.Append("\\\\");
                         break;
+
                     case '{':
                         result.Append("\\{");
                         break;
+
                     case '}':
                         result.Append("\\}");
                         break;
+
                     default:
                         if (c > 127)
                         {
