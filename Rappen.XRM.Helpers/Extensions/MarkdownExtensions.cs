@@ -281,11 +281,11 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             content = ProcessInlineFormatting(content);
 
             const int baseIndentTwips = 360; // whole list block shifted in
-            const int twipsPerUnit = 180; // ~0.125" per unit
+            const int twipsPerUnit = 180;    // ~0.125" per unit
 
             var leftIndent = baseIndentTwips + (leadingUnits * twipsPerUnit);
-            // Use list-style paragraph with hanging indent so long items wrap nicely
-            return string.Format("\\pard\\li{0}\\fi-180 \\u8226 ?  {1}\\par\\pard", leftIndent, content);
+            // Hanging indent, but no trailing \par – outer loop adds it
+            return string.Format("\\pard\\li{0}\\fi-180 \\u8226 ?  {1}", leftIndent, content);
         }
 
         private static string FormatOrderedListItem(string number, string content, int leadingUnits)
@@ -296,8 +296,8 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             const int twipsPerUnit = 180;
 
             var leftIndent = baseIndentTwips + (leadingUnits * twipsPerUnit);
-            // Same hanging indent pattern as bullets, using the number instead of a bullet glyph
-            return string.Format("\\pard\\li{0}\\fi-180 {1}.  {2}\\par\\pard", leftIndent, number, content);
+            // Same pattern for numbered items
+            return string.Format("\\pard\\li{0}\\fi-180 {1}.  {2}", leftIndent, number, content);
         }
 
         private static string FormatHorizontalRule()
