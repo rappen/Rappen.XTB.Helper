@@ -39,6 +39,7 @@ namespace Rappen.AI.WinForm
     public class Prompts
     {
         public string System { get; set; }
+        public string Format { get; set; }
         public string CallMe { get; set; }
         public string PreferNames { get; set; }
         public string Update { get; set; }
@@ -71,7 +72,14 @@ namespace Rappen.AI.WinForm
                     return string.Empty;
                 }
                 var x = "";
-                for (int i = 0; i < ApiKey.Length; i++) if ((i + 1) % (interval + 1) != 0) x += ApiKey[i];
+                for (var i = 0; i < ApiKey.Length; i++)
+                {
+                    if ((i + 1) % (interval + 1) != 0)
+                    {
+                        x += ApiKey[i];
+                    }
+                }
+
                 try
                 {
                     return System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(x));
@@ -85,7 +93,10 @@ namespace Rappen.AI.WinForm
             {
                 var random = new Random();
                 ApiKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(value));
-                for (int i = interval; i < ApiKey.Length; i += interval + 1) ApiKey = ApiKey.Insert(i, ((char)random.Next('a', 'z')).ToString());
+                for (var i = interval; i < ApiKey.Length; i += interval + 1)
+                {
+                    ApiKey = ApiKey.Insert(i, ((char)random.Next('a', 'z')).ToString());
+                }
             }
         }
     }
