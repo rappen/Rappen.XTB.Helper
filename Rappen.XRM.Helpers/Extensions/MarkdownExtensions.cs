@@ -136,14 +136,25 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
                 return FormatHeader(headerText, level, fontSize);
             }
 
-            // Check for bullet lists (- item or * item, but not **bold**)
-            var bulletMatch = Regex.Match(line, @"^(\s*)([-])\s+(.+)$|^(\s*)(\*)\s+(?!\*)(.+)$");
-            if (bulletMatch.Success)
+            // Ordered list items: 1. Item text (any amount of leading spaces)
+            var orderedMatch = Regex.Match(line, @"^(\s*)(\d+)\.\s+(.+)$");
+            if (orderedMatch.Success)
             {
-                // For '-' bullets, use groups 1 and 3; for '*' bullets, use groups 4 and 6
-                var indent = bulletMatch.Groups[1].Success ? bulletMatch.Groups[1].Value : bulletMatch.Groups[4].Value;
-                var content = bulletMatch.Groups[3].Success ? bulletMatch.Groups[3].Value : bulletMatch.Groups[6].Value;
-                return FormatBullet(content, indent.Length);
+                var indentText = orderedMatch.Groups[1].Value;
+                var leadingUnits = GetIndentWidth(indentText);
+                var number = orderedMatch.Groups[2].Value;
+                var content = orderedMatch.Groups[3].Value;
+                return FormatOrderedListItem(number, content, leadingUnits);
+            }
+
+            // Unordered list items: -, * or + followed by text
+            var unorderedMatch = Regex.Match(line, @"^(\s*)([-*+])\s+(.+)$");
+            if (unorderedMatch.Success)
+            {
+                var indentText = unorderedMatch.Groups[1].Value;
+                var leadingUnits = GetIndentWidth(indentText);
+                var content = unorderedMatch.Groups[3].Value;
+                return FormatUnorderedListItem(content, leadingUnits);
             }
 
             // Regular line - process inline formatting
@@ -193,13 +204,13 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
 
         private static string ProcessItalic(string text)
         {
-            // Match *italic text* but not ** (bold markers)
+            // Match *italic text* or _italic text_ but not ** or __ (bold markers)
             // Use negative lookbehind and lookahead to avoid matching bold markers
-            var pattern = new Regex(@"(?<!\*)\*(.+?)\*(?!\*)");
+            var pattern = new Regex("(?<![*_])[*_](.+?)[*_](?![*_])");
             return pattern.Replace(text, match =>
             {
                 var italicText = match.Groups[1].Value;
-                // Use braces to explicitly scope the italic formatting
+                // Use braces to implicitly scope the italic formatting
                 return $"{{\\i {italicText}}}";
             });
         }
@@ -258,18 +269,35 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             return $"{{\\fs{headerSize}\\b\\cf{ColorHeader} {text}}}";
         }
 
-        private static string FormatBullet(string content, int indentLevel)
+        // Legacy bullet formatter not used anymore; list rendering now goes via
+        // FormatUnorderedListItem and FormatOrderedListItem.
+        private static string FormatBullet(string content, int level)
         {
-            // Process inline formatting within the bullet content
+            return FormatUnorderedListItem(content, level);
+        }
+
+        private static string FormatUnorderedListItem(string content, int leadingUnits)
+        {
             content = ProcessInlineFormatting(content);
 
-            // Calculate indent in twips (1 inch = 1440 twips, use 360 twips per indent level)
-            var indent = 360 + (indentLevel * 180);
+            const int baseIndentTwips = 360; // whole list block shifted in
+            const int twipsPerUnit = 180; // ~0.125" per unit
 
-            // Place bullet at left margin and text just to the right, minimal gap
-            var textStart = indent + 80;   // small gap (~0.05 inch)
+            var leftIndent = baseIndentTwips + (leadingUnits * twipsPerUnit);
+            // Use list-style paragraph with hanging indent so long items wrap nicely
+            return string.Format("\\pard\\li{0}\\fi-180 \\u8226 ?  {1}\\par\\pard", leftIndent, content);
+        }
 
-            return $"\\pard\\li{textStart}\\tx{textStart}\\fi-80\\bullet\\tab {content}\\pard";
+        private static string FormatOrderedListItem(string number, string content, int leadingUnits)
+        {
+            content = ProcessInlineFormatting(content);
+
+            const int baseIndentTwips = 360;
+            const int twipsPerUnit = 180;
+
+            var leftIndent = baseIndentTwips + (leadingUnits * twipsPerUnit);
+            // Same hanging indent pattern as bullets, using the number instead of a bullet glyph
+            return string.Format("\\pard\\li{0}\\fi-180 {1}.  {2}\\par\\pard", leftIndent, number, content);
         }
 
         private static string FormatHorizontalRule()
@@ -342,7 +370,9 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             // Font table: f0 = default UI font (Calibri), f1 = monospace for code
             rtf.Append("{\\fonttbl");
             rtf.Append("{\\f0\\fswiss\\fcharset0 Calibri;}");
+
             rtf.Append("{\\f1\\fmodern\\fcharset0 Consolas;}");
+
             rtf.Append("}");
 
             // Color table
@@ -366,6 +396,24 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             rtf.Append("}");
 
             return rtf.ToString();
+        }
+
+        private static int GetIndentWidth(string indent)
+        {
+            // Treat a tab as 4 spaces; each space counts as 1 unit
+            var width = 0;
+            foreach (var ch in indent)
+            {
+                if (ch == '\t')
+                {
+                    width += 4;
+                }
+                else if (ch == ' ')
+                {
+                    width += 1;
+                }
+            }
+            return width;
         }
     }
 }
