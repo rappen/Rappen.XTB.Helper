@@ -31,16 +31,18 @@ namespace Rappen.AI.WinForm
         internal readonly string Endpoint;
         internal readonly string Model;
         internal readonly string ApiKey;
+        internal readonly string ProviderDisplayName;
 
         internal List<ChatMessageLog> Messages => messages.Where(m => !m.OnlyInfo).ToList();
         internal List<ChatMessageLog> AllMessages => messages;
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string provider, string model, string endpoint, string apikey, string user, string onlyinfouser)
+        public ChatMessageHistory(Panel parent, string provider, string model, string endpoint, string apikey, string user, string onlyinfouser, string providerdisplay)
         {
             this.parent = parent;
             Provider = provider;
+            ProviderDisplayName = providerdisplay;
             Model = model;
             Endpoint = endpoint;
             ApiKey = apikey;
@@ -69,7 +71,7 @@ namespace Rappen.AI.WinForm
 
         public override string ToString()
         {
-            return $"Started:  {starttime:G}{Environment.NewLine}Provider: {Provider}{Environment.NewLine}Model:    {Model}" +
+            return $"Started:  {starttime:G}{Environment.NewLine}Provider: {ProviderDisplayName}{Environment.NewLine}Model:    {Model}" +
                 $"{Environment.NewLine}{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, messages.Select(m => m.ToString()))}";
         }
@@ -111,7 +113,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{Provider ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{ProviderDisplayName ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
@@ -122,7 +124,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = onlyinfo ? onlyinfouser : role == ChatRole.User ? user : role == ChatRole.Assistant ? Provider : "";
+            var sender = onlyinfo ? onlyinfouser : role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : "";
             var chatLog = new ChatMessageLog(role, content.Trim(), sender, onlyinfo);
             messages.Add(chatLog);
             if (!hidden)
@@ -133,7 +135,14 @@ namespace Rappen.AI.WinForm
                     parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
                     parent.PerformLayout();
                 };
-                if (parent.InvokeRequired) parent.Invoke(mi); else mi();
+                if (parent.InvokeRequired)
+                {
+                    parent.Invoke(mi);
+                }
+                else
+                {
+                    mi();
+                }
             }
         }
 
@@ -180,7 +189,14 @@ namespace Rappen.AI.WinForm
                         parent.PerformLayout();
                     }
                 };
-                if (parent.InvokeRequired) parent.Invoke(mi); else mi();
+                if (parent.InvokeRequired)
+                {
+                    parent.Invoke(mi);
+                }
+                else
+                {
+                    mi();
+                }
             }
         }
 

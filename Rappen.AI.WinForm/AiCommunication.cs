@@ -43,7 +43,7 @@ namespace Rappen.AI.WinForm
 
             tool.WorkAsync(new WorkAsyncInfo
             {
-                Message = $"Asking {chatMessageHistory.Provider}...",
+                Message = $"Asking {chatMessageHistory.ProviderDisplayName}...",
                 Work = (w, a) =>
                 {
                     a.Result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
@@ -54,7 +54,7 @@ namespace Rappen.AI.WinForm
                     chatMessageHistory.IsRunning = false;
                     if (w.Error != null)
                     {
-                        tool.LogError($"Error while communicating with {chatMessageHistory.Provider}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+                        tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
                         if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
@@ -70,7 +70,7 @@ namespace Rappen.AI.WinForm
                         }
                         else
                         {
-                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.Provider} {chatMessageHistory.Model}");
+                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
                         }
                         handleResponse?.Invoke(null);
                     }
