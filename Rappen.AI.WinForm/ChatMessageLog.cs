@@ -74,7 +74,6 @@ namespace Rappen.AI.WinForm
         {
             var backcolor = OnlyInfo ? ChangeColorBrightness(BackColor, 0.5f) : BackColor;
 
-            // Create the container panel and content panel
             containerPanel = new Panel
             {
                 Tag = this,
@@ -82,8 +81,8 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Bottom,
             };
             containerPanel.Resize += Panel_Resize;
+            containerPanel.MouseWheel += Child_MouseWheel; // forward scroll
 
-            // Add the container panel to contain the message and stamp
             contentPanel = new Panel
             {
                 BackColor = backcolor,
@@ -92,9 +91,9 @@ namespace Rappen.AI.WinForm
                 Height = 60,
                 Dock = DockStyle
             };
+            contentPanel.MouseWheel += Child_MouseWheel; // forward scroll
             containerPanel.Controls.Add(contentPanel);
 
-            // Create the message text box
             messageTextBox = new RichTextBox
             {
                 BackColor = backcolor,
@@ -105,6 +104,7 @@ namespace Rappen.AI.WinForm
                 WordWrap = true,
                 ReadOnly = true,
             };
+            messageTextBox.MouseWheel += Child_MouseWheel; // forward scroll
 
             // Check if we need to apply RTF formatting
             if (Text.IsMarkdown())
@@ -139,7 +139,6 @@ namespace Rappen.AI.WinForm
             messageTextBox.ContentsResized += Message_ContentsResized;
             messageTextBox.LinkClicked += Message_LinkClicked;
 
-            // Create the stamp text box
             stampTextBox = new TextBox
             {
                 BackColor = backcolor,
@@ -150,8 +149,8 @@ namespace Rappen.AI.WinForm
                 Dock = DockStyle.Bottom,
                 ReadOnly = true,
             };
+            stampTextBox.MouseWheel += Child_MouseWheel; // forward scroll
 
-            // Adding message and stamp text boxes to the content panel
             contentPanel.Controls.Add(stampTextBox);
             contentPanel.Controls.Add(messageTextBox);
         }
@@ -191,6 +190,36 @@ namespace Rappen.AI.WinForm
             contentPanel.Left = Role == ChatRole.Assistant ? 0 :
                 Role == ChatRole.User ? width - contentPanel.Width :
                 (width - contentPanel.Width) / 2;
+        }
+
+        private void Child_MouseWheel(object sender, MouseEventArgs e)
+        {
+            // Find the first scrollable parent (your panAiConversation)
+            var parent = containerPanel?.Parent as ScrollableControl;
+            while (parent != null && !parent.AutoScroll)
+            {
+                parent = parent.Parent as ScrollableControl;
+            }
+
+            if (parent == null)
+            {
+                return;
+            }
+
+            // Manually adjust vertical scroll value
+            var vs = parent.VerticalScroll;
+            var newValue = vs.Value - Math.Sign(e.Delta) * vs.SmallChange * 12;
+            if (newValue < vs.Minimum)
+            {
+                newValue = vs.Minimum;
+            }
+
+            if (newValue > vs.Maximum)
+            {
+                newValue = vs.Maximum;
+            }
+
+            vs.Value = newValue;
         }
 
         private void copyMenuItem_Click(object sender, EventArgs e)
