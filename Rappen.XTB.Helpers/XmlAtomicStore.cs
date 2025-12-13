@@ -229,11 +229,9 @@ namespace Rappen.XTB.Helpers
             try
             {
                 var serializer = new XmlSerializer(typeof(T));
-                using (var sr = new StringReader(xml))
-                {
-                    var obj = serializer.Deserialize(sr);
-                    return (T)obj;
-                }
+                using var sr = new StringReader(xml);
+                var obj = serializer.Deserialize(sr);
+                return (T)obj;
             }
             catch
             {
@@ -257,7 +255,11 @@ namespace Rappen.XTB.Helpers
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> is <see langword="null"/>.</exception>
         public static T DeserializeFromStream<T>(Stream stream, bool alwaysReturns) where T : new()
         {
-            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            if (stream == null)
+            {
+                throw new ArgumentNullException(nameof(stream));
+            }
+
             try
             {
                 var serializer = new XmlSerializer(typeof(T));
@@ -301,10 +303,20 @@ namespace Rappen.XTB.Helpers
             bool alwaysReturns = true,
             int timeoutMilliseconds = 15000) where T : new()
         {
-            if (string.IsNullOrWhiteSpace(baseUri)) throw new ArgumentNullException(nameof(baseUri));
-            if (string.IsNullOrWhiteSpace(fileName)) throw new ArgumentNullException(nameof(fileName));
+            if (string.IsNullOrWhiteSpace(baseUri))
+            {
+                throw new ArgumentNullException(nameof(baseUri));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
             if (!Uri.TryCreate(baseUri, UriKind.Absolute, out var baseUriObj))
+            {
                 throw new ArgumentException("Base URI must be a well-formed absolute URI.", nameof(baseUri));
+            }
 
             string localPath = null;
 
@@ -316,10 +328,9 @@ namespace Rappen.XTB.Helpers
                     localPath = Path.Combine(localFolder, fileName);
                     if (File.Exists(localPath))
                     {
-                        using (var fs = new FileStream(localPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        {
-                            return DeserializeFromStream<T>(fs, alwaysReturns);
-                        }
+                        // Read as text using UTF-8, then deserialize from string
+                        var xml = File.ReadAllText(localPath, Encoding.UTF8);
+                        return DeserializeFromString<T>(xml, alwaysReturns);
                     }
                 }
                 catch
@@ -339,35 +350,35 @@ namespace Rappen.XTB.Helpers
 
             try
             {
-                using (var response = request.GetResponse())
-                using (var stream = response.GetResponseStream())
-                using (var reader = new StreamReader(stream))
-                {
-                    var xml = reader.ReadToEnd();
-                    var result = DeserializeFromString<T>(xml, alwaysReturns);
+                using var response = request.GetResponse();
+                using var stream = response.GetResponseStream();
+                using var reader = new StreamReader(stream);
+                var xml = reader.ReadToEnd();
+                var result = DeserializeFromString<T>(xml, alwaysReturns);
 
 #if DEBUG
-                    // Cache remote XML if a local folder is provided and file was not present
-                    if (!string.IsNullOrWhiteSpace(localFolder) &&
-                        !string.IsNullOrWhiteSpace(localPath) &&
-                        !File.Exists(localPath))
+                // Cache remote XML if a local folder is provided and file was not present
+                if (!string.IsNullOrWhiteSpace(localFolder) &&
+                    !string.IsNullOrWhiteSpace(localPath) &&
+                    !File.Exists(localPath))
+                {
+                    try
                     {
-                        try
+                        var dir = Path.GetDirectoryName(localPath);
+                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                         {
-                            var dir = Path.GetDirectoryName(localPath);
-                            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                                Directory.CreateDirectory(dir);
+                            Directory.CreateDirectory(dir);
+                        }
 
-                            File.WriteAllText(localPath, xml, Encoding.UTF8);
-                        }
-                        catch
-                        {
-                            // Swallow caching errors in DEBUG mode
-                        }
+                        File.WriteAllText(localPath, xml, Encoding.UTF8);
                     }
-#endif
-                    return result;
+                    catch
+                    {
+                        // Swallow caching errors in DEBUG mode
+                    }
                 }
+#endif
+                return result;
             }
             catch
             {
@@ -428,8 +439,15 @@ namespace Rappen.XTB.Helpers
             bool useNamedMutex,
             CancellationToken cancellationToken)
         {
-            if (instance == null) throw new ArgumentNullException(nameof(instance));
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+            if (instance == null)
+            {
+                throw new ArgumentNullException(nameof(instance));
+            }
+
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -489,7 +507,7 @@ namespace Rappen.XTB.Helpers
             }
             finally
             {
-                try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { }
+                try { if (File.Exists(tempPath)) { File.Delete(tempPath); } } catch { }
                 try { mutex?.ReleaseMutex(); } catch { }
                 mutex?.Dispose();
                 gate.Release();
@@ -506,7 +524,10 @@ namespace Rappen.XTB.Helpers
             bool useNamedMutex,
             CancellationToken cancellationToken) where T : new()
         {
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -529,12 +550,10 @@ namespace Rappen.XTB.Helpers
                     mutex.WaitOne();
                 }
 
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-                {
-                    var serializer = new XmlSerializer(typeof(T));
-                    var obj = serializer.Deserialize(fs);
-                    return (T)obj;
-                }
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var serializer = new XmlSerializer(typeof(T));
+                var obj = serializer.Deserialize(fs);
+                return (T)obj;
             }
             catch
             {
@@ -560,13 +579,15 @@ namespace Rappen.XTB.Helpers
 
         private static string Sha1Hex(string input)
         {
-            using (var sha1 = SHA1.Create())
+            using var sha1 = SHA1.Create();
+            var bytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
             {
-                var bytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
-                var sb = new StringBuilder(bytes.Length * 2);
-                foreach (var b in bytes) sb.Append(b.ToString("x2"));
-                return sb.ToString();
+                sb.Append(b.ToString("x2"));
             }
+
+            return sb.ToString();
         }
 
         #endregion Infrastructure (Mutex + Hash)

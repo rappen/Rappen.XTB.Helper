@@ -114,7 +114,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{ProviderDisplayName ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{Provider ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
             Save(path);
             return path;
         }
