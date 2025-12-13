@@ -18,6 +18,7 @@ namespace Rappen.AI.WinForm
         internal static Color OtherTextColor = Color.Black;
         internal static Color BackColor = Color.White;
         internal static Color WaitingBackColor = Color.LightGray;
+        internal static Font Font = new Font("Segoe UI", 9);
 
         private Panel parent;
         private readonly string user;

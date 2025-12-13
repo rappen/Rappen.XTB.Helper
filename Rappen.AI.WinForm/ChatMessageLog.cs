@@ -110,7 +110,7 @@ namespace Rappen.AI.WinForm
             if (Text.IsMarkdown())
             {
                 // Generate the RTF content
-                var rtfContent = Text.ConvertMarkdownToRtf(ForeColor, backcolor);
+                var rtfContent = Text.ConvertMarkdownToRtf(ForeColor, backcolor, ChatMessageHistory.Font);
 
                 // Defer RTF assignment until the control has a window handle
                 void ApplyRtf(object s, EventArgs ev)
