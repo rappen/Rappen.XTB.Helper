@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
@@ -28,38 +29,71 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
         /// <param name="backColor">The background color (used for code blocks styling hint).</param>
         /// <param name="fontSize">The base font size in points.</param>
         /// <returns>RTF formatted string.</returns>
-        public static string ConvertMarkdownToRtf(this string markdown, Color foreColor, Color backColor, int fontSize = 9)
+        public static string ConvertMarkdownToRtf(this string markdown, Color foreColor, Color backColor, float fontSize = 9)
+        {
+            var baseFontSize = (int)System.Math.Round(fontSize);
+            return ConvertMarkdownToRtf(markdown, foreColor, backColor, baseFontSize, null, FontStyle.Regular);
+        }
+
+        public static string ConvertMarkdownToRtf(this string markdown, Color foreColor, Color backColor, Font baseFont)
+        {
+            if (baseFont == null)
+            {
+                throw new ArgumentNullException(nameof(baseFont));
+            }
+
+            // Use point size from the Font; RTF \fs is in half-points
+            var baseFontSize = (int)System.Math.Round(baseFont.Size);
+
+            return ConvertMarkdownToRtf(
+                markdown,
+                foreColor,
+                backColor,
+                baseFontSize,
+                baseFont.Name,
+                baseFont.Style);
+        }
+
+        private static string ConvertMarkdownToRtf(
+            string markdown,
+            Color foreColor,
+            Color backColor,
+            int fontSize,
+            string fontName,
+            FontStyle fontStyle)
         {
             if (string.IsNullOrEmpty(markdown))
             {
-                return BuildRtfDocument("", foreColor, backColor, fontSize);
+                return BuildRtfDocument("", foreColor, backColor, fontSize, fontName, fontStyle);
             }
 
-            // Normalize line endings
+            // Normalize line endings to UNIX style (LF)
             markdown = markdown.Replace("\r\n", "\n").Replace("\r", "\n");
 
-            // Extract code blocks first to protect them from other processing
             var codeBlocks = new List<string>();
+            // Extract and replace code blocks with placeholders
             markdown = ExtractCodeBlocks(markdown, codeBlocks);
 
-            // Process the markdown line by line for structure (headers, bullets)
-            var lines = markdown.Split('\n');
             var result = new StringBuilder();
 
+            // Split into lines for per-line processing
+            var lines = markdown.Split('\n');
             for (var i = 0; i < lines.Length; i++)
             {
                 var line = lines[i];
+                line = line.TrimEnd('\r', '\n');
+
                 var processedLine = ProcessLine(line, codeBlocks, fontSize);
                 result.Append(processedLine);
 
-                // Add paragraph break except for last line
+                // Add paragraph break except after the last line
                 if (i < lines.Length - 1)
                 {
                     result.Append("\\par\n");
                 }
             }
 
-            return BuildRtfDocument(result.ToString(), foreColor, backColor, fontSize);
+            return BuildRtfDocument(result.ToString(), foreColor, backColor, fontSize, fontName, fontStyle);
         }
 
         public static bool IsMarkdown(this string text)
@@ -112,8 +146,9 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
 
         private static string ProcessLine(string line, List<string> codeBlocks, int fontSize)
         {
-            // Check for code block placeholder
-            var codeBlockMatch = Regex.Match(line, @"__CODEBLOCK_(\d+)_PLACEHOLDER__");
+            // Check for code block placeholder - must be the entire (trimmed) line
+            var trimmed = line.Trim();
+            var codeBlockMatch = Regex.Match(trimmed, @"^__CODEBLOCK_(\d+)_PLACEHOLDER__$");
             if (codeBlockMatch.Success)
             {
                 var index = int.Parse(codeBlockMatch.Groups[1].Value);
@@ -122,7 +157,7 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             }
 
             // Horizontal rule: line of exactly three or more dashes
-            if (Regex.IsMatch(line.Trim(), @"^-{3,}$"))
+            if (Regex.IsMatch(trimmed, @"^-{3,}$"))
             {
                 return FormatHorizontalRule();
             }
@@ -185,7 +220,7 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             return pattern.Replace(text, match =>
             {
                 var code = match.Groups[1].Value;
-                // Use monospace font and code color
+                // Use monospace font and code color, but do not override base font elsewhere
                 return $"{{\\f{FontMono}\\cf{ColorCode} {code}}}";
             });
         }
@@ -243,29 +278,31 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
         {
             text = ProcessInlineFormatting(text);
 
-            // Stronger size differences by level
             double multiplier;
             switch (level)
             {
                 case 1:
-                    multiplier = 2.0;   // H1: 2x
+                    multiplier = 2.0;   // biggest
                     break;
 
                 case 2:
-                    multiplier = 1.6;   // H2: 1.6x
+                    multiplier = 1.6;
                     break;
 
                 case 3:
-                    multiplier = 1.3;   // H3: 1.3x
+                    multiplier = 1.3;
+                    break;
+
+                case 4:
+                    multiplier = 1.1;   // slightly larger than body
                     break;
 
                 default:
-                    multiplier = 1.15;  // H4+ : slightly larger than body
+                    multiplier = 1.0;   // h5/h6 same as body, but bold + color
                     break;
             }
 
             var headerSize = (int)(baseFontSize * multiplier * 2); // RTF uses half-points
-
             return $"{{\\fs{headerSize}\\b\\cf{ColorHeader} {text}}}";
         }
 
@@ -353,46 +390,61 @@ namespace Rappen.XRM.Helpers.Extensions.Markdown
             return result.ToString();
         }
 
-        private static string BuildRtfDocument(string content, Color foreColor, Color backColor, int fontSize)
+        private static string EscapeFontName(string name)
         {
-            // Decide code foreground: black on light background, white on dark background
+            // Minimal: escape backslashes/braces for safety
+            return name.Replace("\\", "\\\\").Replace("{", "\\{").Replace("}", "\\}");
+        }
+
+        private static string BuildRtfDocument(string content, Color foreColor, Color backColor, int fontSize, string fontName, FontStyle fontStyle)
+        {
             var backBrightness = backColor.R * 0.299 + backColor.G * 0.587 + backColor.B * 0.114;
             var codeForeColor = backBrightness < 128 ? Color.White : Color.Black;
-
-            // Header color - same as foreground but could be customized
             var headerColor = foreColor;
 
             var rtf = new StringBuilder();
-
-            // RTF header
             rtf.Append("{\\rtf1\\ansi\\deff0");
 
-            // Font table: f0 = default UI font (Calibri), f1 = monospace for code
+            // Font table: f0 = caller’s base font (if provided), f1 = monospace
             rtf.Append("{\\fonttbl");
-            rtf.Append("{\\f0\\fswiss\\fcharset0 Calibri;}");
 
-            rtf.Append("{\\f1\\fmodern\\fcharset0 Consolas;}");
+            if (!string.IsNullOrEmpty(fontName))
+            {
+                rtf.Append($"{{\\f0\\fnil {EscapeFontName(fontName)};}}");
+            }
+            else
+            {
+                rtf.Append("{\\f0;}");
+            }
 
+            rtf.Append("{\\f1\\fmodern Consolas;}");
             rtf.Append("}");
 
             // Color table
             rtf.Append("{\\colortbl;");
-            rtf.Append($"\\red{foreColor.R}\\green{foreColor.G}\\blue{foreColor.B};");          // cf1 - default text
-            rtf.Append($"\\red{codeForeColor.R}\\green{codeForeColor.G}\\blue{codeForeColor.B};"); // cf2 - code text (black/white vs background)
-            rtf.Append($"\\red{headerColor.R}\\green{headerColor.G}\\blue{headerColor.B};");     // cf3 - headers
+            rtf.Append($"\\red{foreColor.R}\\green{foreColor.G}\\blue{foreColor.B};");
+            rtf.Append($"\\red{codeForeColor.R}\\green{codeForeColor.G}\\blue{codeForeColor.B};");
+            rtf.Append($"\\red{headerColor.R}\\green{headerColor.G}\\blue{headerColor.B};");
             rtf.Append("}");
 
-            // Document settings
             rtf.Append("\\viewkind4\\uc1");
 
-            // Initialize paragraph and set default font, size, and color
-            var rtfFontSize = fontSize * 2; // RTF uses half-points
-            rtf.Append($"\\pard\\f{FontDefault}\\fs{rtfFontSize}\\cf{ColorDefault} ");
+            // Base font size from caller; RTF uses half-points
+            var baseFs = fontSize > 0 ? fontSize * 2 : 0;
+            if (baseFs > 0)
+            {
+                rtf.Append($"\\pard\\f{FontDefault}\\fs{baseFs}\\cf{ColorDefault} ");
+            }
+            else
+            {
+                rtf.Append($"\\pard\\f{FontDefault}\\cf{ColorDefault} ");
+            }
 
-            // Content
+            // Could also honor bold/italic from FontStyle if you want:
+            // if ((fontStyle & FontStyle.Bold) != 0) rtf.Append("\\b ");
+            // if ((fontStyle & FontStyle.Italic) != 0) rtf.Append("\\i ");
+
             rtf.Append(content);
-
-            // Close RTF document
             rtf.Append("}");
 
             return rtf.ToString();
