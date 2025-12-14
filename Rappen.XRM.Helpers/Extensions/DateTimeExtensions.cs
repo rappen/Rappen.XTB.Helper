@@ -38,19 +38,19 @@ namespace Rappen.XRM.Helpers.Extensions
         {
             if (span.TotalDays >= 1)
             {
-                return $"{span.TotalDays:0} days, {span.Hours:00} hours, {span.Minutes:00}:{span.Seconds:00}";
+                return $"{span.TotalDays:0} days, {span.Hours:00} hours and {span.Minutes:00}:{span.Seconds:00}";
             }
             if (span.TotalHours >= 1)
             {
-                return $"{span.Hours:0} hours, {span.Minutes:00} minutes";
+                return $"{span.Hours:0} hours and {span.Minutes:00} minutes";
             }
             if (span.TotalMinutes >= 1)
             {
-                return $"{span.Minutes:0} minutes, {span.Seconds:00} seconds";
+                return $"{span.Minutes:0} minutes and {span.Seconds:00} seconds";
             }
             if (span.TotalSeconds >= 1)
             {
-                return $"{span.Seconds:0} seconds, {span.Milliseconds:000} milliseconds";
+                return $"{span.Seconds:0} seconds and {span.Milliseconds:000} milliseconds";
             }
             return $"{span.TotalMilliseconds:0} milliseconds";
         }
