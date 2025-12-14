@@ -33,6 +33,11 @@ namespace Rappen.AI.WinForm
 
         public AiSupport() { }
 
+        public List<AiProvider> SupportedAiProviders(Version version) => AiProviders
+            .Where(n => string.IsNullOrEmpty(n.FromVersion) || Version.TryParse(n.FromVersion, out var fromVersion) && fromVersion <= version)
+            .Where(n => string.IsNullOrEmpty(n.ToVersion) || Version.TryParse(n.ToVersion, out var toVersion) && toVersion >= version)
+            .ToList();
+
         public AiProvider Provider(string aiprovider) => AiProviders.FirstOrDefault(n => n.ToString().Equals(aiprovider));
     }
 
@@ -52,6 +57,8 @@ namespace Rappen.AI.WinForm
         private const int interval = 5;
         public string Name { get; set; }
         public string FullName { get; set; }
+        public string FromVersion { get; set; }
+        public string ToVersion { get; set; }
         public string Url { get; set; }
         public bool EndpointFixed { get; set; }
         public string ApiKey { get; set; }
