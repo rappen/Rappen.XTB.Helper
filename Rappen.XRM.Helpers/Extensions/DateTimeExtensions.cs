@@ -42,17 +42,17 @@ namespace Rappen.XRM.Helpers.Extensions
             }
             if (span.TotalHours >= 1)
             {
-                return $"{span.Hours:0}:{span.Minutes:00}:{span.Seconds:00}";
+                return $"{span.Hours:0} hours, {span.Minutes:00} minutes";
             }
             if (span.TotalMinutes >= 1)
             {
-                return $"{span.Minutes:0}:{span.Seconds:00}.{span:fff}";
+                return $"{span.Minutes:0} minutes, {span.Seconds:00} seconds";
             }
             if (span.TotalSeconds >= 1)
             {
-                return $"{span.Seconds:0}.{span:fff} secs";
+                return $"{span.Seconds:0} seconds, {span.Milliseconds:000} milliseconds";
             }
-            return $"{span.TotalMilliseconds:0} ms";
+            return $"{span.TotalMilliseconds:0} milliseconds";
         }
     }
 }
