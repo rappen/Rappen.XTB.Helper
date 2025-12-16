@@ -39,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Controls\XRMColumnNumber.designer.cs">
       <DependentUpon>XRMColumnNumber.cs</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ExcelHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DataGridExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\QueryExtensions.cs" />
