@@ -19,6 +19,10 @@ namespace Rappen.XTB.Helpers
         private const int XlVAlignTop = -4160;
         private const int XlCalculationManual = -4135;
         private const int XlCalculationAutomatic = -4105;
+        private const int XlEdgeBottom = 9;
+        private const int XlContinuous = 1;
+        private const int XlThick = 4;
+        private const int XlAnd = 1;
 
         private static readonly Dictionary<string, string> PrimaryNameCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -29,18 +33,18 @@ namespace Rappen.XTB.Helpers
         /// <summary>
         /// Exports current grid content plus FetchXML/Layout to Excel, applying formatting and link enrichment.
         /// </summary>
-        public static void ExportToExcel(PluginControlBase tool, XRMDataGridView xrmgrid, bool addLinks, string fetch, string layout, Action doneaction)
+        public static void ExportToExcel(PluginControlBase tool, XRMDataGridView xrmgrid, bool addLinks, string fetch, string layout, Action afterExport, int? columnMaxWidth = null)
         {
-            var dataObj = PrepareExcelClipboardOnUIThread(xrmgrid, xrmgrid, addLinks, tool.ConnectionDetail);
+            var dataObj = BuildClipboardDataOnUIThread(xrmgrid, addLinks, tool.ConnectionDetail);
             if (dataObj == null)
             {
                 return;
             }
 
-            tool.WorkAsync(new XrmToolBox.Extensibility.WorkAsyncInfo
+            tool.WorkAsync(new WorkAsyncInfo
             {
                 Message = "Opening in Excel...",
-                Work = (w, a) => ExportClipboardToExcel(w, fetch, layout, tool.ConnectionDetail, dataObj),
+                Work = (w, a) => ExportClipboardToExcel(w, tool.ToolName, fetch, layout, tool.ConnectionDetail, dataObj, columnMaxWidth),
                 ProgressChanged = p => tool.SetWorkingMessage(p.UserState.ToString()),
                 PostWorkCallBack = a =>
                 {
@@ -48,31 +52,42 @@ namespace Rappen.XTB.Helpers
                     {
                         tool.ShowErrorDialog(a.Error, "Open Excel");
                     }
-                    doneaction?.Invoke();
+                    afterExport?.Invoke();
                 }
             });
         }
 
-        private static DataObject PrepareExcelClipboardOnUIThread(Control invoker, XRMDataGridView xrmgrid, bool addlinks, ConnectionDetail conndet)
+        private static DataObject BuildClipboardDataOnUIThread(XRMDataGridView xrmgrid, bool addLinks, ConnectionDetail conndet)
         {
-            if (invoker == null || invoker.IsDisposed)
+            if (xrmgrid == null || xrmgrid.IsDisposed)
             {
                 return null;
+            }
+
+            if (!xrmgrid.IsHandleCreated)
+            {
+                _ = xrmgrid.Handle;
             }
 
             DataObject result = null;
             Exception invokeEx = null;
 
-            if (!invoker.IsHandleCreated)
-            {
-                _ = invoker.Handle;
-            }
-
-            void action()
+            void BuildData()
             {
                 try
                 {
-                    result = BuildClipboardData(xrmgrid, addlinks, conndet);
+                    var originalMode = xrmgrid.ClipboardCopyMode;
+                    xrmgrid.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
+
+                    xrmgrid.SelectAll();
+                    result = xrmgrid.GetClipboardContent() as DataObject;
+                    xrmgrid.ClearSelection();
+                    xrmgrid.ClipboardCopyMode = originalMode;
+
+                    if (result != null && addLinks)
+                    {
+                        AddHtmlLinksToClipboard(result, xrmgrid, conndet);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -80,14 +95,13 @@ namespace Rappen.XTB.Helpers
                 }
             }
 
-            // Clipboard and grid APIs must run on the UI thread.
-            if (invoker.InvokeRequired)
+            if (xrmgrid.InvokeRequired)
             {
-                invoker.Invoke((MethodInvoker)action);
+                xrmgrid.Invoke((MethodInvoker)BuildData);
             }
             else
             {
-                action();
+                BuildData();
             }
 
             if (invokeEx != null)
@@ -98,46 +112,38 @@ namespace Rappen.XTB.Helpers
             return result;
         }
 
-        private static DataObject BuildClipboardData(XRMDataGridView xrmgrid, bool addlinks, ConnectionDetail conndet)
+        private static void AddHtmlLinksToClipboard(DataObject dataObj, XRMDataGridView xrmgrid, ConnectionDetail conndet)
         {
-            var originalMode = xrmgrid.ClipboardCopyMode;
-            xrmgrid.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableAlwaysIncludeHeaderText;
-
-            xrmgrid.SelectAll();
-            var dataObj = xrmgrid.GetClipboardContent() as DataObject;
-            xrmgrid.ClearSelection();
-            xrmgrid.ClipboardCopyMode = originalMode;
-
-            if (dataObj == null)
-            {
-                return null;
-            }
-
-            if (!addlinks)
-            {
-                return dataObj;
-            }
-
-            var allVisible = xrmgrid.Columns.Cast<DataGridViewColumn>()
+            var visibleCols = xrmgrid.Columns.Cast<DataGridViewColumn>()
                 .Where(c => c.Visible)
                 .OrderBy(c => c.DisplayIndex)
                 .ToList();
 
-            var baseNames = allVisible.ToDictionary(c => c, c => c.Name.Split('|')[0]);
-            var noHash = allVisible.Where(c => !baseNames[c].StartsWith("#")).ToList();
-
-            var hasPrimary = TryGetPrimaryNameAttribute(xrmgrid, out var primaryAttr);
-            var primaryIndex = hasPrimary ? GetVisibleColumnIndexOfAttribute(noHash, primaryAttr) : -1;
-            hasPrimary = hasPrimary && primaryIndex >= 0;
-
-            var htmlFragment = BuildHtmlTable(xrmgrid, conndet, allVisible, hasPrimary ? noHash[primaryIndex] : null);
+            var primaryCol = GetPrimaryNameColumn(xrmgrid, visibleCols);
+            var htmlFragment = BuildHtmlTable(xrmgrid, conndet, visibleCols, primaryCol);
             var cfHtml = WrapAsClipboardHtml(htmlFragment);
             Try(() => dataObj.SetData(DataFormats.Html, cfHtml));
-            return dataObj;
         }
 
-        // Excel export (Result: columns AutoFit; Source: A AutoFit, B fixed width + Wrap).
-        private static void ExportClipboardToExcel(System.ComponentModel.BackgroundWorker bw, string fetch, string layout, ConnectionDetail conndet, DataObject dataObj)
+        private static DataGridViewColumn GetPrimaryNameColumn(XRMDataGridView grid, List<DataGridViewColumn> visibleCols)
+        {
+            if (!TryGetPrimaryNameAttribute(grid, out var primaryAttr))
+            {
+                return null;
+            }
+
+            var rootCols = visibleCols.Where(c => !c.Name.Split('|')[0].StartsWith("#")).ToList();
+            var index = rootCols.FindIndex(c =>
+            {
+                var baseName = c.Name.Split('|')[0];
+                return !baseName.Contains(".") &&
+                       string.Equals(baseName, primaryAttr, StringComparison.OrdinalIgnoreCase);
+            });
+
+            return index >= 0 ? rootCols[index] : null;
+        }
+
+        private static void ExportClipboardToExcel(System.ComponentModel.BackgroundWorker bw, string toolname, string fetch, string layout, ConnectionDetail conndet, DataObject dataObj, int? columnMaxWidth)
         {
             if (dataObj == null)
             {
@@ -150,109 +156,30 @@ namespace Rappen.XTB.Helpers
 
             var sta = new Thread(() =>
             {
-                // Excel automation and Clipboard require STA.
-                dynamic app = null;
-                bool? prevScreenUpdating = null, prevDisplayAlerts = null, prevEnableEvents = null;
-                int? prevCalculation = null;
-
                 try
                 {
-                    Try(() => Clipboard.SetDataObject(dataObj, true, retryTimes: 10, retryDelay: 50));
-                    for (var i = 0; i < 10; i++)
-                    {
-                        try
-                        {
-                            if (Clipboard.ContainsData(DataFormats.Html) || Clipboard.ContainsData(DataFormats.Text))
-                            {
-                                break;
-                            }
-                        }
-                        catch { }
-                        Thread.Sleep(20);
-                    }
-
+                    SetClipboard(dataObj);
                     bw?.ReportProgress(20, "Starting Excel...");
-                    var excelType = Type.GetTypeFromProgID("Excel.Application") ?? throw new Exception("Microsoft Excel is not installed.");
-                    try
-                    {
-                        app = Activator.CreateInstance(excelType);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"Failed to start Microsoft Excel.{Environment.NewLine}{ex.Message}", ex);
-                    }
 
-                    // Keep Excel hidden while preparing content; show only when ready.
+                    dynamic app = CreateExcelApplication();
                     Try(() => app.Visible = false);
 
                     bw?.ReportProgress(30, "Populating results...");
-                    try
-                    {
-                        Try(() => { prevScreenUpdating = app.ScreenUpdating; app.ScreenUpdating = false; });
-                        Try(() => { prevDisplayAlerts = app.DisplayAlerts; app.DisplayAlerts = false; });
-                        Try(() => { prevEnableEvents = app.EnableEvents; app.EnableEvents = false; });
-                        Try(() => { prevCalculation = app.Calculation; app.Calculation = XlCalculationManual; });
 
+                    using (new ExcelOptimization(app))
+                    {
                         dynamic wb = app.Workbooks.Add();
                         dynamic resultSheet = wb.Worksheets[1];
-                        resultSheet.Name = "FetchXML Builder - Result";
+                        resultSheet.Name = $"{toolname} - Result";
 
-                        const int xlEdgeBottom = 9;
-                        const int xlContinuous = 1;
-                        const int xlThick = 4;
-                        const int xlAnd = 1;
-
-                        try
-                        {
-                            resultSheet.Paste(resultSheet.Cells[1, 1]);
-                        }
-                        catch
-                        {
-                            Try(() => resultSheet.Paste());
-                        }
-                        Try(() => app.CutCopyMode = false);
-
-                        Try(() =>
-                        {
-                            var headerA1 = (string)(resultSheet.Cells[1, 1].Value ?? string.Empty);
-                            if (string.Equals(headerA1, LinkIcon, StringComparison.Ordinal))
-                            {
-                                resultSheet.Columns[1].HorizontalAlignment = XlHAlignCenter;
-                            }
-                        });
-
-                        dynamic header = resultSheet.Rows[1];
-                        header.Font.Bold = true;
-                        header.Borders[xlEdgeBottom].LineStyle = xlContinuous;
-                        header.Borders[xlEdgeBottom].Weight = xlThick;
-                        header.AutoFilter(1, Type.Missing, xlAnd, Type.Missing, true);
-                        Try(() => resultSheet.Application.ActiveWindow.SplitRow = 1);
-                        Try(() => resultSheet.Application.ActiveWindow.FreezePanes = true);
-                        Try(() => resultSheet.Rows.VerticalAlignment = XlVAlignTop);
-
-                        bw?.ReportProgress(35, "Autosizing columns...");
-                        Try(() =>
-                        {
-                            // HTML paste enables WrapText; with wrap on, AutoFit grows rows, not columns.
-                            // Turn off wrap to allow column width AutoFit to compute correctly.
-                            dynamic used = resultSheet.UsedRange;
-                            used.WrapText = false;
-                            used.Columns.AutoFit();
-                        });
+                        PasteAndFormatResultSheet(resultSheet, columnMaxWidth, bw);
 
                         bw?.ReportProgress(40, "Copying FetchXML and LayoutXML...");
-                        PopulateSourceSheet(wb, fetch, layout, conndet);
+                        PopulateSourceSheet(wb, toolname, fetch, layout, conndet);
 
                         bw?.ReportProgress(90, "Finalizing Excel...");
                         Try(() => resultSheet.Activate());
                         Try(() => resultSheet.Range["A1", "A1"].Select());
-                    }
-                    finally
-                    {
-                        Try(() => app.Calculation = prevCalculation ?? XlCalculationAutomatic);
-                        Try(() => app.EnableEvents = prevEnableEvents ?? true);
-                        Try(() => app.DisplayAlerts = prevDisplayAlerts ?? true);
-                        Try(() => app.ScreenUpdating = prevScreenUpdating ?? true);
                     }
 
                     bw?.ReportProgress(95, "Opening Excel...");
@@ -277,23 +204,114 @@ namespace Rappen.XTB.Helpers
             }
         }
 
-        private static void PopulateSourceSheet(dynamic wb, string fetch, string layout, ConnectionDetail conndet)
+        private static void SetClipboard(DataObject dataObj)
+        {
+            Try(() => Clipboard.SetDataObject(dataObj, true, retryTimes: 10, retryDelay: 50));
+            for (var i = 0; i < 10; i++)
+            {
+                try
+                {
+                    if (Clipboard.ContainsData(DataFormats.Html) || Clipboard.ContainsData(DataFormats.Text))
+                    {
+                        break;
+                    }
+                }
+                catch { }
+                Thread.Sleep(20);
+            }
+        }
+
+        private static dynamic CreateExcelApplication()
+        {
+            var excelType = Type.GetTypeFromProgID("Excel.Application")
+                ?? throw new Exception("Microsoft Excel is not installed.");
+            try
+            {
+                return Activator.CreateInstance(excelType);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to start Microsoft Excel.{Environment.NewLine}{ex.Message}", ex);
+            }
+        }
+
+        private static void PasteAndFormatResultSheet(dynamic resultSheet, int? columnMaxWidth, System.ComponentModel.BackgroundWorker bw)
+        {
+            try
+            {
+                resultSheet.Paste(resultSheet.Cells[1, 1]);
+            }
+            catch
+            {
+                Try(() => resultSheet.Paste());
+            }
+            Try(() => resultSheet.Application.CutCopyMode = false);
+
+            // Format link icon column if present
+            Try(() =>
+            {
+                var headerA1 = (string)(resultSheet.Cells[1, 1].Value ?? string.Empty);
+                if (string.Equals(headerA1, LinkIcon, StringComparison.Ordinal))
+                {
+                    resultSheet.Columns[1].HorizontalAlignment = XlHAlignCenter;
+                }
+            });
+
+            // Format header row
+            dynamic header = resultSheet.Rows[1];
+            header.Font.Bold = true;
+            header.Borders[XlEdgeBottom].LineStyle = XlContinuous;
+            header.Borders[XlEdgeBottom].Weight = XlThick;
+            header.AutoFilter(1, Type.Missing, XlAnd, Type.Missing, true);
+            Try(() => resultSheet.Application.ActiveWindow.SplitRow = 1);
+            Try(() => resultSheet.Application.ActiveWindow.FreezePanes = true);
+            Try(() => resultSheet.Rows.VerticalAlignment = XlVAlignTop);
+
+            // AutoSize and constrain columns
+            bw?.ReportProgress(35, "Autosizing columns...");
+            FormatColumns(resultSheet, columnMaxWidth);
+        }
+
+        private static void FormatColumns(dynamic resultSheet, int? columnMaxWidth)
+        {
+            Try(() =>
+            {
+                dynamic used = resultSheet.UsedRange;
+
+                // Temporarily disable wrap to get proper column AutoFit measurement
+                used.WrapText = false;
+                used.Columns.AutoFit();
+
+                // Apply column max width constraint if specified
+                if (columnMaxWidth.HasValue)
+                {
+                    var excelMaxWidth = (columnMaxWidth.Value - 5) / 7.0;
+                    for (int col = 1; col <= used.Columns.Count; col++)
+                    {
+                        Try(() =>
+                        {
+                            dynamic column = resultSheet.Columns[col];
+                            if (column.ColumnWidth > excelMaxWidth)
+                            {
+                                column.ColumnWidth = excelMaxWidth;
+                            }
+                        });
+                    }
+                }
+
+                // Always enable WrapText to support multiline content display (both \r\n and <br/>)
+                // Row height stays at default - no AutoFit on rows
+                used.WrapText = true;
+            });
+        }
+
+        private static void PopulateSourceSheet(dynamic wb, string toolname, string fetch, string layout, ConnectionDetail conndet)
         {
             dynamic sourceSheet = wb.Sheets.Add();
             Try(() => sourceSheet.Move(After: wb.Sheets[wb.Sheets.Count]));
-            sourceSheet.Name = "FetchXML Builder - Source";
+            sourceSheet.Name = $"{toolname} - Source";
 
-            var fetchLocal = fetch;
-            if (!string.IsNullOrEmpty(fetchLocal))
-            {
-                var fetchtype = XRM.Helpers.FetchXML.Fetch.FromString(fetchLocal);
-                if (fetchtype.PagingCookie != null || fetchtype.PageNumber != null)
-                {
-                    fetchtype.PagingCookie = null;
-                    fetchtype.PageNumber = null;
-                    fetchLocal = fetchtype.ToString();
-                }
-            }
+            var fetchLocal = RemovePagingFromFetch(fetch);
 
             sourceSheet.Cells[1, 1].Value = "Connection";
             sourceSheet.Cells[1, 2].Value = conndet?.ConnectionName;
@@ -315,7 +333,6 @@ namespace Rappen.XTB.Helpers
             Try(() => sourceSheet.Columns[2].WrapText = true);
             Try(() =>
             {
-                // Excel column width approximation for pixels: (px - 5) / 7.0 (empirical; consistent enough for 800 px target).
                 const int targetPixels = 800;
                 var excelWidth = (targetPixels - 5) / 7.0;
                 sourceSheet.Columns[2].ColumnWidth = excelWidth;
@@ -324,33 +341,37 @@ namespace Rappen.XTB.Helpers
             Try(() => sourceSheet.Rows.AutoFit());
         }
 
-        private static int GetVisibleColumnIndexOfAttribute(List<DataGridViewColumn> visibleCols, string attributeLogicalName)
+        private static string RemovePagingFromFetch(string fetch)
         {
-            return visibleCols.FindIndex(c =>
+            if (string.IsNullOrEmpty(fetch))
             {
-                var baseName = c.Name.Split('|')[0];
-                return !baseName.Contains(".") &&
-                       string.Equals(baseName, attributeLogicalName, StringComparison.OrdinalIgnoreCase);
-            });
+                return fetch;
+            }
+
+            var fetchType = XRM.Helpers.FetchXML.Fetch.FromString(fetch);
+            if (fetchType.PagingCookie != null || fetchType.PageNumber != null)
+            {
+                fetchType.PagingCookie = null;
+                fetchType.PageNumber = null;
+                return fetchType.ToString();
+            }
+            return fetch;
         }
 
-        /// <summary>
-        /// Builds an HTML table from the grid. If a primary name column is visible, that cell is linked; otherwise a separate link icon column is added.
-        /// EntityReference values get links to their records when possible.
-        /// </summary>
-        private static string BuildHtmlTable(XRMDataGridView grid, ConnectionDetail conndet, List<DataGridViewColumn> orderedAllVisible, DataGridViewColumn primaryColOrNull)
+        private static string BuildHtmlTable(XRMDataGridView grid, ConnectionDetail conndet, List<DataGridViewColumn> visibleCols, DataGridViewColumn primaryCol)
         {
-            var hasPrimary = primaryColOrNull != null;
-            var primaryAttr = hasPrimary ? primaryColOrNull.Name.Split('|')[0] : null;
+            var hasPrimary = primaryCol != null;
+            var primaryAttr = hasPrimary ? primaryCol.Name.Split('|')[0] : null;
 
             var sb = new StringBuilder();
             sb.Append("<table border=\"0\" cellpadding=\"2\" cellspacing=\"0\"><tr>");
+
             if (!hasPrimary)
             {
                 sb.Append($"<th>{HtmlEncode(LinkIcon)}</th>");
             }
 
-            foreach (var col in orderedAllVisible)
+            foreach (var col in visibleCols)
             {
                 sb.Append($"<th>{HtmlEncode(col.HeaderText)}</th>");
             }
@@ -359,76 +380,73 @@ namespace Rappen.XTB.Helpers
 
             for (var r = 0; r < grid.Rows.Count; r++)
             {
-                var row = grid.Rows[r];
-                if (!row.Visible)
+                if (!grid.Rows[r].Visible)
                 {
                     continue;
                 }
 
-                var entity = grid.GetXRMEntity(r);
-                var urlPrimary = entity?.GetEntityUrl(conndet);
-
-                sb.Append("<tr>");
-                if (!hasPrimary)
-                {
-                    if (!string.IsNullOrWhiteSpace(urlPrimary))
-                    {
-                        sb.Append($"<td><a href=\"{HtmlAttr(urlPrimary)}\">{HtmlEncode(LinkIcon)}</a></td>");
-                    }
-                    else
-                    {
-                        sb.Append("<td></td>");
-                    }
-                }
-
-                foreach (var col in orderedAllVisible)
-                {
-                    var raw = grid[col.Index, r]?.Value?.ToString();
-                    var display = raw?.Replace("\r\n", "\n").Replace("\n", "<br/>");
-                    var encoded = HtmlEncode(display);
-                    var baseName = col.Name.Split('|')[0];
-                    var isRootAttr = !baseName.StartsWith("#") && !baseName.Contains(".");
-                    string linkUrl = null;
-
-                    if (hasPrimary && isRootAttr && string.Equals(baseName, primaryAttr, StringComparison.OrdinalIgnoreCase))
-                    {
-                        linkUrl = urlPrimary;
-                    }
-                    else if (isRootAttr && entity != null && entity.Contains(baseName))
-                    {
-                        var val = entity[baseName];
-                        if (val is AliasedValue av)
-                        {
-                            val = av.Value;
-                        }
-
-                        if (val is EntityReference er)
-                        {
-                            linkUrl = er.GetEntityUrl(conndet);
-                        }
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(linkUrl) && !string.IsNullOrEmpty(display))
-                    {
-                        sb.Append($"<td><a href=\"{HtmlAttr(linkUrl)}\">{encoded}</a></td>");
-                    }
-                    else
-                    {
-                        sb.Append($"<td>{encoded}</td>");
-                    }
-                }
-                sb.Append("</tr>");
+                AppendHtmlRow(sb, grid, r, visibleCols, conndet, hasPrimary, primaryAttr);
             }
 
             sb.Append("</table>");
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Wraps the HTML fragment into CF_HTML clipboard format.
-        /// See: https://learn.microsoft.com/windows/win32/dataxchg/html-clipboard-format
-        /// Offsets are byte positions (header is ASCII, body is UTF-8).
-        /// </summary>
+        private static void AppendHtmlRow(StringBuilder sb, XRMDataGridView grid, int rowIndex, List<DataGridViewColumn> visibleCols, ConnectionDetail conndet, bool hasPrimary, string primaryAttr)
+        {
+            var entity = grid.GetXRMEntity(rowIndex);
+            var urlPrimary = entity?.GetEntityUrl(conndet);
+
+            sb.Append("<tr>");
+
+            if (!hasPrimary)
+            {
+                sb.Append(string.IsNullOrWhiteSpace(urlPrimary)
+                    ? "<td></td>"
+                    : $"<td><a href=\"{HtmlAttr(urlPrimary)}\">{HtmlEncode(LinkIcon)}</a></td>");
+            }
+
+            foreach (var col in visibleCols)
+            {
+                AppendHtmlCell(sb, grid, rowIndex, col, entity, conndet, hasPrimary, primaryAttr, urlPrimary);
+            }
+
+            sb.Append("</tr>");
+        }
+
+        private static void AppendHtmlCell(StringBuilder sb, XRMDataGridView grid, int rowIndex, DataGridViewColumn col, Entity entity, ConnectionDetail conndet, bool hasPrimary, string primaryAttr, string urlPrimary)
+        {
+            var raw = grid[col.Index, rowIndex]?.Value?.ToString();
+            var display = raw?.Replace("\r\n", "\n").Replace("\n", "<br/>");
+            var encoded = HtmlEncode(display);
+            var baseName = col.Name.Split('|')[0];
+            var isRootAttr = !baseName.StartsWith("#") && !baseName.Contains(".");
+
+            string linkUrl = null;
+
+            if (hasPrimary && isRootAttr && string.Equals(baseName, primaryAttr, StringComparison.OrdinalIgnoreCase))
+            {
+                linkUrl = urlPrimary;
+            }
+            else if (isRootAttr && entity != null && entity.Contains(baseName))
+            {
+                var val = entity[baseName];
+                if (val is AliasedValue av)
+                {
+                    val = av.Value;
+                }
+
+                if (val is EntityReference er)
+                {
+                    linkUrl = er.GetEntityUrl(conndet);
+                }
+            }
+
+            sb.Append(!string.IsNullOrWhiteSpace(linkUrl) && !string.IsNullOrEmpty(display)
+                ? $"<td><a href=\"{HtmlAttr(linkUrl)}\">{encoded}</a></td>"
+                : $"<td>{encoded}</td>");
+        }
+
         private static string WrapAsClipboardHtml(string fragment)
         {
             const string headerTemplate =
@@ -439,17 +457,12 @@ namespace Rappen.XTB.Helpers
             var html = pre + fragment + post;
 
             var utf8 = Encoding.UTF8;
-            var preLenBytes = utf8.GetByteCount(pre);
-            var fragLenBytes = utf8.GetByteCount(fragment);
-            var htmlLenBytes = utf8.GetByteCount(html);
-
-            var headerWithZeroes = string.Format(headerTemplate, 0, 0, 0, 0);
-            var headerLenBytes = Encoding.ASCII.GetByteCount(headerWithZeroes);
+            var headerLenBytes = Encoding.ASCII.GetByteCount(string.Format(headerTemplate, 0, 0, 0, 0));
 
             var startHTML = headerLenBytes;
-            var endHTML = headerLenBytes + htmlLenBytes;
-            var startFragment = headerLenBytes + preLenBytes;
-            var endFragment = startFragment + fragLenBytes;
+            var endHTML = headerLenBytes + utf8.GetByteCount(html);
+            var startFragment = headerLenBytes + utf8.GetByteCount(pre);
+            var endFragment = startFragment + utf8.GetByteCount(fragment);
 
             var header = string.Format(headerTemplate, startHTML, endHTML, startFragment, endFragment);
             return header + html;
@@ -483,6 +496,44 @@ namespace Rappen.XTB.Helpers
                 PrimaryNameCache[grid.EntityName] = primaryName;
             }
             return true;
+        }
+
+        // Helper class to manage Excel optimization settings
+        private class ExcelOptimization : IDisposable
+        {
+            private readonly dynamic _app;
+            private readonly bool? _prevScreenUpdating;
+            private readonly bool? _prevDisplayAlerts;
+            private readonly bool? _prevEnableEvents;
+            private readonly int? _prevCalculation;
+
+            public ExcelOptimization(dynamic app)
+            {
+                _app = app;
+
+                bool? screenUpdating = null;
+                bool? displayAlerts = null;
+                bool? enableEvents = null;
+                int? calculation = null;
+
+                ExcelHelper.Try(() => { screenUpdating = app.ScreenUpdating; app.ScreenUpdating = false; });
+                ExcelHelper.Try(() => { displayAlerts = app.DisplayAlerts; app.DisplayAlerts = false; });
+                ExcelHelper.Try(() => { enableEvents = app.EnableEvents; app.EnableEvents = false; });
+                ExcelHelper.Try(() => { calculation = app.Calculation; app.Calculation = XlCalculationManual; });
+
+                _prevScreenUpdating = screenUpdating;
+                _prevDisplayAlerts = displayAlerts;
+                _prevEnableEvents = enableEvents;
+                _prevCalculation = calculation;
+            }
+
+            public void Dispose()
+            {
+                ExcelHelper.Try(() => _app.Calculation = _prevCalculation ?? XlCalculationAutomatic);
+                ExcelHelper.Try(() => _app.EnableEvents = _prevEnableEvents ?? true);
+                ExcelHelper.Try(() => _app.DisplayAlerts = _prevDisplayAlerts ?? true);
+                ExcelHelper.Try(() => _app.ScreenUpdating = _prevScreenUpdating ?? true);
+            }
         }
     }
 }
