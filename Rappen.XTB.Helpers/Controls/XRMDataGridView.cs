@@ -756,22 +756,29 @@ namespace Rappen.XTB.Helpers.Controls
         /// <param name="afterExport">Optional callback after export completes.</param>
         /// <param name="columnMaxWidth">Optional maximum column width in pixels.</param>
         /// <param name="autoFitRows">If true, auto-fits row heights.</param>
-        /// <param name="includedColumns">Optional column names to force visible for export (base names without |both suffix).</param>
-        /// <param name="excludedColumns">Optional column names to force hidden for export (base names without |both suffix).</param>
+        /// <param name="columns">Optional column names to export (base names without |both suffix). When set, only these columns are exported and includedColumns/excludedColumns must be null.</param>
+        /// <param name="includedColumns">Optional column names to force visible for export (base names without |both suffix). Cannot be used with columns parameter.</param>
+        /// <param name="excludedColumns">Optional column names to force hidden for export (base names without |both suffix). Cannot be used with columns parameter.</param>
         /// <exception cref="InvalidOperationException">Thrown if the control is not hosted on a PluginControlBase.</exception>
-        public void ExportToExcel(bool addLinks = true, string fetch = null, Action afterExport = null, int? columnMaxWidth = null, bool autoFitRows = false, IEnumerable<string> includedColumns = null, IEnumerable<string> excludedColumns = null)
+        /// <exception cref="ArgumentException">Thrown if columns is set along with includedColumns or excludedColumns.</exception>
+        public void ExportToExcel(bool addLinks = false, string fetch = null, Action afterExport = null, int? columnMaxWidth = null, bool autoFitRows = false, IEnumerable<string> columns = null, IEnumerable<string> includedColumns = null, IEnumerable<string> excludedColumns = null)
         {
+            if (columns != null && (includedColumns != null || excludedColumns != null))
+            {
+                throw new ArgumentException("Cannot use 'columns' parameter together with 'includedColumns' or 'excludedColumns'.");
+            }
+
             var tool = FindParentPluginControlBase();
             if (tool == null)
             {
                 throw new InvalidOperationException("XRMDataGridView must be hosted on a PluginControlBase to use ExportToExcel.");
             }
 
-            // Store original visibility and apply include/exclude rules
+            // Store original visibility and apply column rules
             Dictionary<DataGridViewColumn, bool> originalVisibility = null;
             try
             {
-                originalVisibility = ApplyExportColumnVisibility(includedColumns, excludedColumns);
+                originalVisibility = ApplyExportColumnVisibility(columns, includedColumns, excludedColumns);
 
                 var gridData = CollectGridDataOnUIThread(addLinks, tool.ConnectionDetail);
                 if (gridData == null)
@@ -1421,9 +1428,9 @@ namespace Rappen.XTB.Helpers.Controls
             SettingsWidths = false;
         }
 
-        private Dictionary<DataGridViewColumn, bool> ApplyExportColumnVisibility(IEnumerable<string> includedColumns, IEnumerable<string> excludedColumns)
+        private Dictionary<DataGridViewColumn, bool> ApplyExportColumnVisibility(IEnumerable<string> columns, IEnumerable<string> includedColumns, IEnumerable<string> excludedColumns)
         {
-            if (includedColumns == null && excludedColumns == null)
+            if (columns == null && includedColumns == null && excludedColumns == null)
             {
                 return null;
             }
@@ -1431,6 +1438,33 @@ namespace Rappen.XTB.Helpers.Controls
             var originalVisibility = Columns.Cast<DataGridViewColumn>()
                 .ToDictionary(c => c, c => c.Visible);
 
+            // If explicit columns list is provided, show only those columns
+            if (columns != null)
+            {
+                var columnSet = new HashSet<string>(columns.Select(n => n?.Split('|')[0]).Where(n => n != null), StringComparer.OrdinalIgnoreCase);
+
+                foreach (DataGridViewColumn col in Columns)
+                {
+                    try
+                    {
+                        var baseName = col.Name?.Split('|')[0];
+                        if (string.IsNullOrEmpty(baseName))
+                        {
+                            col.Visible = false;
+                            continue;
+                        }
+
+                        col.Visible = columnSet.Contains(baseName);
+                    }
+                    catch
+                    {
+                        // Ignore errors for individual columns
+                    }
+                }
+                return originalVisibility;
+            }
+
+            // Otherwise use include/exclude logic
             var includeSet = includedColumns != null
                 ? new HashSet<string>(includedColumns.Select(n => n?.Split('|')[0]).Where(n => n != null), StringComparer.OrdinalIgnoreCase)
                 : null;
@@ -1448,12 +1482,10 @@ namespace Rappen.XTB.Helpers.Controls
                     {
                         continue;
                     }
-
                     if (includeSet != null && includeSet.Contains(baseName))
                     {
                         col.Visible = true;
                     }
-
                     if (excludeSet != null && excludeSet.Contains(baseName))
                     {
                         col.Visible = false;
@@ -1464,7 +1496,6 @@ namespace Rappen.XTB.Helpers.Controls
                     // Ignore errors for individual columns
                 }
             }
-
             return originalVisibility;
         }
 
