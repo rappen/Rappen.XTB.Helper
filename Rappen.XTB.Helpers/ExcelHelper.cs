@@ -23,6 +23,7 @@ namespace Rappen.XTB.Helpers
         private const int XlContinuous = 1;
         private const int XlThick = 4;
         private const int XlAnd = 1;
+        private const int UpdateLinkProgressInterval = 10;
 
         private static readonly Dictionary<string, string> PrimaryNameCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -265,6 +266,10 @@ namespace Rappen.XTB.Helpers
             var linkCount = 0;
             for (var r = 0; r < gridData.Rows.Count; r++)
             {
+                if (linkCount > 0 && r % UpdateLinkProgressInterval == 0)
+                {
+                    bw?.ReportProgress(35 + (r * 15 / Math.Max(gridData.Rows.Count, 1)), $"Adding links ({linkCount})...");
+                }
                 var row = gridData.Rows[r];
                 for (var c = 0; c < row.Count; c++)
                 {
@@ -273,11 +278,6 @@ namespace Rappen.XTB.Helpers
                         Try(() => sheet.Hyperlinks.Add(sheet.Cells[r + 2, c + 1], row[c].Url));
                         linkCount++;
                     }
-                }
-
-                if (linkCount > 0 && r % 500 == 0)
-                {
-                    bw?.ReportProgress(35 + (r * 15 / Math.Max(gridData.Rows.Count, 1)), $"Adding links ({linkCount})...");
                 }
             }
         }
