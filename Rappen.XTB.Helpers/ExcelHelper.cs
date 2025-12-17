@@ -29,7 +29,7 @@ namespace Rappen.XTB.Helpers
         private static void Try(Action action)
         { try { action(); } catch { /* ignored: optional non-critical */ } }
 
-        public static void ExportToExcel(PluginControlBase tool, XRMDataGridView xrmgrid, bool addLinks, string fetch, string layout, Action afterExport, int? columnMaxWidth = null)
+        public static void ExportToExcel(PluginControlBase tool, XRMDataGridView xrmgrid, bool addLinks, string fetch, string layout, Action afterExport, int? columnMaxWidth = null, bool autoFitRows = false)
         {
             var gridData = CollectGridDataOnUIThread(xrmgrid, addLinks, tool.ConnectionDetail);
             if (gridData == null)
@@ -40,7 +40,7 @@ namespace Rappen.XTB.Helpers
             tool.WorkAsync(new WorkAsyncInfo
             {
                 Message = "Opening in Excel...",
-                Work = (w, a) => ExportToExcelDirect(w, tool.ToolName, fetch, layout, tool.ConnectionDetail, gridData, columnMaxWidth),
+                Work = (w, a) => ExportToExcelDirect(w, tool.ToolName, fetch, layout, tool.ConnectionDetail, gridData, columnMaxWidth, autoFitRows),
                 ProgressChanged = p => tool.SetWorkingMessage(p.UserState.ToString()),
                 PostWorkCallBack = a =>
                 {
@@ -176,7 +176,7 @@ namespace Rappen.XTB.Helpers
             });
         }
 
-        private static void ExportToExcelDirect(System.ComponentModel.BackgroundWorker bw, string toolname, string fetch, string layout, ConnectionDetail conndet, GridData gridData, int? columnMaxWidth)
+        private static void ExportToExcelDirect(System.ComponentModel.BackgroundWorker bw, string toolname, string fetch, string layout, ConnectionDetail conndet, GridData gridData, int? columnMaxWidth, bool autoFitRows)
         {
             bw?.ReportProgress(10, "Starting Excel...");
 
@@ -190,6 +190,7 @@ namespace Rappen.XTB.Helpers
 
                     using (new ExcelOptimization(app))
                     {
+                        bw?.ReportProgress(15, "Creating Result sheet...");
                         dynamic wb = app.Workbooks.Add();
                         dynamic resultSheet = wb.Worksheets[1];
                         resultSheet.Name = $"{toolname} - Result";
@@ -198,7 +199,7 @@ namespace Rappen.XTB.Helpers
                         WriteGridToSheet(resultSheet, gridData, bw);
 
                         bw?.ReportProgress(50, "Formatting...");
-                        FormatResultSheet(resultSheet, gridData.HasLinkColumn, columnMaxWidth);
+                        FormatResultSheet(resultSheet, gridData.HasLinkColumn, columnMaxWidth, autoFitRows);
 
                         bw?.ReportProgress(70, "Adding source info...");
                         PopulateSourceSheet(wb, toolname, fetch, layout, conndet);
@@ -231,7 +232,7 @@ namespace Rappen.XTB.Helpers
             var rowCount = gridData.Rows.Count + 1; // +1 for header
             var colCount = gridData.Headers.Count;
 
-            // Build 2D array for bulk write (1-based for Excel)
+            // Build 2D array for bulk write
             var data = new object[rowCount, colCount];
 
             // Headers
@@ -260,7 +261,7 @@ namespace Rappen.XTB.Helpers
 
             bw?.ReportProgress(35, "Adding hyperlinks...");
 
-            // Add hyperlinks (these must be done individually, but only for cells that have URLs)
+            // Add hyperlinks (only for cells that have URLs)
             var linkCount = 0;
             for (var r = 0; r < gridData.Rows.Count; r++)
             {
@@ -274,7 +275,6 @@ namespace Rappen.XTB.Helpers
                     }
                 }
 
-                // Progress for hyperlinks (only if there are many)
                 if (linkCount > 0 && r % 500 == 0)
                 {
                     bw?.ReportProgress(35 + (r * 15 / Math.Max(gridData.Rows.Count, 1)), $"Adding links ({linkCount})...");
@@ -282,7 +282,7 @@ namespace Rappen.XTB.Helpers
             }
         }
 
-        private static void FormatResultSheet(dynamic sheet, bool hasLinkColumn, int? columnMaxWidth)
+        private static void FormatResultSheet(dynamic sheet, bool hasLinkColumn, int? columnMaxWidth, bool autoFitRows)
         {
             if (hasLinkColumn)
             {
@@ -320,7 +320,20 @@ namespace Rappen.XTB.Helpers
                     }
                 }
 
+                // Store default row height before enabling WrapText
+                double defaultRowHeight = sheet.StandardHeight;
+
                 used.WrapText = true;
+
+                if (autoFitRows)
+                {
+                    used.Rows.AutoFit();
+                }
+                else
+                {
+                    // Reset all rows to default height after WrapText expanded them
+                    used.Rows.RowHeight = defaultRowHeight;
+                }
             });
         }
 
