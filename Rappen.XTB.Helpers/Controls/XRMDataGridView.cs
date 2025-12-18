@@ -768,6 +768,7 @@ namespace Rappen.XTB.Helpers.Controls
                 throw new ArgumentException("Cannot use 'columns' parameter together with 'includedColumns' or 'excludedColumns'.");
             }
 
+            var sw = System.Diagnostics.Stopwatch.StartNew();
             var tool = FindParentPluginControlBase();
             if (tool == null)
             {
@@ -799,6 +800,20 @@ namespace Rappen.XTB.Helpers.Controls
                         if (a.Error != null)
                         {
                             tool.ShowErrorDialog(a.Error, "Open Excel");
+                        }
+                        else
+                        {
+                            sw.Stop();
+                            if (!tool.IsShownAndActive())
+                            {
+                                ToastHelper.ToastIt(
+                                    tool,
+                                    "XRMDataGridView",
+                                    $"{tool.ToolName}",
+                                    $"Exported {Rows.Count} rows to Excel!",
+                                    $"It took {sw.Elapsed.ToSmartStringLong()}",
+                                    duration: Microsoft.Toolkit.Uwp.Notifications.ToastDuration.Short);
+                            }
                         }
                         afterExport?.Invoke();
                     }
@@ -1856,7 +1871,7 @@ namespace Rappen.XTB.Helpers.Controls
                 {
                     var maxWidth = (columnMaxWidth.Value - 5) / 7.0;
                     int colCount = used.Columns.Count;
-                    
+
                     // Process columns directly without nested TryExcel for better performance
                     for (var c = 1; c <= colCount; c++)
                     {
