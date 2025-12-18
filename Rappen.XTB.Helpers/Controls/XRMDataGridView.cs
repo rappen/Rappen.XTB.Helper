@@ -1855,15 +1855,22 @@ namespace Rappen.XTB.Helpers.Controls
                 if (columnMaxWidth.HasValue)
                 {
                     var maxWidth = (columnMaxWidth.Value - 5) / 7.0;
-                    for (var c = 1; c <= used.Columns.Count; c++)
+                    int colCount = used.Columns.Count;
+                    
+                    // Process columns directly without nested TryExcel for better performance
+                    for (var c = 1; c <= colCount; c++)
                     {
-                        TryExcel(() =>
+                        try
                         {
-                            if (sheet.Columns[c].ColumnWidth > maxWidth)
+                            if ((double)sheet.Columns[c].ColumnWidth > maxWidth)
                             {
                                 sheet.Columns[c].ColumnWidth = maxWidth;
                             }
-                        });
+                        }
+                        catch
+                        {
+                            // Ignore individual column errors
+                        }
                     }
                 }
 
@@ -1882,13 +1889,6 @@ namespace Rappen.XTB.Helpers.Controls
                     used.Rows.RowHeight = defaultRowHeight;
                 }
             });
-        }
-
-        private static dynamic CreateExcelApplication()
-        {
-            var excelType = Type.GetTypeFromProgID("Excel.Application")
-                ?? throw new Exception("Microsoft Excel is not installed.");
-            return Activator.CreateInstance(excelType);
         }
 
         private static void PopulateSourceSheet(dynamic wb, string toolname, string fetch, string layout, ConnectionDetail conndet)
@@ -1935,6 +1935,13 @@ namespace Rappen.XTB.Helpers.Controls
                 return fetchType.ToString();
             }
             return fetch;
+        }
+
+        private static dynamic CreateExcelApplication()
+        {
+            var excelType = Type.GetTypeFromProgID("Excel.Application")
+                ?? throw new Exception("Microsoft Excel is not installed.");
+            return Activator.CreateInstance(excelType);
         }
 
         private class ExcelGridData
