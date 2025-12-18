@@ -1547,12 +1547,22 @@ namespace Rappen.XTB.Helpers.Controls
         private const int XlThick = 4;
         private const int XlAnd = 1;
         private const int UpdateLinkProgressInterval = 100;
+        private const int MaxExcelCellLength = 5000;
 
         private static readonly Dictionary<string, string> PrimaryNameCache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         private static void TryExcel(Action action)
         {
             try { action(); } catch { /* ignored: optional non-critical */ }
+        }
+
+        private static string TruncateForExcel(string value)
+        {
+            if (string.IsNullOrEmpty(value) || value.Length <= MaxExcelCellLength)
+            {
+                return value;
+            }
+            return value.Substring(0, MaxExcelCellLength) + "... [truncated]";
         }
 
         private ExcelGridData CollectGridDataOnUIThread(bool addLinks, ConnectionDetail conndet)
@@ -1608,6 +1618,7 @@ namespace Rappen.XTB.Helpers.Controls
                         foreach (var col in visibleCols)
                         {
                             var value = this[col.Index, r]?.Value?.ToString() ?? string.Empty;
+                            value = TruncateForExcel(value);
                             string url = null;
 
                             if (addLinks)
