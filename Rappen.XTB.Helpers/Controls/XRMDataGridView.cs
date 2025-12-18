@@ -459,7 +459,7 @@ namespace Rappen.XTB.Helpers.Controls
                     return null;
                 }
                 var result = new List<Entity>();
-                foreach (DataGridViewRow row in SelectedRows.OfType<DataGridViewRow>().OrderBy(r => r.Index))
+                foreach (var row in SelectedRows.OfType<DataGridViewRow>().OrderBy(r => r.Index))
                 {
                     var entity = row.Cells["#entity"].Value as Entity;
                     if (entity != null)
@@ -1643,6 +1643,12 @@ namespace Rappen.XTB.Helpers.Controls
                                         url = er.GetEntityUrl(conndet);
                                     }
                                 }
+
+                                // If no URL yet, check if the cell value itself is a valid URL
+                                if (string.IsNullOrEmpty(url) && IsValidUrl(value))
+                                {
+                                    url = value;
+                                }
                             }
 
                             row.Add(new ExcelCellData { Value = value, Url = url });
@@ -1672,6 +1678,24 @@ namespace Rappen.XTB.Helpers.Controls
             }
 
             return result;
+        }
+
+        private static bool IsValidUrl(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            // Quick check for common URL prefixes before trying to parse
+            if (!value.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
+                   (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         }
 
         private DataGridViewColumn GetPrimaryNameColumn(List<DataGridViewColumn> visibleCols)
@@ -1773,44 +1797,36 @@ namespace Rappen.XTB.Helpers.Controls
                 data[0, c] = gridData.Headers[c];
             }
 
-            // Data rows
+            bw?.ReportProgress(25, "Preparing data...");
+
+            // Data rows - use HYPERLINK formulas for cells with URLs
             for (var r = 0; r < gridData.Rows.Count; r++)
             {
                 var row = gridData.Rows[r];
                 for (var c = 0; c < row.Count; c++)
                 {
-                    data[r + 1, c] = row[c].Value;
+                    var cell = row[c];
+                    if (!string.IsNullOrWhiteSpace(cell.Url))
+                    {
+                        // Use HYPERLINK formula - escape quotes in display text and URL
+                        var escapedUrl = cell.Url.Replace("\"", "\"\"");
+                        var escapedValue = (cell.Value ?? string.Empty).Replace("\"", "\"\"");
+                        data[r + 1, c] = $"=HYPERLINK(\"{escapedUrl}\",\"{escapedValue}\")";
+                    }
+                    else
+                    {
+                        data[r + 1, c] = cell.Value;
+                    }
                 }
             }
 
-            bw?.ReportProgress(25, "Writing to Excel...");
+            bw?.ReportProgress(35, "Writing to Excel...");
 
-            // Single bulk write - MUCH faster than cell-by-cell
+            // Single bulk write - includes both data and hyperlink formulas
             var startCell = sheet.Cells[1, 1];
             var endCell = sheet.Cells[rowCount, colCount];
             var range = sheet.Range[startCell, endCell];
             range.Value = data;
-
-            bw?.ReportProgress(35, "Adding hyperlinks...");
-
-            // Add hyperlinks (only for cells that have URLs)
-            var linkCount = 0;
-            for (var r = 0; r < gridData.Rows.Count; r++)
-            {
-                if (linkCount > 0 && r % UpdateLinkProgressInterval == 0)
-                {
-                    bw?.ReportProgress(35 + (r * 15 / Math.Max(gridData.Rows.Count, 1)), $"Adding links ({linkCount})...");
-                }
-                var row = gridData.Rows[r];
-                for (var c = 0; c < row.Count; c++)
-                {
-                    if (!string.IsNullOrWhiteSpace(row[c].Url))
-                    {
-                        TryExcel(() => sheet.Hyperlinks.Add(sheet.Cells[r + 2, c + 1], row[c].Url));
-                        linkCount++;
-                    }
-                }
-            }
         }
 
         private static void FormatResultSheet(dynamic sheet, bool hasLinkColumn, int? columnMaxWidth, bool autoFitRows)
@@ -1839,7 +1855,7 @@ namespace Rappen.XTB.Helpers.Controls
                 if (columnMaxWidth.HasValue)
                 {
                     var maxWidth = (columnMaxWidth.Value - 5) / 7.0;
-                    for (int c = 1; c <= used.Columns.Count; c++)
+                    for (var c = 1; c <= used.Columns.Count; c++)
                     {
                         TryExcel(() =>
                         {
