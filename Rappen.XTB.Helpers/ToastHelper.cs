@@ -44,6 +44,7 @@ namespace Rappen.XTB.Helpers
             string logo = null,
             string image = null,
             string hero = null,
+            ToastDuration duration = ToastDuration.Long,
             params (string, string)[] buttons)
         {
             if (plugin == null || string.IsNullOrWhiteSpace(header) || string.IsNullOrWhiteSpace(text))
@@ -55,7 +56,7 @@ namespace Rappen.XTB.Helpers
                 .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
                 .AddArgument("action", "default")
                 .AddArgument("sender", sender)
-                .SetToastDuration(ToastDuration.Long)
+                .SetToastDuration(duration)
                 .AddHeader(plugin.ToolName, header, InstallationInfo.Instance.InstallationId.ToString())
                 .AddText(text);
 
