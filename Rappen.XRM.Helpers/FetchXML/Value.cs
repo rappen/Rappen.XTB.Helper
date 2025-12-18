@@ -10,12 +10,12 @@ namespace Rappen.XRM.Helpers.FetchXML
 
         internal Value(Condition parent, XmlElement xml) : base(parent.Fetch, xml)
         {
-            value = xml.Value;
+            value = xml.InnerText;
         }
 
         protected override void AddXMLProperties(XmlElement xml)
         {
-            xml.Value = value;
+            xml.InnerText = value;
         }
 
         protected override List<string> GetKnownAttributes() => new List<string>();
