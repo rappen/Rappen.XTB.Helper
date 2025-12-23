@@ -91,6 +91,8 @@ namespace Rappen.XTB.Helpers.RappXTB
 
         internal void LogUse(string action, bool forceLog = false, double? count = null, double? duration = null, bool oldAppInsights = true, bool newAppInsights = false)
         {
+            // Will be done in the WriteEvent when my PR #1409 is accepted, remove this line then
+            LogInfo($"{action}{(count != null ? $" Count: {count}" : "")}{(duration != null ? $" Duration: {duration}" : "")}");
             if (oldAppInsights)
             {
                 if (aiOld == null)
@@ -180,12 +182,10 @@ namespace Rappen.XTB.Helpers.RappXTB
 
         private static string ComputeHash(string content)
         {
-            using (var sha = System.Security.Cryptography.SHA256.Create())
-            {
-                var bytes = System.Text.Encoding.UTF8.GetBytes(content);
-                var hash = sha.ComputeHash(bytes);
-                return Convert.ToBase64String(hash);
-            }
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            var hash = sha.ComputeHash(bytes);
+            return Convert.ToBase64String(hash);
         }
 
         #endregion Private Methods
