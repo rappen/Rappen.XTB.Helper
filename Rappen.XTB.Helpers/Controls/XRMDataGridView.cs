@@ -5,6 +5,7 @@ using Microsoft.Xrm.Sdk.Query;
 using Rappen.XRM.Helpers.Extensions;
 using Rappen.XRM.Helpers.Serialization;
 using Rappen.XTB.Helpers.Extensions;
+using Rappen.XTB.Helpers.RappXTB;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -808,10 +809,12 @@ namespace Rappen.XTB.Helpers.Controls
                             {
                                 ToastHelper.ToastIt(
                                     tool,
-                                    "XRMDataGridView",
+                                    "XRMDataGridView to Excel",
                                     $"{tool.ToolName}",
-                                    $"Exported {Rows.Count} rows to Excel!",
+                                    $"Exported {Rows.Count} rows to Excel and opened it.",
                                     $"It took {sw.Elapsed.ToSmartStringLong()}",
+                                    logo: "https://rappen.github.io/Tools/Images/Excel100.png",
+                                    hero: tool is RappXTBControlBase rappTool ? $"https://rappen.github.io/Tools/Images/{rappTool.ToolAcronym}Hero.png" : null,
                                     duration: Microsoft.Toolkit.Uwp.Notifications.ToastDuration.Short);
                             }
                         }

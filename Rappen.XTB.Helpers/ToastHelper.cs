@@ -1,4 +1,5 @@
 ﻿using Microsoft.Toolkit.Uwp.Notifications;
+using Rappen.XTB.Helpers.RappXTB;
 using System;
 using System.IO;
 using System.Net;
@@ -55,6 +56,7 @@ namespace Rappen.XTB.Helpers
             var toast = new ToastContentBuilder()
                 .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
                 .AddArgument("action", "default")
+                .AddArgument("tool", plugin.Name)
                 .AddArgument("sender", sender)
                 .SetToastDuration(duration)
                 .AddHeader(plugin.ToolName, header, InstallationInfo.Instance.InstallationId.ToString())
@@ -141,7 +143,7 @@ namespace Rappen.XTB.Helpers
                 var localPath = Path.Combine(folder, fileName);
                 if (!File.Exists(localPath) ||
                     new FileInfo(localPath).Length == 0 ||
-                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(24))
+                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(RappXTBSettings.Instance.ToastImageCacheHours))
                 {
                     // Delete old file first (ignore errors)
                     if (File.Exists(localPath))
