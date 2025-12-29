@@ -143,7 +143,7 @@ namespace Rappen.XTB.Helpers
                 var localPath = Path.Combine(folder, fileName);
                 if (!File.Exists(localPath) ||
                     new FileInfo(localPath).Length == 0 ||
-                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(RappXTBSettings.Instance.ToastImageCacheHours))
+                    (DateTime.UtcNow - File.GetLastWriteTimeUtc(localPath)) > TimeSpan.FromHours(Settings.Instance.ToastImageCacheHours))
                 {
                     // Delete old file first (ignore errors)
                     if (File.Exists(localPath))

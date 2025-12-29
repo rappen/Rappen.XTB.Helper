@@ -86,9 +86,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)ControlItems\EntityItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMControlItem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MessageBoxEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\RappXTBControlBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\RappXTBInstallation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\RappXTBSettings.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\ControlBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\Installation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RappXTB\Settings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ToastHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UiFocusHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UrlUtils.cs" />
