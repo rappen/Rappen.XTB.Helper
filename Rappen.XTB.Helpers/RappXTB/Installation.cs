@@ -9,7 +9,7 @@ using XrmToolBox.Extensibility;
 
 namespace Rappen.XTB.Helpers.RappXTB
 {
-    public class RappXTBInstallation
+    public class Installation
     {
         private const string FileName = "Rappen.XTB.xml";
         private int settingsversion = -1;
@@ -43,23 +43,23 @@ namespace Rappen.XTB.Helpers.RappXTB
         public bool PersonalContactMe;
         public List<Tool> Tools = new List<Tool>();
 
-        public static RappXTBInstallation Load()
+        public static Installation Load()
         {
-            var result = XmlAtomicStore.Deserialize<RappXTBInstallation>(Path.Combine(Paths.SettingsPath, FileName));
-            result.Initialize();
+            var result = XmlAtomicStore.Deserialize<Installation>(Path.Combine(Paths.SettingsPath, FileName));
+            result.Normalize();
             result.Tools.ForEach(t => t.Installation = result);
             return result;
         }
 
-        internal void Initialize()
+        internal void Normalize()
         {
             if (Id.Equals(Guid.Empty))
             {
                 Id = InstallationInfo.Instance.InstallationId;
             }
-            if (RappXTBSettings.Instance.SettingsVersion != settingsversion)
+            if (Settings.Instance.SettingsVersion != settingsversion)
             {
-                SettingsVersion = RappXTBSettings.Instance.SettingsVersion;
+                SettingsVersion = Settings.Instance.SettingsVersion;
             }
         }
 
@@ -102,8 +102,8 @@ namespace Rappen.XTB.Helpers.RappXTB
     {
         private Version _version;
 
-        internal string Acronym => RappXTBControlBase.Acronym(Name);
-        internal RappXTBInstallation Installation;
+        internal string Acronym => RappPluginControlBase.Acronym(Name);
+        internal Installation Installation;
 
         internal Version version
         {
@@ -122,7 +122,7 @@ namespace Rappen.XTB.Helpers.RappXTB
             }
         }
 
-        public string Name { get; internal set; }
+        public string Name { get; set; }
 
         public string Version
         {
@@ -139,7 +139,7 @@ namespace Rappen.XTB.Helpers.RappXTB
         private Tool()
         { }
 
-        internal Tool(RappXTBInstallation installation, string name)
+        internal Tool(Installation installation, string name)
         {
             Installation = installation;
             Name = name;
@@ -156,7 +156,7 @@ namespace Rappen.XTB.Helpers.RappXTB
                     return null;
                 }
             }
-            return GenerateUrl(RappXTBSettings.Instance.FormUrlCorporate, RappXTBSettings.Instance.FormIdCorporate);
+            return GenerateUrl(Settings.Instance.FormUrlCorporate, Settings.Instance.FormIdCorporate);
         }
 
         public string GetUrlPersonal(bool contribute, bool validate = true)
@@ -171,17 +171,17 @@ namespace Rappen.XTB.Helpers.RappXTB
                     return null;
                 }
             }
-            return GenerateUrl(contribute ? RappXTBSettings.Instance.FormUrlContribute : RappXTBSettings.Instance.FormUrlSupporting, contribute ? RappXTBSettings.Instance.FormIdContribute : RappXTBSettings.Instance.FormIdPersonal);
+            return GenerateUrl(contribute ? Settings.Instance.FormUrlContribute : Settings.Instance.FormUrlSupporting, contribute ? Settings.Instance.FormIdContribute : Settings.Instance.FormIdPersonal);
         }
 
         public string GetUrlAlready()
         {
-            return GenerateUrl(RappXTBSettings.Instance.FormUrlAlready, RappXTBSettings.Instance.FormIdAlready);
+            return GenerateUrl(Settings.Instance.FormUrlAlready, Settings.Instance.FormIdAlready);
         }
 
         public string GetUrlGeneral()
         {
-            return GenerateUrl(RappXTBSettings.Instance.FormUrlGeneral, RappXTBSettings.Instance.FormIdCorporate);
+            return GenerateUrl(Settings.Instance.FormUrlGeneral, Settings.Instance.FormIdCorporate);
         }
 
         private string GenerateUrl(string template, string form)

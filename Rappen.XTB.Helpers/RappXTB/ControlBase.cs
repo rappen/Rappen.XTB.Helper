@@ -23,6 +23,7 @@
         return tool;
     }
  */
+using Microsoft.Toolkit.Uwp.Notifications;
 using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.IO;
@@ -32,7 +33,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace Rappen.XTB.Helpers.RappXTB
 {
-    public class RappXTBControlBase : PluginControlBase, IGitHubPlugin, IPayPalPlugin
+    public abstract class RappPluginControlBase : PluginControlBase, IGitHubPlugin, IPayPalPlugin
     {
         #region Private Fields
 
@@ -49,21 +50,23 @@ namespace Rappen.XTB.Helpers.RappXTB
         public AppInsights AppInsights => aiNew;
         public string IconSmallPath => Path.Combine(Paths.PluginsPath, "Icons", $"{Name}IconSmall.png");
         public string IconBigPath => Path.Combine(Paths.PluginsPath, "Icons", $"{Name}IconBig.png");
-        public string UserName => "rappen";
-        public string RepositoryName => GetRepoName();
 
         #endregion Public Properties
 
-        #region PayPal Properties
+        public abstract bool HandleToastActivationInternal(string action, string sender, ToastArguments args);
 
+        #region Interface Properties
+
+        public string UserName => "rappen";
+        public string RepositoryName => GetRepoName();
         public string EmailAccount => "jonas@rappen.net";
         public string DonationDescription => $"{ToolName} Fan Club";
 
-        #endregion PayPal Properties
+        #endregion Interface Properties
 
         #region Constructor
 
-        public RappXTBControlBase()
+        public RappPluginControlBase()
         {
             var cls = GetType();
             UrlUtils.TOOL_NAME = cls.Name;
@@ -86,6 +89,23 @@ namespace Rappen.XTB.Helpers.RappXTB
             _ => toolname.ToAcronym(3, includeAllWordInitials: true)
             //string.Join(string.Empty, Regex.Matches(name, @"((?<=^|\s)(\w{1})|([A-Z]))").OfType<Match>().Select(x => x.Value.ToUpper()))
         };
+
+        public override void HandleToastActivation(ToastNotificationActivatedEventArgsCompat args)
+        {
+            if (Supporting.HandleToastActivation(this, args, AppInsights))
+            {
+                return;
+            }
+            var arguments = ToastArguments.Parse(args.Argument);
+            arguments.TryGetValue("action", out var action);
+            arguments.TryGetValue("sender", out var sender);
+            LogUse($"ToastBait-{action}-{sender}");
+            if (HandleToastActivationInternal(action, sender, arguments))
+            {
+                return;
+            }
+            base.HandleToastActivation(args);
+        }
 
         #region Internal Methods
 

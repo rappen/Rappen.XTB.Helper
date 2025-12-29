@@ -2,15 +2,17 @@
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
 using XrmToolBox.Extensibility;
 
 namespace Rappen.XTB.Helpers.RappXTB
 {
-    public class RappXTBSettings
+    [XmlRoot("ToolSettings")]
+    public class Settings
     {
         internal static readonly string URL = "https://rappen.github.io/Tools/";
         private const string SettingsFileName = "Rappen.XTB.Settings.xml";
-        private static RappXTBSettings instance;
+        private static Settings instance;
 
         public int SettingsVersion = 1;
         public int ToastImageCacheHours = 24;
@@ -168,10 +170,10 @@ The button in the top-right corner opens this info. You can also right-click on 
 
 For questions, contact me at https://jonasr.app/contact.";
 
-        public RappXTBSettings()
+        public Settings()
         { }
 
-        public static RappXTBSettings Instance
+        public static Settings Instance
         {
             get
             {
@@ -185,7 +187,7 @@ For questions, contact me at https://jonasr.app/contact.";
 
         public static void Reset() => instance = null;
 
-        private static RappXTBSettings Get() => XmlAtomicStore.DownloadXml<RappXTBSettings>(URL, SettingsFileName, Paths.SettingsPath);
+        private static Settings Get() => XmlAtomicStore.DownloadXml<Settings>(URL, SettingsFileName, Paths.SettingsPath);
 
         public SupportableTool this[string name]
         {
@@ -224,6 +226,14 @@ For questions, contact me at https://jonasr.app/contact.";
             return Color.FromArgb(intColor);
         }
     }
+
+    //[System.Obsolete("Use Settings instead.")]
+    //public class ToolSettings : Settings
+    //{
+    //    public new static Settings Instance => Settings.Instance;
+
+    //    public new static void Reset() => Settings.Reset();
+    //}
 
     public class SupportableTool
     {
