@@ -144,6 +144,19 @@ namespace Rappen.XTB.Helpers.Controls
                 if (entities != null && autoRefresh)
                 {
                     Refresh();
+                    var tool = FindParentPluginControlBase();
+                    if (tool != null && NotifyWhenNeeded && !tool.IsShownAndActive())
+                    {
+                        var rapptool = tool as RappPluginControlBase;
+                        ToastHelper.ToastIt(
+                            tool,
+                            "XRMDataGridView Loaded",
+                            $"{tool.ToolName}",
+                            $"Loaded {Rows.Count} rows.",
+                            "Click to see it!",
+                            logo: rapptool != null ? $"https://rappen.github.io/Tools/Images/{rapptool.ToolAcronym}150.png" : null,
+                            duration: Microsoft.Toolkit.Uwp.Notifications.ToastDuration.Short);
+                    }
                 }
             }
         }
@@ -399,6 +412,11 @@ namespace Rappen.XTB.Helpers.Controls
         [DefaultValue(false)]
         [Description("Set this to give EntityReference cells a clickable appearance.")]
         public bool EntityReferenceClickable { get; set; } = false;
+
+        [Category("Rappen XRM")]
+        [DefaultValue(true)]
+        [Description("When loaded or export to Excel is completed and not focused, notify by Windows App Notifier (Toast).")]
+        public bool NotifyWhenNeeded { get; set; } = true;
 
         public bool SettingsWidths { get; private set; } = false;
 
@@ -775,6 +793,8 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 throw new InvalidOperationException("XRMDataGridView must be hosted on a PluginControlBase to use ExportToExcel.");
             }
+            var rapptool = tool as RappPluginControlBase;
+            rapptool?.LogUse("GridExportToExcel", newAppInsights: true);
 
             // Store original visibility and apply column rules
             Dictionary<DataGridViewColumn, bool> originalVisibility = null;
@@ -805,7 +825,8 @@ namespace Rappen.XTB.Helpers.Controls
                         else
                         {
                             sw.Stop();
-                            if (!tool.IsShownAndActive())
+                            rapptool?.LogUse("GridExportToExcelCompleted", newAppInsights: true, duration: sw.Elapsed.TotalMilliseconds);
+                            if (NotifyWhenNeeded && !tool.IsShownAndActive())
                             {
                                 ToastHelper.ToastIt(
                                     tool,
@@ -814,7 +835,7 @@ namespace Rappen.XTB.Helpers.Controls
                                     $"Exported {Rows.Count} rows to Excel and opened it.",
                                     $"It took {sw.Elapsed.ToSmartStringLong()}",
                                     logo: "https://rappen.github.io/Tools/Images/Excel100.png",
-                                    hero: tool is RappXTBControlBase rappTool ? $"https://rappen.github.io/Tools/Images/{rappTool.ToolAcronym}Hero.png" : null,
+                                    hero: rapptool != null ? $"https://rappen.github.io/Tools/Images/{rapptool.ToolAcronym}Hero.png" : null,
                                     duration: Microsoft.Toolkit.Uwp.Notifications.ToastDuration.Short);
                             }
                         }
