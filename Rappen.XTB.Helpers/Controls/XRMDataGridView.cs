@@ -1302,22 +1302,26 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return true;
             }
-            if (Filtering?.RegEx != true)
-            {
-                text = text.ToLowerInvariant();
-            }
             var result = Filtering?.And == true;
             foreach (var column in filtercolumns)
             {
-                var cellvalue = dRow[column]?.ToString();
                 var colresult = false;
-                if (Filtering?.RegEx == true)
+                var cellvalue = dRow[column]?.ToString();
+                if (string.IsNullOrEmpty(cellvalue))
+                {
+                    colresult = false;
+                }
+                else if (Filtering?.RegEx == true)
                 {
                     colresult = Regex.IsMatch(cellvalue, text, RegexOptions.IgnoreCase);
                 }
+                else if (Filtering?.Cases == true)
+                {
+                    colresult = cellvalue.IndexOf(text, StringComparison.Ordinal) >= 0;
+                }
                 else
                 {
-                    colresult = cellvalue.ToLowerInvariant().Contains(text);
+                    colresult = cellvalue.IndexOf(text, StringComparison.OrdinalIgnoreCase) >= 0;
                 }
                 if (Filtering?.And == true)
                 {
@@ -2045,6 +2049,7 @@ namespace Rappen.XTB.Helpers.Controls
         }
         public string Text { get; set; } = string.Empty;
         public bool And { get; set; } = false;
+        public bool Cases { get; set; } = false;
         public bool Not { get; set; } = false;
         public bool RegEx { get; set; } = false;
 
