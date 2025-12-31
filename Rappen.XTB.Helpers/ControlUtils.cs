@@ -69,11 +69,11 @@
             }
             var collection = new Dictionary<string, string>();
 
-            foreach (Control control in controls.OfType<Control>().OrderBy(y => y.TabIndex))
+            foreach (var control in controls.OfType<Control>().OrderBy(y => y.TabIndex))
             {
                 if (control.Tag != null)
                 {
-                    if (GetControlDefinition(control, out string attribute, out bool required, out string defaultvalue))
+                    if (GetControlDefinition(control, out var attribute, out var required, out var defaultvalue))
                     {
                         var value = GetValueFromControl(control);
                         if (validate && required && string.IsNullOrEmpty(value))
@@ -121,6 +121,7 @@
   </row>
 </grid>";
         }
+
         public static Dictionary<string, int> GetCellsFromLayoutXML(string layoutxml)
         {
             string GetCellName(XmlNode node)
@@ -259,15 +260,15 @@
 
         public static void FillControl(Dictionary<string, string> collection, Control control, IDefinitionSavable saveable)
         {
-            if (control.Tag != null && control.Tag.ToString() != "uiname" && GetControlDefinition(control, out string attribute, out bool required, out string defaultvalue))
+            if (control.Tag != null && control.Tag.ToString() != "uiname" && GetControlDefinition(control, out var attribute, out var required, out var defaultvalue))
             {
-                if (!collection.TryGetValue(attribute, out string value))
+                if (!collection.TryGetValue(attribute, out var value))
                 {
                     value = defaultvalue;
                 }
                 if (control is CheckBox chkbox)
                 {
-                    bool.TryParse(value, out bool chk);
+                    bool.TryParse(value, out var chk);
                     chkbox.Checked = chk;
                     if (saveable != null)
                     {
@@ -320,20 +321,20 @@
 
         public static DialogResult PromptDialog(string text, string caption, bool multi, ref string value)
         {
-            Form prompt = new Form();
+            var prompt = new Form();
             prompt.Width = 500;
             prompt.Height = multi ? 250 : 150;
             prompt.Text = caption;
             prompt.StartPosition = FormStartPosition.CenterScreen;
             prompt.FormBorderStyle = multi ? FormBorderStyle.SizableToolWindow : FormBorderStyle.FixedToolWindow;
-            Label textLabel = new Label()
+            var textLabel = new Label()
             {
                 Left = 50,
                 Top = 20,
                 Width = 430,
                 Text = text
             };
-            TextBox textBox = new TextBox()
+            var textBox = new TextBox()
             {
                 Left = 50,
                 Top = 45,
@@ -344,7 +345,7 @@
                 AcceptsReturn = multi,
                 Text = value
             };
-            Button cancellation = new Button()
+            var cancellation = new Button()
             {
                 Text = "Cancel",
                 Left = 220,
@@ -353,7 +354,7 @@
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Right,
                 DialogResult = DialogResult.Cancel
             };
-            Button confirmation = new Button()
+            var confirmation = new Button()
             {
                 Text = "OK",
                 Left = 350,
