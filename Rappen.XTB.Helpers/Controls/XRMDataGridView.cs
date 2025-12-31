@@ -1302,6 +1302,10 @@ namespace Rappen.XTB.Helpers.Controls
             {
                 return true;
             }
+            if (Filtering?.RegEx != true)
+            {
+                text = text.ToLowerInvariant();
+            }
             var result = Filtering?.And == true;
             foreach (var column in filtercolumns)
             {
