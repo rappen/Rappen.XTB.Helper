@@ -33,7 +33,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace Rappen.XTB.Helpers.RappXTB
 {
-    public abstract class RappPluginControlBase : PluginControlBase, IGitHubPlugin, IPayPalPlugin
+    public class RappPluginControlBase : PluginControlBase, IGitHubPlugin, IPayPalPlugin
     {
         #region Private Fields
 
@@ -53,7 +53,7 @@ namespace Rappen.XTB.Helpers.RappXTB
 
         #endregion Public Properties
 
-        public abstract bool HandleToastActivationInternal(string action, string sender, ToastArguments args);
+        public virtual bool HandleToastActivationInternal(string action, string sender, ToastArguments args) => false;
 
         #region Interface Properties
 
