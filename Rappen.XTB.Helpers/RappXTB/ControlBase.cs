@@ -74,21 +74,7 @@ namespace Rappen.XTB.Helpers.RappXTB
 
         #endregion Constructor
 
-        internal static string Acronym(string toolname) => toolname switch
-        {
-            // Tools that don't have three upper cases
-            "FetchXML Builder" => "FXB",
-            "UML Diagram Generator" => "UML",
-            "XrmToolBox Integration Tester" => "XIT",
-            "Portal Entity Permission Manager" => "EPM",
-            "XRM Tokens Runner" => "XTR",
-            "Shuffle Builder" => "ShB",
-            "Shuffle Runner" => "ShR",
-            "Shuffle Deployer" => "ShD",
-            // Tools that have three upper cases
-            _ => toolname.ToAcronym(3, includeAllWordInitials: true)
-            //string.Join(string.Empty, Regex.Matches(name, @"((?<=^|\s)(\w{1})|([A-Z]))").OfType<Match>().Select(x => x.Value.ToUpper()))
-        };
+        #region Public Override Methods
 
         public override void HandleToastActivation(ToastNotificationActivatedEventArgsCompat args)
         {
@@ -106,6 +92,28 @@ namespace Rappen.XTB.Helpers.RappXTB
             }
             base.HandleToastActivation(args);
         }
+
+        #endregion Public Override Methods
+
+        #region Static Methods
+
+        internal static string Acronym(string toolname) => toolname switch
+        {
+            // Tools that don't have three upper cases
+            "FetchXML Builder" => "FXB",
+            "UML Diagram Generator" => "UML",
+            "XrmToolBox Integration Tester" => "XIT",
+            "Portal Entity Permission Manager" => "EPM",
+            "XRM Tokens Runner" => "XTR",
+            "Shuffle Builder" => "ShB",
+            "Shuffle Runner" => "ShR",
+            "Shuffle Deployer" => "ShD",
+            // Tools that have three upper cases
+            _ => toolname.ToAcronym(3, includeAllWordInitials: true)
+            //string.Join(string.Empty, Regex.Matches(name, @"((?<=^|\s)(\w{1})|([A-Z]))").OfType<Match>().Select(x => x.Value.ToUpper()))
+        };
+
+        #endregion Static Methods
 
         #region Internal Methods
 
