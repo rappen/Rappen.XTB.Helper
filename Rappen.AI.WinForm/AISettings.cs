@@ -15,6 +15,7 @@ namespace Rappen.AI.WinForm
         public bool LogConversation { get; set; }
         public bool PreferDisplayName { get; set; }
         public bool SendWithEnter { get; set; }
+        public string InstructionsFlavor { get; set; }
 
         public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName}";
     }
