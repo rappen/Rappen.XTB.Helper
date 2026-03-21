@@ -24,7 +24,7 @@ namespace Rappen.AI.WinForm
     {
         public string TextToRequestFreeAi { get; set; }
         public string OnlyInfoName { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public PromptsV2 PromptsV2 { get; set; } = new PromptsV2();
         public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
@@ -32,7 +32,8 @@ namespace Rappen.AI.WinForm
         public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
         public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
 
-        public AiSupport() { }
+        public AiSupport()
+        { }
 
         public List<AiProvider> SupportedAiProviders(Version version) => AiProviders
             .Where(n => string.IsNullOrEmpty(n.FromVersion) || Version.TryParse(n.FromVersion, out var fromVersion) && fromVersion <= version)
@@ -42,13 +43,14 @@ namespace Rappen.AI.WinForm
         public AiProvider Provider(string aiprovider) => AiProviders.FirstOrDefault(n => n.ToString().Equals(aiprovider));
     }
 
-    public class Prompts
+    public class PromptsV2
     {
         public string System { get; set; }
-        public string Format { get; set; }
-        public string CallMe { get; set; }
-        public string PreferNames { get; set; }
-        public string Update { get; set; }
+        public string Behavior { get; set; }
+        public string Style { get; set; }
+        public string Preferences { get; set; }
+        public string UserFlavors { get; set; }
+        public string Updated { get; set; }
         public string EntityMeta { get; set; }
         public string AttributeMeta { get; set; }
     }
@@ -64,7 +66,7 @@ namespace Rappen.AI.WinForm
         public bool EndpointFixed { get; set; }
         public string ApiKey { get; set; }
         public bool Free { get; set; }
-        public Prompts Prompts { get; set; }
+        public PromptsV2 Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
@@ -115,7 +117,7 @@ namespace Rappen.AI.WinForm
         public string Url { get; set; }
         public string Endpoint { get; set; }    // For this who are fixed for this provider/model
         public bool? LogConversation { get; set; } = null;
-        public Prompts Prompts { get; set; }
+        public PromptsV2 Prompts { get; set; }
 
         public override string ToString() => Name;
     }
