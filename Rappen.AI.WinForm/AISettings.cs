@@ -17,7 +17,7 @@ namespace Rappen.AI.WinForm
         public bool SendWithEnter { get; set; }
         public string InstructionsFlavor { get; set; }
 
-        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName}";
+        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName} - {InstructionsFlavor}";
     }
 
     public class AiSupport

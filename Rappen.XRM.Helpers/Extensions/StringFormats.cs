@@ -14,10 +14,10 @@ namespace Rappen.XRM.Helpers.Extensions
 
         public static string GetSeparatedPart(this string source, string separator, int partno)
         {
-            int tagcount = 0;
-            int pos = 0;
-            int separatorcount = 0;
-            int startpos = -1;
+            var tagcount = 0;
+            var pos = 0;
+            var separatorcount = 0;
+            var startpos = -1;
             while (separatorcount < partno && pos < source.Length)
             {
                 if (startpos == -1 && separatorcount == partno - 1 && tagcount == 0)
@@ -25,7 +25,7 @@ namespace Rappen.XRM.Helpers.Extensions
                     startpos = pos;
                 }
 
-                char character = source[pos];
+                var character = source[pos];
                 if (character == '>' || character == '}')
                 {
                     tagcount--;
@@ -42,8 +42,8 @@ namespace Rappen.XRM.Helpers.Extensions
 
                 pos++;
             }
-            int length = pos == source.Length ? pos - startpos : pos - startpos - 1;
-            string result = "";
+            var length = pos == source.Length ? pos - startpos : pos - startpos - 1;
+            var result = "";
             if (startpos >= 0 && startpos + length <= source.Length)
             {
                 result = source.Substring(startpos, length);
@@ -71,8 +71,8 @@ namespace Rappen.XRM.Helpers.Extensions
             {   // Det finns ett kolon som avser namespace, men inget namespace var angivet
                 return "";
             }
-            int tagcount = 1;
-            int pos = 0;
+            var tagcount = 1;
+            var pos = 0;
             while (pos < result.Length && tagcount > 0)
             {
                 if (result.Substring(pos).StartsWith(endtag, StringComparison.Ordinal))
@@ -232,6 +232,8 @@ namespace Rappen.XRM.Helpers.Extensions
 
             return text;
         }
+
+        public static string FixNewLines(this string text) => text?.Replace("\r\n", "\n")?.Replace("\r", "\n")?.Replace("\n", "\r\n") ?? string.Empty;
 
         #endregion Public Static Extensions Methods
 
