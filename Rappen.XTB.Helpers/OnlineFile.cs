@@ -123,6 +123,23 @@ namespace Rappen.XTB.Helpers
             }, cancellationToken);
         }
 
+        public static string GetTextFromMaybeUrl(string text, string localDir)
+        {
+            if (Uri.TryCreate(text, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            {
+                try
+                {
+                    var fileName = Path.GetFileName(uri.AbsolutePath);
+                    var dir = uri.AbsolutePath.Substring(0, uri.AbsolutePath.Length - fileName.Length);
+                    var baseUri = uri.GetLeftPart(UriPartial.Authority) + dir;
+
+                    return OnlineFile.DownloadText(baseUri, fileName, localDir);
+                }
+                catch { }
+            }
+            return text;
+        }
+
         /// <summary>
         /// Core implementation: returns downloaded/local text, or <see langword="null"/> on any failure.
         /// </summary>
