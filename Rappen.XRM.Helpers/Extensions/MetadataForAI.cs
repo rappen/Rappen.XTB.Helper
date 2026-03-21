@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk.Metadata;
 using Rappen.XRM.Helpers.Extensions;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace Rappen.XRM.Helpers
@@ -8,11 +9,15 @@ namespace Rappen.XRM.Helpers
     public abstract class MetadataForAI
     {
         /// <summary>LogicalName</summary>
+        [Description("Logical Name")]
         public string L { get; set; }
 
         /// <summary>DisplayName</summary>
+        [Description("Display Name")]
         public string D { get; set; }
 
+        /// <summary>Description</summary>
+        [Description("Description")]
         public string Desc { get; set; }
 
         public override string ToString() => $"{L} = {D}";
@@ -23,7 +28,11 @@ namespace Rappen.XRM.Helpers
         public static List<MetadataForAIEntity> FromEntities(IEnumerable<EntityMetadata> ems)
         {
             var result = new List<MetadataForAIEntity>();
-            if (ems == null) return result;
+            if (ems == null)
+            {
+                return result;
+            }
+
             foreach (var em in ems)
             {
                 var aiMeta = FromEntity(em);
@@ -51,15 +60,25 @@ namespace Rappen.XRM.Helpers
     public class MetadataForAIAttribute : MetadataForAI
     {
         /// <summary>Type</summary>
+        [Description("Type")]
         public string T { get; set; }
 
         /// <summary>Entity name</summary>
+        [Description("Entity name")]
         public object E { get; set; }
+
+        /// <summary>Picklist/Choice/OptionSet</summary>
+        [Description("Picklist/Choice/Choices/MultiplePicklist/OptionSet")]
+        public object P { get; set; }
 
         public static List<MetadataForAIAttribute> FromAttributes(IEnumerable<AttributeMetadata> ams, bool IncludeType)
         {
             var result = new List<MetadataForAIAttribute>();
-            if (ams == null) return result;
+            if (ams == null)
+            {
+                return result;
+            }
+
             foreach (var am in ams)
             {
                 var aiMeta = FromAttribute(am, IncludeType);
@@ -90,11 +109,11 @@ namespace Rappen.XRM.Helpers
                 }
                 else if (am is EnumAttributeMetadata picklist)
                 {
-                    result.E = MetadataForAIOptionSet.FromChoice(picklist.OptionSet);
+                    result.P = MetadataForAIOptionSet.FromChoice(picklist.OptionSet);
                 }
                 else if (am is MultiSelectPicklistAttributeMetadata multiSelect)
                 {
-                    result.E = MetadataForAIOptionSet.FromChoice(multiSelect.OptionSet);
+                    result.P = MetadataForAIOptionSet.FromChoice(multiSelect.OptionSet);
                 }
             }
             return result;
@@ -103,8 +122,9 @@ namespace Rappen.XRM.Helpers
 
     public class MetadataForAIOptionSet : MetadataForAI
     {
-        /// <summary>OptionSet/Picklist/Choice</summary>
-        public List<MetadataForAIOptionsSetValue> O { get; set; }
+        /// <summary>Option Set Values</summary>
+        [Description("Option Set Values")]
+        public List<MetadataForAIOptionsSetValue> V { get; set; }
 
         public static MetadataForAIOptionSet FromChoice(OptionSetMetadata osm)
         {
@@ -112,7 +132,7 @@ namespace Rappen.XRM.Helpers
             {
                 L = osm?.Name,
                 D = osm?.DisplayName?.LocalizedLabels?.FirstOrDefault()?.Label,
-                O = osm?.Options?
+                V = osm?.Options?
                     .Select(om => MetadataForAIOptionsSetValue.FromOption(om))
                     .Where(o => o != null)
                     .ToList()
@@ -124,7 +144,8 @@ namespace Rappen.XRM.Helpers
     public class MetadataForAIOptionsSetValue : MetadataForAI
     {
         /// <summary>Value</summary>
-        public int V { get; set; }
+        [Description("The numeric value")]
+        public int N { get; set; }
 
         public static MetadataForAIOptionsSetValue FromOption(OptionMetadata om)
         {
@@ -135,7 +156,7 @@ namespace Rappen.XRM.Helpers
             return new MetadataForAIOptionsSetValue
             {
                 D = om.Label?.LocalizedLabels?.FirstOrDefault()?.Label,
-                V = om.Value.Value
+                N = om.Value.Value
             };
         }
     }
