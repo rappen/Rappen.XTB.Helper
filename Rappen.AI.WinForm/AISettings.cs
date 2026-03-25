@@ -16,8 +16,16 @@ namespace Rappen.AI.WinForm
         public bool PreferDisplayName { get; set; }
         public bool SendWithEnter { get; set; }
         public string InstructionsFlavor { get; set; }
+        public Strictness Strictness { get; set; } = Strictness.Balanced;
 
         public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName} - {InstructionsFlavor}";
+    }
+
+    public enum Strictness
+    {
+        Exact = 1,
+        Balanced = 2,
+        Relaxed = 3
     }
 
     public class AiSupport
@@ -49,6 +57,7 @@ namespace Rappen.AI.WinForm
         public string Behavior { get; set; }
         public string Style { get; set; }
         public string Preferences { get; set; }
+        public string Strictness { get; set; }
         public string UserFlavors { get; set; }
         public string Updated { get; set; }
         public string EntityMeta { get; set; }
