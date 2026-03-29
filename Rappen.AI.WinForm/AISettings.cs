@@ -18,7 +18,7 @@ namespace Rappen.AI.WinForm
         public string InstructionsFlavor { get; set; }
         public Strictness Strictness { get; set; } = Strictness.Balanced;
 
-        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName} - {InstructionsFlavor}";
+        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName} - {Strictness} - {InstructionsFlavor}";
     }
 
     public enum Strictness
@@ -62,6 +62,7 @@ namespace Rappen.AI.WinForm
         public string Updated { get; set; }
         public string EntityMeta { get; set; }
         public string AttributeMeta { get; set; }
+        public string RelationshipMeta { get; set; }
     }
 
     public class AiProvider
