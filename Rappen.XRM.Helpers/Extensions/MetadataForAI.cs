@@ -204,6 +204,26 @@ namespace Rappen.XRM.Helpers
                 .ToList();
         }
 
+        public string ToRelationshipString()
+        {
+            if (R == "M:1")
+            {
+                return $"{R} {D} ({T})";
+            }
+            else if (R == "1:M")
+            {
+                return $"{R} {D} ({F})";
+            }
+            else if (R == "M:M")
+            {
+                return $"{R} {D} (via {I})";
+            }
+            else
+            {
+                return $"Unknown relationship type to {D}";
+            }
+        }
+
         private static MetadataForAIRelationship FromManyToOne(OneToManyRelationshipMetadata rel, Func<string, EntityMetadata> getEntity)
         {
             if (rel == null || IgnoreName(rel.ReferencedEntity))
