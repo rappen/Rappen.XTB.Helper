@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -410,7 +411,7 @@ namespace Rappen.XRM.Helpers.Extensions
             const string vowels = "AEIOUYaeiouy";
 
             var reversed = words.AsEnumerable().Reverse().ToList();
-            for (int widx = 0; widx < reversed.Count && fill.Length < needed; widx++)
+            for (var widx = 0; widx < reversed.Count && fill.Length < needed; widx++)
             {
                 var w = reversed[widx];
 
@@ -465,6 +466,31 @@ namespace Rappen.XRM.Helpers.Extensions
             }
 
             return identifierSafe ? MakeIdentifierSafe(result) : result;
+        }
+
+        /// <summary>
+        /// Populates the template with the corresponding values from the replacements.
+        /// </summary>
+        /// <param name="template">The text where placeholders will be replaced by the corresponding values</param>
+        /// <param name="replacements">It will replace any {{placeholder}} in the template with the replacement</param>
+        /// <returns></returns>
+        public static string Populate(
+            this string template,
+            IEnumerable<(string placeholder, string replacement)> replacements)
+        {
+            var result = template ?? string.Empty;
+
+            if (replacements != null)
+            {
+                foreach (var replacement in replacements)
+                {
+                    result = result.Replace(
+                        "{{" + replacement.placeholder + "}}",
+                        replacement.replacement ?? string.Empty);
+                }
+            }
+
+            return result.Trim();
         }
 
         // --- helpers ---
