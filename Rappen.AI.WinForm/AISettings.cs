@@ -33,6 +33,7 @@ namespace Rappen.AI.WinForm
         public string TextToRequestFreeAi { get; set; }
         public string OnlyInfoName { get; set; }
         public PromptsV2 PromptsV2 { get; set; } = new PromptsV2();
+        public Tools Tools { get; set; } = new Tools();
         public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
@@ -63,6 +64,15 @@ namespace Rappen.AI.WinForm
         public string EntityMeta { get; set; }
         public string AttributeMeta { get; set; }
         public string RelationshipMeta { get; set; }
+    }
+
+    public class Tools
+    {
+        public string DescExecuteQuery { get; set; }
+        public string DescUpdateQuery { get; set; }
+        public string DescMatchTable { get; set; }
+        public string DescMatchColumn { get; set; }
+        public string DescMatchRelationship { get; set; }
     }
 
     public class AiProvider
