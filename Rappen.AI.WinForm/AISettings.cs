@@ -40,6 +40,7 @@ namespace Rappen.AI.WinForm
         public string WpfToUseForFree { get; set; } = "18554";
         public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
         public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
+        public int MetadataMatchesToShowMax { get; set; } = 10;
 
         public AiSupport()
         { }
