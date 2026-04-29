@@ -15,23 +15,35 @@ namespace Rappen.AI.WinForm
         public bool LogConversation { get; set; }
         public bool PreferDisplayName { get; set; }
         public bool SendWithEnter { get; set; }
+        public string InstructionsFlavor { get; set; }
+        public Strictness Strictness { get; set; } = Strictness.Balanced;
 
-        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName}";
+        public override string ToString() => $"{Provider} - {Model} - {Endpoint} - {ApiKey} - {MyName} - {PreferDisplayName} - {Strictness} - {InstructionsFlavor}";
+    }
+
+    public enum Strictness
+    {
+        Exact = 1,
+        Balanced = 2,
+        Relaxed = 3
     }
 
     public class AiSupport
     {
         public string TextToRequestFreeAi { get; set; }
         public string OnlyInfoName { get; set; }
-        public Prompts Prompts { get; set; } = new Prompts();
+        public PromptsV2 PromptsV2 { get; set; } = new PromptsV2();
+        public Tools Tools { get; set; } = new Tools();
         public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
         public List<PopupByCallNo> PopupByCallNos { get; set; } = new List<PopupByCallNo>();
         public string UrlToUseForFree { get; set; } = "https://jonasr.app/fxb/free-ai-chat/";
         public string WpfToUseForFree { get; set; } = "18554";
         public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
         public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
+        public int MetadataMatchesToShowMax { get; set; } = 10;
 
-        public AiSupport() { }
+        public AiSupport()
+        { }
 
         public List<AiProvider> SupportedAiProviders(Version version) => AiProviders
             .Where(n => string.IsNullOrEmpty(n.FromVersion) || Version.TryParse(n.FromVersion, out var fromVersion) && fromVersion <= version)
@@ -41,15 +53,27 @@ namespace Rappen.AI.WinForm
         public AiProvider Provider(string aiprovider) => AiProviders.FirstOrDefault(n => n.ToString().Equals(aiprovider));
     }
 
-    public class Prompts
+    public class PromptsV2
     {
         public string System { get; set; }
-        public string Format { get; set; }
-        public string CallMe { get; set; }
-        public string PreferNames { get; set; }
-        public string Update { get; set; }
+        public string Behavior { get; set; }
+        public string Style { get; set; }
+        public string Preferences { get; set; }
+        public string Strictness { get; set; }
+        public string UserFlavors { get; set; }
+        public string Updated { get; set; }
         public string EntityMeta { get; set; }
         public string AttributeMeta { get; set; }
+        public string RelationshipMeta { get; set; }
+    }
+
+    public class Tools
+    {
+        public string DescExecuteQuery { get; set; }
+        public string DescUpdateQuery { get; set; }
+        public string DescMatchTable { get; set; }
+        public string DescMatchColumn { get; set; }
+        public string DescMatchRelationship { get; set; }
     }
 
     public class AiProvider
@@ -63,7 +87,7 @@ namespace Rappen.AI.WinForm
         public bool EndpointFixed { get; set; }
         public string ApiKey { get; set; }
         public bool Free { get; set; }
-        public Prompts Prompts { get; set; }
+        public PromptsV2 Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
@@ -114,7 +138,7 @@ namespace Rappen.AI.WinForm
         public string Url { get; set; }
         public string Endpoint { get; set; }    // For this who are fixed for this provider/model
         public bool? LogConversation { get; set; } = null;
-        public Prompts Prompts { get; set; }
+        public PromptsV2 Prompts { get; set; }
 
         public override string ToString() => Name;
     }

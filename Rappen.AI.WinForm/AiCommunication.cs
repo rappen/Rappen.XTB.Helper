@@ -15,16 +15,15 @@ namespace Rappen.AI.WinForm
     public static class AiCommunication
     {
         /// <summary>
-        /// Calls the AI model with the given prompt and handles the response.
+        /// Prompts the AI model with the given prompt and handles the response.
         /// </summary>
         /// <param name="tool">The tool in XrmToolBox that is calling this method</param>
         /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
-        /// <param name="apikey">The API key needed to know you account</param>
         /// <param name="prompt">The question/statement from you to the AI</param>
         /// <param name="handleResponse">The method that handles the response from AI</param>
         /// <param name="internalTools">This may containg 0-x methods that can be called inside this method, bepending on what the AI may need/help us</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public static void CallingAIAsync(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, params Func<string, string>[] internalTools)
+        public static void Prompt(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, params AiInternalTool[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -46,7 +45,7 @@ namespace Rappen.AI.WinForm
                 Message = $"Asking {chatMessageHistory.ProviderDisplayName}...",
                 Work = (w, a) =>
                 {
-                    a.Result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
+                    a.Result = PromptTools(clientBuilder, chatMessageHistory, internalTools);
                 },
                 PostWorkCallBack = (w) =>
                 {
@@ -84,46 +83,11 @@ namespace Rappen.AI.WinForm
         }
 
         /// <summary>
-        /// Calls the AI model with the given prompt and returns the response.
-        /// </summary>
-        /// <param name="chatMessageHistory"></param>
-        /// <param name="apikey"></param>
-        /// <param name="prompt"></param>
-        /// <param name="internalTools"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        public static ChatResponse CallingAI(ChatMessageHistory chatMessageHistory, string prompt, params Func<string, string>[] internalTools)
-        {
-            if (string.IsNullOrWhiteSpace(prompt))
-            {
-                return null;
-            }
-            if (!chatMessageHistory.Initialized)
-            {
-                throw new InvalidOperationException("ChatMessageHistory is not initialized. Please call InitializeIfNeeded with a system prompt before using this method.");
-            }
-
-            chatMessageHistory.Add(ChatRole.User, prompt);
-            chatMessageHistory.IsRunning = true;
-
-            var clientBuilder = GetChatClientBuilder(chatMessageHistory);
-
-            var result = CallingAI(clientBuilder, chatMessageHistory, internalTools);
-            chatMessageHistory.IsRunning = false;
-            if (result == null)
-            {
-                throw new InvalidOperationException("AI response is null. Please check the AI communication.");
-            }
-            chatMessageHistory.Add(result);
-            return result;
-        }
-
-        /// <summary>
-        /// Perform a 'Sampling' request to the AI model. 'Sampling' is a concept from Model Context Protocol (MCP) where an AI-function can call the AI internally, without any support for function calling.
+        /// Prompts the AI model with a stateless request using its own system prompt and user prompt, without tool invocation.
         /// </summary>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        public static ChatResponse SamplingAI(ChatMessageHistory chatMessageHistory, string systemPrompt, string userPrompt, string internalMessage)
+        public static ChatResponse PromptStateless(ChatMessageHistory chatMessageHistory, string systemPrompt, string userPrompt, string internalMessage)
         {
             if (!string.IsNullOrWhiteSpace(internalMessage))
             {
@@ -147,13 +111,19 @@ namespace Rappen.AI.WinForm
             return response;
         }
 
-        private static ChatResponse CallingAI(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params Func<string, string>[] internalTools)
+        private static ChatResponse PromptTools(ChatClientBuilder clientBuilder, ChatMessageHistory chatMessageHistory, params AiInternalTool[] internalTools)
         {
             using var chatClient = clientBuilder.UseFunctionInvocation().Build();
             var chatOptions = new ChatOptions();
-            if (internalTools?.Count() > 0)
+            if (internalTools != null && internalTools.Length > 0)
             {
-                chatOptions.Tools = internalTools.Select(tool => AIFunctionFactory.Create(tool) as AITool).ToList();
+                chatOptions.Tools = internalTools
+                    .Select(tool => AIFunctionFactory.Create(
+                        tool.Callback,
+                        name: tool.Name,
+                        description: tool.Description) as AITool)
+                    .Where(tool => tool != null)
+                    .ToList();
             }
 
             optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
@@ -225,5 +195,19 @@ namespace Rappen.AI.WinForm
                 //options.MaxOutputTokens = 4096;       // accepterar inte Azure.AI !
             });
         }
+    }
+
+    public sealed class AiInternalTool
+    {
+        public AiInternalTool(Func<string, string> callback, string name, string description)
+        {
+            Callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            Name = name;
+            Description = description;
+        }
+
+        public Func<string, string> Callback { get; }
+        public string Name { get; }
+        public string Description { get; }
     }
 }

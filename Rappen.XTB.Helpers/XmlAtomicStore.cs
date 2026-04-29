@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.IO;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -16,7 +15,7 @@ namespace Rappen.XTB.Helpers
     /// - In-proc per-path locking + optional cross-proc named mutex
     /// - Symmetric, lock-coordinated file deserialization
     /// - XML string/stream helpers
-    /// - Remote XML download + deserialize (with DEBUG local fallback)
+    /// - Remote XML download + deserialize (download via <see cref="OnlineFile"/>, with DEBUG local fallback)
     /// </summary>
     public static class XmlAtomicStore
     {
@@ -276,26 +275,6 @@ namespace Rappen.XTB.Helpers
 
         #region Remote XML - Download + Deserialize (with local DEBUG fallback)
 
-        /// <summary>
-        /// Downloads and deserializes an XML file from a remote URI into an object of the specified type. Optionally falls back
-        /// to a local file in DEBUG mode and caches the remote XML locally.
-        /// </summary>
-        /// <remarks>In DEBUG mode, the method attempts to load the XML from a local file if <paramref
-        /// name="localFolder"/> is provided. If the local file does not exist, the method fetches the XML from the remote
-        /// server and optionally caches it locally. In non-DEBUG mode, the method always fetches the XML from the remote
-        /// server.</remarks>
-        /// <typeparam name="T">The type of the object to deserialize the XML into. Must have a parameterless constructor.</typeparam>
-        /// <param name="baseUri">The base URI of the remote server. Must be a well-formed absolute URI.</param>
-        /// <param name="fileName">The name of the XML file to download from the remote server.</param>
-        /// <param name="localFolder">An optional local folder path to use for fallback in DEBUG mode and for caching the downloaded XML. If not provided,
-        /// no local fallback or caching will occur. A good example to send in XrmToolBox: Paths.SettingsPath</param>
-        /// <param name="alwaysReturns">A value indicating whether the method should return a new instance of <typeparamref name="T"/> if deserialization
-        /// fails. If <see langword="true"/>, a new instance is returned; otherwise, <see langword="default"/> is returned.</param>
-        /// <param name="timeoutMilliseconds">The maximum time, in milliseconds, to wait for the remote server to respond. Defaults to 15,000 milliseconds.</param>
-        /// <returns>An instance of <typeparamref name="T"/> deserialized from the XML file. If the XML cannot be downloaded or
-        /// deserialized, the return value depends on the <paramref name="alwaysReturns"/> parameter.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="baseUri"/> or <paramref name="fileName"/> is <see langword="null"/> or whitespace.</exception>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="baseUri"/> is not a well-formed absolute URI.</exception>
         public static T DownloadXml<T>(
             string baseUri,
             string fileName,
@@ -303,82 +282,14 @@ namespace Rappen.XTB.Helpers
             bool alwaysReturns = true,
             int timeoutMilliseconds = 15000) where T : new()
         {
-            if (string.IsNullOrWhiteSpace(baseUri))
-            {
-                throw new ArgumentNullException(nameof(baseUri));
-            }
-
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            if (!Uri.TryCreate(baseUri, UriKind.Absolute, out var baseUriObj))
-            {
-                throw new ArgumentException("Base URI must be a well-formed absolute URI.", nameof(baseUri));
-            }
-
-            string localPath = null;
-
-#if DEBUG
-            if (!string.IsNullOrWhiteSpace(localFolder))
-            {
-                try
-                {
-                    localPath = Path.Combine(localFolder, fileName);
-                    if (File.Exists(localPath))
-                    {
-                        // Read as text using UTF-8, then deserialize from string
-                        var xml = File.ReadAllText(localPath, Encoding.UTF8);
-                        return DeserializeFromString<T>(xml, alwaysReturns);
-                    }
-                }
-                catch
-                {
-                    // Ignore and fall back to remote fetch
-                }
-            }
-#endif
-
-            var remoteUri = new Uri(baseUriObj, fileName);
-
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            var request = (HttpWebRequest)WebRequest.Create(remoteUri);
-            request.Accept = "text/html, application/xhtml+xml, */*";
-            request.Timeout = timeoutMilliseconds;
-
             try
             {
-                using var response = request.GetResponse();
-                using var stream = response.GetResponseStream();
-                using var reader = new StreamReader(stream);
-                var xml = reader.ReadToEnd();
-                var result = DeserializeFromString<T>(xml, alwaysReturns);
-
-#if DEBUG
-                // Cache remote XML if a local folder is provided and file was not present
-                if (!string.IsNullOrWhiteSpace(localFolder) &&
-                    !string.IsNullOrWhiteSpace(localPath) &&
-                    !File.Exists(localPath))
+                var xml = OnlineFile.DownloadText(baseUri, fileName, localFolder, alwaysReturns: false, timeoutMilliseconds: timeoutMilliseconds);
+                if (string.IsNullOrWhiteSpace(xml))
                 {
-                    try
-                    {
-                        var dir = Path.GetDirectoryName(localPath);
-                        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-                        {
-                            Directory.CreateDirectory(dir);
-                        }
-
-                        File.WriteAllText(localPath, xml, Encoding.UTF8);
-                    }
-                    catch
-                    {
-                        // Swallow caching errors in DEBUG mode
-                    }
+                    return alwaysReturns ? new T() : default(T);
                 }
-#endif
-                return result;
+                return DeserializeFromString<T>(xml, alwaysReturns);
             }
             catch
             {
@@ -386,27 +297,6 @@ namespace Rappen.XTB.Helpers
             }
         }
 
-        /// <summary>
-        /// Downloads and deserializes an XML file from the specified URI into an object of type <typeparamref
-        /// name="T"/>.
-        /// </summary>
-        /// <remarks>If <paramref name="runAsync"/> is <see langword="false"/>, the operation is executed
-        /// synchronously and the result is wrapped in a completed task. The method uses the specified <paramref
-        /// name="timeoutMilliseconds"/> to limit the duration of the operation.</remarks>
-        /// <typeparam name="T">The type of the object to deserialize the XML content into. Must have a parameterless constructor.</typeparam>
-        /// <param name="baseUri">The base URI of the server from which the XML file will be downloaded.</param>
-        /// <param name="fileName">The name of the XML file to download. This is appended to the <paramref name="baseUri"/> to form the full
-        /// URI.</param>
-        /// <param name="localFolder">An optional local folder path where the XML file may be cached or stored. If <c>null</c>, no local folder is
-        /// used.</param>
-        /// <param name="alwaysReturns">A value indicating whether the method should always return a result, even if the file cannot be downloaded.
-        /// If <see langword="true"/>, a default instance of <typeparamref name="T"/> is returned in such cases.</param>
-        /// <param name="runAsync">A value indicating whether the operation should be executed asynchronously. If <see langword="false"/>, the
-        /// operation runs synchronously.</param>
-        /// <param name="timeoutMilliseconds">The maximum time, in milliseconds, to wait for the operation to complete. Defaults to 15,000 milliseconds.</param>
-        /// <param name="cancellationToken">A token to monitor for cancellation requests. If cancellation is requested, the operation is aborted.</param>
-        /// <returns>A task representing the asynchronous operation. The task result contains the deserialized object of type
-        /// <typeparamref name="T"/>.</returns>
         public static Task<T> DownloadXmlAsync<T>(
             string baseUri,
             string fileName,
