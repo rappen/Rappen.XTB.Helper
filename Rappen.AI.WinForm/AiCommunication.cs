@@ -62,7 +62,13 @@ namespace Rappen.AI.WinForm
                         tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         if (throwExceptions)
                         {
-                            ExceptionDispatchInfo.Capture(w.Error).Throw();
+                            var errorKind = AiErrorClassifier.Classify(w.Error);
+                            if (errorKind == AiErrorKind.Unknown)
+                            {
+                                ExceptionDispatchInfo.Capture(w.Error).Throw();
+                            }
+
+                            throw CreateSpecificException(errorKind, AiErrorClassifier.UserMessage(errorKind), w.Error);
                         }
                         else if (w.Error is MissingMethodException)
                         {
@@ -142,6 +148,23 @@ namespace Rappen.AI.WinForm
                 .GetAwaiter()
                 .GetResult();
             return response;
+        }
+
+        private static Exception CreateSpecificException(AiErrorKind errorKind, string message, Exception innerException)
+        {
+            switch (errorKind)
+            {
+                case AiErrorKind.Authentication:
+                    return new UnauthorizedAccessException(message, innerException);
+                case AiErrorKind.RateLimited:
+                    return new InvalidOperationException(message, innerException);
+                case AiErrorKind.TransientUnavailable:
+                    return new TimeoutException(message, innerException);
+                case AiErrorKind.Configuration:
+                    return new ArgumentException(message, innerException);
+                default:
+                    return new Exception(message, innerException);
+            }
         }
 
         /// <summary>
