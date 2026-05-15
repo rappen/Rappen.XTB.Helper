@@ -161,7 +161,7 @@ namespace Rappen.AI.WinForm
                 case AiErrorKind.TransientUnavailable:
                     return new TimeoutException(message, innerException);
                 case AiErrorKind.Configuration:
-                    return new ArgumentException(message, innerException);
+                    return new InvalidOperationException(message, innerException);
                 default:
                     return new Exception(message, innerException);
             }
