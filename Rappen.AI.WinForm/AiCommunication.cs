@@ -54,22 +54,21 @@ namespace Rappen.AI.WinForm
                     if (w.Error != null)
                     {
                         tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
-                        var apiEx = w.Error as ApiException ?? w.Error.InnerException as ApiException;
-                        if (apiEx != null && apiEx.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        if (w.Error is MissingMethodException)
                         {
-                            tool.ShowErrorDialog(new Exception("ApiKey may be incorrect."), "AI Communitation", w.Error.ExceptionDetails());
-                        }
-                        else if (apiEx != null && (int)apiEx.StatusCode == 529) // Anthropic service overloaded
-                        {
-                            tool.ShowErrorDialog(new Exception("AI service is overloaded, please try again later."), "AI Communitation", w.Error.ExceptionDetails());
-                        }
-                        else if (w.Error is MissingMethodException missmeth)
-                        {
-                            tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communitation", w.Error.ExceptionDetails());
+                            tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communication", w.Error.ExceptionDetails());
                         }
                         else
                         {
-                            tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
+                            var errorKind = AiErrorClassifier.Classify(w.Error);
+                            if (errorKind == AiErrorKind.Unknown)
+                            {
+                                tool.ShowErrorDialog(w.Error, "AI Communication", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
+                            }
+                            else
+                            {
+                                tool.ShowErrorDialog(new Exception(AiErrorClassifier.UserMessage(errorKind)), "AI Communication", w.Error.ExceptionDetails());
+                            }
                         }
                         handleResponse?.Invoke(null);
                     }
