@@ -56,18 +56,18 @@ namespace Rappen.AI.WinForm
                         tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
                         if (w.Error is MissingMethodException)
                         {
-                            tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communitation", w.Error.ExceptionDetails());
+                            tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communication", w.Error.ExceptionDetails());
                         }
                         else
                         {
                             var errorKind = AiErrorClassifier.Classify(w.Error);
                             if (errorKind == AiErrorKind.Unknown)
                             {
-                                tool.ShowErrorDialog(w.Error, "AI Communitation", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
+                                tool.ShowErrorDialog(w.Error, "AI Communication", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
                             }
                             else
                             {
-                                tool.ShowErrorDialog(new Exception(AiErrorClassifier.UserMessage(errorKind)), "AI Communitation", w.Error.ExceptionDetails());
+                                tool.ShowErrorDialog(new Exception(AiErrorClassifier.UserMessage(errorKind)), "AI Communication", w.Error.ExceptionDetails());
                             }
                         }
                         handleResponse?.Invoke(null);
