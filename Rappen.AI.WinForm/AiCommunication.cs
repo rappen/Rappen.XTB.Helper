@@ -155,13 +155,13 @@ namespace Rappen.AI.WinForm
             switch (errorKind)
             {
                 case AiErrorKind.Authentication:
-                    return new UnauthorizedAccessException(message, innerException);
+                    return new AiAuthenticationException(message, innerException);
                 case AiErrorKind.RateLimited:
-                    return new InvalidOperationException(message, innerException);
+                    return new AiRateLimitedException(message, innerException);
                 case AiErrorKind.TransientUnavailable:
-                    return new TimeoutException(message, innerException);
+                    return new AiTransientUnavailableException(message, innerException);
                 case AiErrorKind.Configuration:
-                    return new InvalidOperationException(message, innerException);
+                    return new AiConfigurationException(message, innerException);
                 default:
                     return new Exception(message, innerException);
             }
@@ -241,5 +241,30 @@ namespace Rappen.AI.WinForm
         public Func<string, string> Callback { get; }
         public string Name { get; }
         public string Description { get; }
+    }
+
+    public class AiCommunicationException : Exception
+    {
+        public AiCommunicationException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public sealed class AiAuthenticationException : AiCommunicationException
+    {
+        public AiAuthenticationException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public sealed class AiRateLimitedException : AiCommunicationException
+    {
+        public AiRateLimitedException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public sealed class AiTransientUnavailableException : AiCommunicationException
+    {
+        public AiTransientUnavailableException(string message, Exception innerException) : base(message, innerException) { }
+    }
+
+    public sealed class AiConfigurationException : AiCommunicationException
+    {
+        public AiConfigurationException(string message, Exception innerException) : base(message, innerException) { }
     }
 }
