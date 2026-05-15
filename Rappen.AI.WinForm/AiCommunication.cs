@@ -7,6 +7,7 @@ using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -21,9 +22,14 @@ namespace Rappen.AI.WinForm
         /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
         /// <param name="prompt">The question/statement from you to the AI</param>
         /// <param name="handleResponse">The method that handles the response from AI</param>
-        /// <param name="internalTools">This may containg 0-x methods that can be called inside this method, bepending on what the AI may need/help us</param>
+        /// <param name="throwExceptions">
+        /// When <c>true</c>, exceptions are rethrown to the caller instead of being shown in an error dialog.
+        /// Use this to handle AI errors yourself (e.g. display them inline in a chat window).
+        /// Defaults to <c>false</c> to preserve the original behavior.
+        /// </param>
+        /// <param name="internalTools">This may contain 0-x methods that can be called inside this method, depending on what the AI may need/help us</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public static void Prompt(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, params AiInternalTool[] internalTools)
+        public static void Prompt(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, bool throwExceptions = false, params AiInternalTool[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -54,7 +60,11 @@ namespace Rappen.AI.WinForm
                     if (w.Error != null)
                     {
                         tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
-                        if (w.Error is MissingMethodException)
+                        if (throwExceptions)
+                        {
+                            ExceptionDispatchInfo.Capture(w.Error).Throw();
+                        }
+                        else if (w.Error is MissingMethodException)
                         {
                             tool.ShowErrorDialog(new Exception($"There is a conflict between tools, where the other tool loads a too old version that {tool.ToolName} needs. Please click 'Create Issue' below to give developers details so it can be solved!"), "AI Communication", w.Error.ExceptionDetails());
                         }
