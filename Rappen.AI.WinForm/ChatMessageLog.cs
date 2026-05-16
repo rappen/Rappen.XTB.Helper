@@ -100,7 +100,7 @@ namespace Rappen.AI.WinForm
                 ForeColor = ForeColor,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
-                ScrollBars = RichTextBoxScrollBars.Both,
+                ScrollBars = RichTextBoxScrollBars.None,
                 WordWrap = true,
                 ReadOnly = true,
             };
@@ -167,6 +167,10 @@ namespace Rappen.AI.WinForm
                     contentPanel.Padding.Top +      // content padding
                     contentPanel.Padding.Bottom;
                 containerPanel.Height = cntheight;
+                if (contentPanel.Dock == DockStyle.Top)
+                {
+                    contentPanel.Height = cntheight - containerPanel.Padding.Top - containerPanel.Padding.Bottom;
+                }
             }
         }
 
@@ -186,10 +190,20 @@ namespace Rappen.AI.WinForm
                 return;
             }
             var width = panel.Width;
-            contentPanel.Width = (width * messageWidthPercent) / 100;
-            contentPanel.Left = Role == ChatRole.Assistant ? 0 :
-                Role == ChatRole.User ? width - contentPanel.Width :
-                (width - contentPanel.Width) / 2;
+
+            if (Role == ChatRole.System)
+            {
+                var horizontalPadding = (width * (100 - messageWidthPercent)) / 200;
+                containerPanel.Padding = new Padding(horizontalPadding, 4, horizontalPadding, 0);
+                contentPanel.Width = width - containerPanel.Padding.Left - containerPanel.Padding.Right;
+                contentPanel.Left = containerPanel.Padding.Left;
+            }
+            else
+            {
+                containerPanel.Padding = new Padding(2, 4, 2, 0);
+                contentPanel.Width = (width * messageWidthPercent) / 100;
+                contentPanel.Left = Role == ChatRole.Assistant ? 0 : width - contentPanel.Width;
+            }
         }
 
         private void Child_MouseWheel(object sender, MouseEventArgs e)
