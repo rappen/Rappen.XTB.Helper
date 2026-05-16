@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Rappen.XRM.Helpers.Extensions;
 
 namespace Rappen.AI.WinForm
 {
@@ -25,7 +25,7 @@ namespace Rappen.AI.WinForm
                 {
                     return AiErrorKind.Authentication;
                 }
-                if (statusCode.Value == (int)HttpStatusCode.TooManyRequests)
+                if (statusCode.Value == 429)
                 {
                     return AiErrorKind.RateLimited;
                 }
@@ -67,12 +67,16 @@ namespace Rappen.AI.WinForm
             {
                 case AiErrorKind.RateLimited:
                     return "The AI service is receiving too many requests right now. Please wait a moment and try again.";
+
                 case AiErrorKind.TransientUnavailable:
                     return "The AI service is temporarily unavailable. Please try again in a moment.";
+
                 case AiErrorKind.Authentication:
                     return "The AI provider rejected the request. Please verify API key and provider settings.";
+
                 case AiErrorKind.Configuration:
                     return "The AI provider settings appear invalid or incomplete. Please review model, endpoint, and related settings.";
+
                 default:
                     return "The AI request failed. Please try again.";
             }
@@ -80,8 +84,7 @@ namespace Rappen.AI.WinForm
 
         private static int? GetStatusCode(Exception ex)
         {
-            var allExceptions = new[] { ex }.Concat(ex?.GetAllInnerExceptions() ?? Enumerable.Empty<Exception>());
-            foreach (var exception in allExceptions.Where(e => e != null))
+            foreach (var exception in GetAllExceptions(ex))
             {
                 var type = exception.GetType();
 
@@ -133,13 +136,20 @@ namespace Rappen.AI.WinForm
 
         private static string GetErrorText(Exception ex)
         {
-            var allExceptions = new[] { ex }.Concat(ex?.GetAllInnerExceptions() ?? Enumerable.Empty<Exception>());
-            return string.Join(Environment.NewLine, allExceptions
-                .Where(e => e != null)
+            return string.Join(Environment.NewLine, GetAllExceptions(ex)
                 .Select(e => e.Message));
         }
 
+        private static IEnumerable<Exception> GetAllExceptions(Exception ex)
+        {
+            for (var current = ex; current != null; current = current.InnerException)
+            {
+                yield return current;
+            }
+        }
+
         private static bool ContainsAny(string text, params string[] matches) =>
+            !string.IsNullOrEmpty(text) &&
             matches.Any(match => text.IndexOf(match, StringComparison.OrdinalIgnoreCase) >= 0);
     }
 }

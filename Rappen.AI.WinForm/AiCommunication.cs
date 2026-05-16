@@ -7,7 +7,6 @@ using Rappen.XRM.Helpers.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -22,6 +21,7 @@ namespace Rappen.AI.WinForm
         /// <param name="chatMessageHistory">We are containing the chat history, it helps the AI, and this method may add more to it</param>
         /// <param name="prompt">The question/statement from you to the AI</param>
         /// <param name="handleResponse">The method that handles the response from AI</param>
+        /// <param name="handleError">The method that handles the error from AI</param>
         /// <param name="throwExceptions">
         /// When <c>true</c>, exceptions are rethrown to the caller instead of being shown in an error dialog.
         /// Use this to handle AI errors yourself (e.g. display them inline in a chat window).
@@ -29,7 +29,7 @@ namespace Rappen.AI.WinForm
         /// </param>
         /// <param name="internalTools">This may contain 0-x methods that can be called inside this method, depending on what the AI may need/help us</param>
         /// <exception cref="InvalidOperationException"></exception>
-        public static void Prompt(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, bool throwExceptions = false, params AiInternalTool[] internalTools)
+        public static void Prompt(PluginControlBase tool, ChatMessageHistory chatMessageHistory, string prompt, Action<ChatResponse> handleResponse, Action<Exception> handleError = null, bool throwExceptions = false, params AiInternalTool[] internalTools)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -57,18 +57,17 @@ namespace Rappen.AI.WinForm
                 {
                     tool.Cursor = Cursors.Default;
                     chatMessageHistory.IsRunning = false;
+
                     if (w.Error != null)
                     {
                         tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+
+                        var errorKind = AiErrorClassifier.Classify(w.Error);
+                        var exception = CreateSpecificException(errorKind, GetUserFacingErrorMessage(w.Error, errorKind), w.Error);
+
                         if (throwExceptions)
                         {
-                            var errorKind = AiErrorClassifier.Classify(w.Error);
-                            if (errorKind == AiErrorKind.Unknown)
-                            {
-                                ExceptionDispatchInfo.Capture(w.Error).Throw();
-                            }
-
-                            throw CreateSpecificException(errorKind, AiErrorClassifier.UserMessage(errorKind), w.Error);
+                            handleError?.Invoke(exception);
                         }
                         else if (w.Error is MissingMethodException)
                         {
@@ -76,16 +75,9 @@ namespace Rappen.AI.WinForm
                         }
                         else
                         {
-                            var errorKind = AiErrorClassifier.Classify(w.Error);
-                            if (errorKind == AiErrorKind.Unknown)
-                            {
-                                tool.ShowErrorDialog(w.Error, "AI Communication", $"{chatMessageHistory.ProviderDisplayName} {chatMessageHistory.Model}");
-                            }
-                            else
-                            {
-                                tool.ShowErrorDialog(new Exception(AiErrorClassifier.UserMessage(errorKind)), "AI Communication", w.Error.ExceptionDetails());
-                            }
+                            tool.ShowErrorDialog(exception, "AI Communication", w.Error.ExceptionDetails());
                         }
+
                         handleResponse?.Invoke(null);
                     }
                     else if (w.Result is ChatResponse response)
@@ -106,7 +98,7 @@ namespace Rappen.AI.WinForm
         {
             if (!string.IsNullOrWhiteSpace(internalMessage))
             {
-                chatMessageHistory.Add(ChatRole.Assistant, internalMessage, false, true);
+                chatMessageHistory.Add(ChatRole.System, internalMessage, false, true);
             }
             using var chatClient = GetChatClientBuilder(chatMessageHistory).Build();
             var chatMessages = new List<Microsoft.Extensions.AI.ChatMessage>
@@ -156,12 +148,16 @@ namespace Rappen.AI.WinForm
             {
                 case AiErrorKind.Authentication:
                     return new AiAuthenticationException(message, innerException);
+
                 case AiErrorKind.RateLimited:
                     return new AiRateLimitedException(message, innerException);
+
                 case AiErrorKind.TransientUnavailable:
                     return new AiTransientUnavailableException(message, innerException);
+
                 case AiErrorKind.Configuration:
                     return new AiConfigurationException(message, innerException);
+
                 default:
                     return new Exception(message, innerException);
             }
@@ -226,6 +222,60 @@ namespace Rappen.AI.WinForm
                 options.ModelId = chatMessageHistory.Model;
                 //options.MaxOutputTokens = 4096;       // accepterar inte Azure.AI !
             });
+        }
+
+        private static string GetUserFacingErrorMessage(Exception ex, AiErrorKind errorKind)
+        {
+            var messages = EnumerateExceptions(ex)
+                .Select(exception => exception.Message?.Trim())
+                .Where(message => !string.IsNullOrWhiteSpace(message))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (messages.Count == 0)
+            {
+                return AiErrorClassifier.UserMessage(errorKind);
+            }
+
+            return string.Join(Environment.NewLine, messages);
+        }
+
+        private static IEnumerable<Exception> EnumerateExceptions(Exception ex)
+        {
+            var pending = new Queue<Exception>();
+            var visited = new HashSet<Exception>();
+
+            if (ex != null)
+            {
+                pending.Enqueue(ex);
+            }
+
+            while (pending.Count > 0)
+            {
+                var current = pending.Dequeue();
+                if (current == null || !visited.Add(current))
+                {
+                    continue;
+                }
+
+                yield return current;
+
+                if (current is AggregateException aggregateException)
+                {
+                    foreach (var inner in aggregateException.Flatten().InnerExceptions)
+                    {
+                        if (inner != null)
+                        {
+                            pending.Enqueue(inner);
+                        }
+                    }
+                }
+
+                if (current.InnerException != null)
+                {
+                    pending.Enqueue(current.InnerException);
+                }
+            }
         }
     }
 
