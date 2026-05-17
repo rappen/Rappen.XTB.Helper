@@ -77,6 +77,25 @@ namespace Rappen.AI.WinForm
                 $"{string.Join(Environment.NewLine, messages.Select(m => m.ToString()))}";
         }
 
+        public string ToMarkdown()
+        {
+            return "# AI Chat history" + Environment.NewLine + Environment.NewLine +
+                "|  |  |" + Environment.NewLine +
+                "| --- | ---: |" + Environment.NewLine +
+                $"| Started | {starttime:G} |" + Environment.NewLine +
+                $"| Provider | {ProviderDisplayName} |" + Environment.NewLine +
+                $"| Model | {Model} |" + Environment.NewLine +
+                $"| User | {user} |" + Environment.NewLine +
+                $"| Prompts | {messages.Count(m => m.Role == ChatRole.User && !m.OnlyInfo && !string.IsNullOrWhiteSpace(m.Text))} |" + Environment.NewLine +
+                $"| Responses | {messages.Count(m => m.Role == ChatRole.Assistant && !m.OnlyInfo && !string.IsNullOrWhiteSpace(m.Text))} |" + Environment.NewLine +
+                $"| System Prompts | {messages.Count(m => m.Role == ChatRole.System && !m.OnlyInfo && !string.IsNullOrWhiteSpace(m.Text))} |" + Environment.NewLine +
+                $"| Internally | {messages.Count(m => m.OnlyInfo && !string.IsNullOrWhiteSpace(m.Text))} |" + Environment.NewLine +
+                $"| Tokens Out | {TokensOut} |" + Environment.NewLine +
+                $"| Tokens In | {TokensIn} |" + Environment.NewLine + Environment.NewLine +
+                "---" + Environment.NewLine + Environment.NewLine +
+                string.Join(Environment.NewLine, messages.Select(m => m.ToMarkdown()));
+        }
+
         public void Initialize(string intro)
         {
             if (Messages?.Any(m => m.Role == ChatRole.System) != true && !string.IsNullOrWhiteSpace(intro))
@@ -100,7 +119,8 @@ namespace Rappen.AI.WinForm
                 {
                     Directory.CreateDirectory(folder);
                 }
-                File.WriteAllText(file, ToString());
+                var content = (Path.GetExtension(file).ToLower() == ".md") ? ToMarkdown() : ToString();
+                File.WriteAllText(file, content);
             }
             catch (Exception ex)
             {
@@ -114,7 +134,7 @@ namespace Rappen.AI.WinForm
             {
                 return null;
             }
-            var path = Path.Combine(folder, $"{tool} AI Chat\\{Provider ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.txt");
+            var path = Path.Combine(folder, $"{tool} AI Chat\\{Provider ?? "AI"} {starttime:yyyyMMdd HHmmssfff}.md");
             Save(path);
             return path;
         }

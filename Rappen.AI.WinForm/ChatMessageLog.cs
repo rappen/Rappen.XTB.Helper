@@ -38,6 +38,8 @@ namespace Rappen.AI.WinForm
 
         public override string ToString() => $"{TimeStamp:G} - {Sender}{(OnlyInfo ? " - only for info" : "")}{Environment.NewLine}{Text}{Environment.NewLine}";
 
+        public string ToMarkdown() => !string.IsNullOrWhiteSpace(Text) ? $"##### {TimeStamp:G} - {Sender}{(OnlyInfo ? " *(only for info)*" : "")}{Environment.NewLine}{Text}{Environment.NewLine}" : "";
+
         internal Panel Panel
         {
             get
