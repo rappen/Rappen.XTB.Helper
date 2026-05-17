@@ -146,7 +146,12 @@ namespace Rappen.AI.WinForm
                 return;
             }
             var sender = onlyinfo ? onlyinfouser : role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : "";
-            var chatLog = new ChatMessageLog(role, content.Trim(), sender, onlyinfo);
+            content = content.Trim();
+            if ((content.StartsWith("[") && content.EndsWith("]")) || (content.StartsWith("{") && content.EndsWith("}")))
+            {
+                content = $"```json{Environment.NewLine}{content}{Environment.NewLine}```";
+            }
+            var chatLog = new ChatMessageLog(role, content, sender, onlyinfo);
             messages.Add(chatLog);
             if (!hidden)
             {
