@@ -100,36 +100,54 @@ namespace Rappen.AI.WinForm
             {
                 BackColor = backcolor,
                 ForeColor = ForeColor,
+                Font = ChatMessageHistory.Font,
                 BorderStyle = BorderStyle.None,
                 Dock = DockStyle.Fill,
                 ScrollBars = RichTextBoxScrollBars.None,
                 WordWrap = true,
                 ReadOnly = true,
             };
+            messageTextBox.HandleCreated += MessageTextBox_HandleCreated;
+            messageTextBox.ContentsResized += Message_ContentsResized;
+            messageTextBox.LinkClicked += Message_LinkClicked;
             messageTextBox.MouseWheel += Child_MouseWheel; // forward scroll
 
-            // Check if we need to apply RTF formatting
+            stampTextBox = new TextBox
+            {
+                BackColor = backcolor,
+                ForeColor = ForeColor,
+                Font = ChatMessageHistory.Font,
+                BorderStyle = BorderStyle.None,
+                Text = $"{Sender} @ {TimeStamp:T}",
+                TextAlign = HorizontalAlignment.Right,
+                Dock = DockStyle.Bottom,
+                ReadOnly = true,
+            };
+            stampTextBox.Height = stampTextBox.PreferredHeight;
+            stampTextBox.MouseWheel += Child_MouseWheel; // forward scroll
+
+            contentPanel.Controls.Add(stampTextBox);
+            contentPanel.Controls.Add(messageTextBox);
+
             if (Text.IsMarkdown())
             {
-                // Generate the RTF content
                 var rtfContent = Text.ConvertMarkdownToRtf(ForeColor, backcolor, ChatMessageHistory.Font);
 
-                // Defer RTF assignment until the control has a window handle
                 void ApplyRtf(object s, EventArgs ev)
                 {
                     messageTextBox.HandleCreated -= ApplyRtf;
                     messageTextBox.Rtf = rtfContent;
+                    ApplyWrapMarginIfNeeded();
                 }
 
-                // If handle already exists, apply immediately; otherwise wait for HandleCreated
                 if (messageTextBox.IsHandleCreated)
                 {
                     messageTextBox.Rtf = rtfContent;
+                    ApplyWrapMarginIfNeeded();
                 }
                 else
                 {
                     messageTextBox.HandleCreated += ApplyRtf;
-                    // Set plain text as initial content (will be replaced when handle is created)
                     messageTextBox.Text = Text ?? "(no message)";
                 }
             }
@@ -137,41 +155,35 @@ namespace Rappen.AI.WinForm
             {
                 messageTextBox.Text = Text ?? "(no message)";
             }
-
-            messageTextBox.ContentsResized += Message_ContentsResized;
-            messageTextBox.LinkClicked += Message_LinkClicked;
-
-            stampTextBox = new TextBox
-            {
-                BackColor = backcolor,
-                ForeColor = ForeColor,
-                BorderStyle = BorderStyle.None,
-                Text = $"{Sender} @ {TimeStamp:T}",
-                TextAlign = HorizontalAlignment.Right,
-                Dock = DockStyle.Bottom,
-                ReadOnly = true,
-            };
-            stampTextBox.MouseWheel += Child_MouseWheel; // forward scroll
-
-            contentPanel.Controls.Add(stampTextBox);
-            contentPanel.Controls.Add(messageTextBox);
         }
 
         private void Message_ContentsResized(object sender, ContentsResizedEventArgs e)
         {
-            if (sender == messageTextBox)
+            if (sender != messageTextBox)
             {
-                var cntheight =
-                    e.NewRectangle.Height +         // text height
-                    stampTextBox.Height +           // stamp height
-                    containerPanel.Padding.Top +    // panel padding
-                    containerPanel.Padding.Bottom +
-                    contentPanel.Padding.Top +      // content padding
-                    contentPanel.Padding.Bottom;
-                containerPanel.Height = cntheight;
-                if (contentPanel.Dock == DockStyle.Top)
+                return;
+            }
+
+            var stampHeight = Math.Max(stampTextBox.Height, stampTextBox.PreferredHeight);
+            var containerHeight =
+                e.NewRectangle.Height +
+                stampHeight +
+                containerPanel.Padding.Top +
+                containerPanel.Padding.Bottom +
+                contentPanel.Padding.Top +
+                contentPanel.Padding.Bottom;
+
+            if (containerPanel.Height != containerHeight)
+            {
+                containerPanel.Height = containerHeight;
+            }
+
+            if (contentPanel.Dock == DockStyle.Top)
+            {
+                var contentHeight = containerHeight - containerPanel.Padding.Top - containerPanel.Padding.Bottom;
+                if (contentPanel.Height != contentHeight)
                 {
-                    contentPanel.Height = cntheight - containerPanel.Padding.Top - containerPanel.Padding.Bottom;
+                    contentPanel.Height = contentHeight;
                 }
             }
         }
@@ -191,21 +203,89 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
+
             var width = panel.Width;
 
             if (Role == ChatRole.System)
             {
                 var horizontalPadding = (width * (100 - messageWidthPercent)) / 200;
-                containerPanel.Padding = new Padding(horizontalPadding, 4, horizontalPadding, 0);
-                contentPanel.Width = width - containerPanel.Padding.Left - containerPanel.Padding.Right;
-                contentPanel.Left = containerPanel.Padding.Left;
+                var padding = new Padding(horizontalPadding, 4, horizontalPadding, 0);
+
+                if (!containerPanel.Padding.Equals(padding))
+                {
+                    containerPanel.Padding = padding;
+                }
+
+                var contentWidth = Math.Max(0, width - padding.Left - padding.Right);
+                if (contentPanel.Width != contentWidth)
+                {
+                    contentPanel.Width = contentWidth;
+                }
+
+                if (contentPanel.Left != padding.Left)
+                {
+                    contentPanel.Left = padding.Left;
+                }
             }
             else
             {
-                containerPanel.Padding = new Padding(2, 4, 2, 0);
-                contentPanel.Width = (width * messageWidthPercent) / 100;
-                contentPanel.Left = Role == ChatRole.Assistant ? 0 : width - contentPanel.Width;
+                var padding = new Padding(2, 4, 2, 0);
+
+                if (!containerPanel.Padding.Equals(padding))
+                {
+                    containerPanel.Padding = padding;
+                }
+
+                var contentWidth = (width * messageWidthPercent) / 100;
+                if (contentPanel.Width != contentWidth)
+                {
+                    contentPanel.Width = contentWidth;
+                }
+
+                var left = Role == ChatRole.Assistant ? 0 : width - contentWidth;
+                if (contentPanel.Left != left)
+                {
+                    contentPanel.Left = left;
+                }
             }
+
+            ApplyWrapMarginIfNeeded();
+        }
+
+        private void MessageTextBox_HandleCreated(object sender, EventArgs e)
+        {
+            ApplyWrapMarginIfNeeded();
+        }
+
+        private void ApplyWrapMarginIfNeeded()
+        {
+            if (messageTextBox == null || !messageTextBox.IsHandleCreated)
+            {
+                return;
+            }
+
+            var wrapWidth = messageTextBox.ClientSize.Width;
+            if (wrapWidth <= 1)
+            {
+                return;
+            }
+
+            var rightMargin = wrapWidth - 1;
+            if (messageTextBox.RightMargin != rightMargin)
+            {
+                messageTextBox.RightMargin = rightMargin;
+            }
+        }
+
+        internal void EnsureWrappedLayout()
+        {
+            if (containerPanel == null || contentPanel == null || messageTextBox == null)
+            {
+                return;
+            }
+
+            Panel_Resize(containerPanel, EventArgs.Empty);
+            ApplyWrapMarginIfNeeded();
         }
 
         private void Child_MouseWheel(object sender, MouseEventArgs e)

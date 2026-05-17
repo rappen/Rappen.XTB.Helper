@@ -152,9 +152,17 @@ namespace Rappen.AI.WinForm
             {
                 MethodInvoker mi = () =>
                 {
-                    parent.Controls.Add(chatLog.Panel);
-                    parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
-                    parent.PerformLayout();
+                    parent.SuspendLayout();
+                    try
+                    {
+                        parent.Controls.Add(chatLog.Panel);
+                        chatLog.EnsureWrappedLayout();
+                        parent.VerticalScroll.Value = parent.VerticalScroll.Maximum;
+                    }
+                    finally
+                    {
+                        parent.ResumeLayout(true);
+                    }
                 };
                 if (parent.InvokeRequired)
                 {
