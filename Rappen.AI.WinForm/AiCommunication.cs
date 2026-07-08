@@ -2,11 +2,15 @@
 using Azure;
 using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
+using OpenAI;
 using OpenAI.Chat;
 using Rappen.XRM.Helpers.Extensions;
 using System;
+using System.ClientModel;
+using System.ClientModel.Primitives;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using XrmToolBox.Extensibility;
 
@@ -195,21 +199,28 @@ namespace Rappen.AI.WinForm
 
         private static ChatClientBuilder GetChatClientBuilder(ChatMessageHistory chatMessageHistory)
         {
+            var apikey = chatMessageHistory.EffectiveApiKey;
             IChatClient client = null;
             if (chatMessageHistory.Provider == "Anthropic")
             {
-                client = new AnthropicClient(chatMessageHistory.ApiKey);
+                client = new AnthropicClient(apikey);
             }
             else if (chatMessageHistory.Provider == "OpenAI")
             {
-                client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
+                client = new ChatClient(chatMessageHistory.Model, apikey).AsIChatClient();
+            }
+            else if (chatMessageHistory.Provider == GitHubCopilotAuth.ProviderName)
+            {
+                var options = new OpenAIClientOptions { Endpoint = new Uri(GitHubCopilotAuth.ApiBaseUrl) };
+                options.AddPolicy(new CopilotHeaderPolicy(), PipelinePosition.PerCall);
+                client = new ChatClient(chatMessageHistory.Model, new ApiKeyCredential(apikey), options).AsIChatClient();
             }
             else if (chatMessageHistory.Provider.ToLowerInvariant().Contains("foundry") &&
                      chatMessageHistory.Model.ToLowerInvariant().Contains("gpt"))
             {
                 client = new AzureOpenAIClient(
                     new Uri(chatMessageHistory.Endpoint),
-                    new AzureKeyCredential(chatMessageHistory.ApiKey))
+                    new AzureKeyCredential(apikey))
                 .GetChatClient(chatMessageHistory.Model).AsIChatClient();
             }
             if (client == null)
@@ -276,6 +287,32 @@ namespace Rappen.AI.WinForm
                     pending.Enqueue(current.InnerException);
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Adds the Copilot editor-style request headers required by the GitHub Copilot API.
+    /// </summary>
+    internal sealed class CopilotHeaderPolicy : PipelinePolicy
+    {
+        public override void Process(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int currentIndex)
+        {
+            AddHeaders(message);
+            ProcessNext(message, pipeline, currentIndex);
+        }
+
+        public override ValueTask ProcessAsync(PipelineMessage message, IReadOnlyList<PipelinePolicy> pipeline, int currentIndex)
+        {
+            AddHeaders(message);
+            return ProcessNextAsync(message, pipeline, currentIndex);
+        }
+
+        private static void AddHeaders(PipelineMessage message)
+        {
+            var headers = message.Request.Headers;
+            headers.Set("Editor-Version", GitHubCopilotAuth.EditorVersion);
+            headers.Set("Editor-Plugin-Version", GitHubCopilotAuth.EditorPluginVersion);
+            headers.Set("Copilot-Integration-Id", GitHubCopilotAuth.CopilotIntegrationId);
         }
     }
 
