@@ -115,9 +115,9 @@ namespace Rappen.XTB.Helpers.RappXTB
 
         #endregion Static Methods
 
-        #region Internal Methods
+        #region Public Methods
 
-        internal void LogUse(string action, bool forceLog = false, double? count = null, double? duration = null, bool oldAppInsights = true, bool newAppInsights = false)
+        public void LogUse(string action, bool forceLog = false, double? count = null, double? duration = null, bool oldAppInsights = true, bool newAppInsights = false)
         {
             // Will be done in the WriteEvent when my PR #1409 is accepted, remove this line then
             LogInfo($"{action}{(count != null ? $" Count: {count}" : "")}{(duration != null ? $" Duration: {duration}" : "")}");
@@ -147,7 +147,7 @@ namespace Rappen.XTB.Helpers.RappXTB
             }
         }
 
-        internal void SaveImageFromBase64(string path, string base64Image)
+        public void SaveImageFromBase64(string path, string base64Image)
         {
             try
             {
@@ -188,6 +188,10 @@ namespace Rappen.XTB.Helpers.RappXTB
                 // Silently fail if unable to save image
             }
         }
+
+        #endregion Public Methods
+
+        #region Internal Methods
 
         internal string ToolAcronym => Acronym(ToolName);
 
