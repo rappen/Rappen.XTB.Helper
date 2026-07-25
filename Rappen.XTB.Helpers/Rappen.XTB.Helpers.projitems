@@ -41,6 +41,7 @@
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DataGridExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MetadataExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\NotificationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\QueryExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IXRMRecordControl.cs" />
