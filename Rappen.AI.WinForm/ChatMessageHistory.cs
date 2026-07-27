@@ -34,6 +34,17 @@ namespace Rappen.AI.WinForm
         internal readonly string ApiKey;
         internal readonly string ProviderDisplayName;
 
+        /// <summary>
+        /// Optional token provider used instead of the static <see cref="ApiKey"/>. Set for providers
+        /// with short-lived tokens (e.g. GitHub Copilot) so each request gets a fresh, valid token.
+        /// </summary>
+        public Func<string> ApiKeyResolver { get; set; }
+
+        internal string EffectiveApiKey => ApiKeyResolver != null ? ApiKeyResolver() : ApiKey;
+
+        /// <summary>True when a usable API key or token resolver is available (cheap; no network call).</summary>
+        internal bool HasApiAccess => ApiKeyResolver != null || !string.IsNullOrWhiteSpace(ApiKey);
+
         internal List<ChatMessageLog> Messages => messages.Where(m => !m.OnlyInfo).ToList();
         internal List<ChatMessageLog> AllMessages => messages;
 

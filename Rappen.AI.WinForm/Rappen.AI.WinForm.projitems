@@ -15,5 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)AIAppInsights.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageHistory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageLog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GitHubCopilotAuth.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)SecretProtector.cs" />
   </ItemGroup>
 </Project>

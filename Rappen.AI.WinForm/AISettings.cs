@@ -10,6 +10,7 @@ namespace Rappen.AI.WinForm
         public string Model { get; set; }
         public string Endpoint { get; set; }    // When the user has her own provider/model
         public string ApiKey { get; set; }
+        public string GitHubTokenProtected { get; set; }    // DPAPI-encrypted GitHub OAuth token (Copilot sign-in)
         public string MyName { get; set; }
         public int Calls { get; set; }
         public bool LogConversation { get; set; }
@@ -87,6 +88,7 @@ namespace Rappen.AI.WinForm
         public bool EndpointFixed { get; set; }
         public string ApiKey { get; set; }
         public bool Free { get; set; }
+        public bool OAuth { get; set; }    // Provider uses device-code sign-in instead of an API key
         public PromptsV2 Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
