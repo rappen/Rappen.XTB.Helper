@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace Rappen.XRM.Helpers.Extensions
 {
@@ -493,7 +494,25 @@ namespace Rappen.XRM.Helpers.Extensions
             return result.Trim();
         }
 
-        // --- helpers ---
+        public static CheckState ToCheckState(this string value, CheckState defaultValue)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return defaultValue;
+            }
+
+            if (Enum.TryParse(value, true, out CheckState checkState))
+            {
+                return checkState;
+            }
+
+            if (bool.TryParse(value, out var boolValue))
+            {
+                return boolValue ? CheckState.Checked : CheckState.Unchecked;
+            }
+
+            return defaultValue;
+        }
 
         private static string RemoveDiacritics(string text)
         {
