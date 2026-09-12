@@ -122,7 +122,10 @@ namespace Rappen.AI.WinForm
         {
             using var chatClient = clientBuilder.UseFunctionInvocation().Build();
             var chatOptions = new ChatOptions();
-            if (internalTools != null && internalTools.Length > 0)
+
+            var supportsTools = !chatMessageHistory.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase);
+
+            if (supportsTools && internalTools != null && internalTools.Length > 0)
             {
                 chatOptions.Tools = internalTools
                     .Select(tool => AIFunctionFactory.Create(
@@ -135,11 +138,10 @@ namespace Rappen.AI.WinForm
 
             optionallyAddReasoningEffortLevel(chatMessageHistory, chatOptions);
 
-            var response = chatClient
+            return chatClient
                 .GetResponseAsync(chatMessageHistory.Messages, chatOptions)
                 .GetAwaiter()
                 .GetResult();
-            return response;
         }
 
         private static Exception CreateSpecificException(AiErrorKind errorKind, string message, Exception innerException)
@@ -204,13 +206,20 @@ namespace Rappen.AI.WinForm
             {
                 client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
             }
+            else if (chatMessageHistory.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
+            {
+                client = new GeminiChatClient(
+                    chatMessageHistory.Model,
+                    chatMessageHistory.ApiKey);
+            }
             else if (chatMessageHistory.Provider.ToLowerInvariant().Contains("foundry") &&
-                     chatMessageHistory.Model.ToLowerInvariant().Contains("gpt"))
+                     chatMessageHistory.Model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase))
             {
                 client = new AzureOpenAIClient(
                     new Uri(chatMessageHistory.Endpoint),
                     new AzureKeyCredential(chatMessageHistory.ApiKey))
-                .GetChatClient(chatMessageHistory.Model).AsIChatClient();
+                .GetChatClient(chatMessageHistory.Model)
+                .AsIChatClient();
             }
             if (client == null)
             {

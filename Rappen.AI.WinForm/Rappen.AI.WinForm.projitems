@@ -15,5 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)AIAppInsights.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageHistory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ChatMessageLog.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GeminiChatClient.cs" />
   </ItemGroup>
 </Project>
