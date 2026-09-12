@@ -250,9 +250,11 @@ namespace Rappen.AI.WinForm
 
     public class ChatResponseList : List<ChatResponse>
     {
-        public long TokensOut => this.Sum(r => r.Usage.OutputTokenCount) ?? 0;
-        public long TokensIn => this.Sum(r => r.Usage.InputTokenCount) ?? 0;
-        public long TokensTotal => this.Sum(r => r.Usage.TotalTokenCount) ?? 0;
+        public long TokensOut => this.Sum(r => r?.Usage?.OutputTokenCount ?? 0);
+
+        public long TokensIn => this.Sum(r => r?.Usage?.InputTokenCount ?? 0);
+
+        public long TokensTotal => TokensOut + TokensIn;
 
         public string UsageToString() => $"Answers: {Count} Tokens: Out {TokensOut}, In {TokensIn}, Total {TokensTotal}";
     }
