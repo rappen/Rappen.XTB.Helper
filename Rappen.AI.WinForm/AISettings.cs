@@ -31,7 +31,6 @@ namespace Rappen.AI.WinForm
     public class AiSupport
     {
         public string TextToRequestFreeAi { get; set; }
-        public string OnlyInfoName { get; set; }
         public PromptsV2 PromptsV2 { get; set; } = new PromptsV2();
         public Tools Tools { get; set; } = new Tools();
         public List<AiProvider> AiProviders { get; set; } = new List<AiProvider>();
@@ -84,15 +83,21 @@ namespace Rappen.AI.WinForm
         public string FromVersion { get; set; }
         public string ToVersion { get; set; }
         public string Url { get; set; }
-        public bool EndpointFixed { get; set; }
+        public string ModelsUrl { get; set; }
+        public string Endpoint { get; set; }
         public string ApiKey { get; set; }
-        public bool Free { get; set; }
+        public bool Free { get; set; } = false;
+        public bool DynamicModels { get; set; } = false;
         public PromptsV2 Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
         public override string ToString() => string.IsNullOrWhiteSpace(FullName) ? Name : FullName;
+
+        public bool EndpointFixed =>
+            !string.IsNullOrWhiteSpace(Endpoint) ||
+            Models?.Any(model => !string.IsNullOrWhiteSpace(model.Endpoint)) == true;
 
         internal string ApiKeyDecrypted
         {

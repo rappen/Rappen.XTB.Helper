@@ -9,6 +9,7 @@
     <Import_RootNamespace>Rappen.AI.WinForm</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AiModelCatalog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AiCommunication.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AiErrorClassifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AISettings.cs" />
