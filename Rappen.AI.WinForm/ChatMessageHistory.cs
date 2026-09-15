@@ -22,7 +22,6 @@ namespace Rappen.AI.WinForm
 
         private Panel parent;
         private readonly string user;
-        private readonly string onlyinfouser;
         private readonly DateTime starttime;
         private readonly Timer timer;
         private int timerno = 0;
@@ -39,7 +38,7 @@ namespace Rappen.AI.WinForm
 
         internal ChatResponseList Responses { get; private set; }
 
-        public ChatMessageHistory(Panel parent, string provider, string model, string endpoint, string apikey, string user, string onlyinfouser, string providerdisplay)
+        public ChatMessageHistory(Panel parent, string provider, string model, string endpoint, string apikey, string user, string providerdisplay)
         {
             this.parent = parent;
             Provider = provider;
@@ -48,7 +47,6 @@ namespace Rappen.AI.WinForm
             Endpoint = endpoint;
             ApiKey = apikey;
             this.user = user;
-            this.onlyinfouser = string.IsNullOrWhiteSpace(onlyinfouser) ? user : onlyinfouser;
             timer = new Timer
             {
                 Interval = 100,
@@ -145,7 +143,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = onlyinfo ? onlyinfouser : role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : "";
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : role == ChatRole.System ? "FXB" : "";
             content = content.Trim();
             if ((content.StartsWith("[") && content.EndsWith("]")) || (content.StartsWith("{") && content.EndsWith("}")))
             {
