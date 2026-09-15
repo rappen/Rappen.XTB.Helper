@@ -143,7 +143,7 @@ namespace Rappen.AI.WinForm
             {
                 return;
             }
-            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : role == ChatRole.System ? "FXB" : "";
+            var sender = role == ChatRole.User ? user : role == ChatRole.Assistant ? ProviderDisplayName : role == ChatRole.System ? parent.Tag?.ToString() : "";
             content = content.Trim();
             if ((content.StartsWith("[") && content.EndsWith("]")) || (content.StartsWith("{") && content.EndsWith("}")))
             {
