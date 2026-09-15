@@ -12,7 +12,13 @@ namespace Rappen.AI.WinForm
 {
     public static class AiModelCatalog
     {
+        #region Private Fields
+
         private static readonly HttpClient HttpClient = new HttpClient();
+
+        #endregion Private Fields
+
+        #region Public Entry Points
 
         public static bool CanDiscover(string provider, bool isFxbFreeProvider)
         {
@@ -28,6 +34,7 @@ namespace Rappen.AI.WinForm
         }
 
         public static async Task<IReadOnlyList<AiModel>> GetAsync(
+            AiSupport aiSupport,
             AiProvider provider,
             string endpoint,
             string apiKey,
@@ -64,13 +71,20 @@ namespace Rappen.AI.WinForm
             }
 
             return models
-                .Where(model => includePreviewExperimental || !IsPreview(model.Name))
+                .Where(model => HasAllowedPrefix(model.Name, provider.AllowPrefixes))
+                .Where(model => !IsDatedModelSnapshot(model.Name, provider.DatedModelPatterns))
+                .Where(model => !ContainsNamePart(model.Name, aiSupport.AiModelExcludedNames))
+                .Where(model => includePreviewExperimental || !ContainsNamePart(model.Name, aiSupport.AiModelPreviewNames))
                 .GroupBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
                 .Select(group => group.First())
                 .OrderByDescending(model => GetModelVersion(model.Name))
                 .ThenBy(model => model.Name, StringComparer.OrdinalIgnoreCase)
                 .ToList();
         }
+
+        #endregion Public Entry Points
+
+        #region Provider-specific discovery
 
         private static async Task<IEnumerable<AiModel>> GetGeminiModelsAsync(
             AiProvider provider,
@@ -115,12 +129,6 @@ namespace Rappen.AI.WinForm
                     }
 
                     name = name.Substring("models/".Length);
-
-                    if (!IsGeminiModelForNewUsers(name))
-                    {
-                        continue;
-                    }
-
                     models.Add(CreateModel(provider, name, name));
                 }
 
@@ -145,7 +153,6 @@ namespace Rappen.AI.WinForm
 
                 return GetEnumerable(json, "data")
                     .Select(model => GetString(model, "id"))
-                    .Where(IsRelevantOpenAiChatModel)
                     .Select(modelName => CreateModel(provider, modelName))
                     .ToList();
             }
@@ -226,13 +233,11 @@ namespace Rappen.AI.WinForm
                 var json = await ReadJsonAsync(response, "Azure OpenAI deployment discovery").ConfigureAwait(false);
 
                 return GetEnumerable(json, "data")
-                    .Where(deployment =>
-                        !string.Equals(GetString(deployment, "status"), "deleted", StringComparison.OrdinalIgnoreCase))
+                    .Where(deployment => !string.Equals(GetString(deployment, "status"), "deleted", StringComparison.OrdinalIgnoreCase))
                     .Select(deployment =>
                     {
                         var model = GetDictionary(deployment, "model");
                         var name = GetString(deployment, "id");
-                        var modelName = GetString(model, "name");
 
                         return new AiModel
                         {
@@ -245,21 +250,9 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static async Task<Dictionary<string, object>> ReadJsonAsync(
-            HttpResponseMessage response,
-            string operation)
-        {
-            var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        #endregion Provider-specific discovery
 
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new InvalidOperationException(
-                    $"{operation} failed ({(int)response.StatusCode} {response.ReasonPhrase}): {responseText}");
-            }
-
-            return new JavaScriptSerializer()
-                .Deserialize<Dictionary<string, object>>(responseText);
-        }
+        #region Provider Identification Helpers
 
         private static bool IsGemini(string provider)
         {
@@ -282,80 +275,44 @@ namespace Rappen.AI.WinForm
                    provider?.IndexOf("foundry", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
-        private static bool IsRelevantOpenAiChatModel(string modelName)
+        #endregion Provider Identification Helpers
+
+        #region Model filtering and sorting
+
+        private static bool HasAllowedPrefix(string modelName, IEnumerable<string> allowPrefixes)
         {
             if (string.IsNullOrWhiteSpace(modelName))
             {
                 return false;
             }
 
-            var name = modelName.ToLowerInvariant();
+            var prefixes = allowPrefixes?
+                .Where(prefix => !string.IsNullOrWhiteSpace(prefix))
+                .ToList();
 
-            if (IsDatedModelSnapshot(name))
-            {
-                return false;
-            }
-
-            if (name.Contains("embedding") ||
-                name.Contains("moderation") ||
-                name.Contains("image") ||
-                name.Contains("audio") ||
-                name.Contains("realtime") ||
-                name.Contains("transcribe") ||
-                name.Contains("tts") ||
-                name.Contains("codex") ||
-                name.Contains("safety") ||
-                name.Contains("research"))
-            {
-                return false;
-            }
-
-            return name.StartsWith("gpt-", StringComparison.Ordinal) ||
-                   name.StartsWith("chatgpt-", StringComparison.Ordinal) ||
-                   name.StartsWith("o", StringComparison.Ordinal);
+            return prefixes == null ||
+                   prefixes.Count == 0 ||
+                   prefixes.Any(prefix =>
+                       modelName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static bool IsDatedModelSnapshot(string modelName)
+        private static bool IsDatedModelSnapshot(string modelName, IEnumerable<string> datedModelPatterns)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(
-                modelName,
-                @"-\d{4}-\d{2}-\d{2}$");
+            return !string.IsNullOrWhiteSpace(modelName) &&
+                   datedModelPatterns?.Any(pattern =>
+                       !string.IsNullOrWhiteSpace(pattern) &&
+                       System.Text.RegularExpressions.Regex.IsMatch(
+                           modelName,
+                           pattern,
+                           System.Text.RegularExpressions.RegexOptions.IgnoreCase)) == true;
         }
 
-        private static bool IsPreview(string modelName)
+        private static bool ContainsNamePart(string modelName, IEnumerable<string> nameParts)
         {
-            var name = modelName?.ToLowerInvariant() ?? string.Empty;
-
-            return name.Contains("preview") ||
-                   name.Contains("experimental") ||
-                   name.Contains("-exp") ||
-                   name.Contains("nightly") ||
-                   name.Contains("canary");
-        }
-
-        private static bool IsGeminiModelForNewUsers(string modelName)
-        {
-            if (string.IsNullOrWhiteSpace(modelName))
-            {
-                return false;
-            }
-
-            var name = modelName.ToLowerInvariant();
-
-            // Google still lists some 2.x models although they cannot be used
-            // by newly created Gemini API projects.
-            if (name.StartsWith("gemini-2.", StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return name.StartsWith("gemini-3.", StringComparison.Ordinal) &&
-                   !name.Contains("embedding") &&
-                   !name.Contains("image") &&
-                   !name.Contains("audio") &&
-                   !name.Contains("tts") &&
-                   !name.Contains("live") &&
-                   !name.Contains("robotics");
+            return !string.IsNullOrWhiteSpace(modelName) &&
+                   nameParts?.Any(namePart =>
+                       !string.IsNullOrWhiteSpace(namePart) &&
+                       modelName.IndexOf(namePart, StringComparison.OrdinalIgnoreCase) >= 0) == true;
         }
 
         private static long GetModelVersion(string modelName)
@@ -392,9 +349,25 @@ namespace Rappen.AI.WinForm
                    version[2];
         }
 
-        private static Dictionary<string, object> GetDictionary(
-            Dictionary<string, object> values,
-            string key)
+        #endregion Model filtering and sorting
+
+        #region HTTP/JSON parsing
+
+        private static async Task<Dictionary<string, object>> ReadJsonAsync(HttpResponseMessage response, string operation)
+        {
+            var responseText = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"{operation} failed ({(int)response.StatusCode} {response.ReasonPhrase}): {responseText}");
+            }
+
+            return new JavaScriptSerializer()
+                .Deserialize<Dictionary<string, object>>(responseText);
+        }
+
+        private static Dictionary<string, object> GetDictionary(Dictionary<string, object> values, string key)
         {
             if (values == null || !values.TryGetValue(key, out var value))
             {
@@ -404,9 +377,7 @@ namespace Rappen.AI.WinForm
             return value as Dictionary<string, object>;
         }
 
-        private static IEnumerable<Dictionary<string, object>> GetEnumerable(
-            Dictionary<string, object> values,
-            string key)
+        private static IEnumerable<Dictionary<string, object>> GetEnumerable(Dictionary<string, object> values, string key)
         {
             if (values == null ||
                 !values.TryGetValue(key, out var value) ||
@@ -435,6 +406,44 @@ namespace Rappen.AI.WinForm
                    value != null &&
                    Convert.ToBoolean(value);
         }
+
+        #endregion HTTP/JSON parsing
+
+        #region Model construction and documentation links
+
+        private static AiModel CreateModel(AiProvider provider, string name, string documentationModelName = null)
+        {
+            var configuredModel = provider.Models?.FirstOrDefault(model =>
+                string.Equals(model.Name, name, StringComparison.OrdinalIgnoreCase));
+
+            return new AiModel
+            {
+                Name = name,
+                Url = configuredModel?.Url
+                    ?? GetDynamicModelUrl(provider, documentationModelName ?? name)
+                    ?? provider.ModelsUrl
+            };
+        }
+
+        private static string GetDynamicModelUrl(AiProvider provider, string name)
+        {
+            if (string.IsNullOrWhiteSpace(provider?.ModelsUrl) ||
+                string.IsNullOrWhiteSpace(name))
+            {
+                return provider?.ModelsUrl;
+            }
+
+            var model = IsAnthropic(provider.Name) &&
+                        name.StartsWith("claude-", StringComparison.OrdinalIgnoreCase)
+                ? name.Substring("claude-".Length)
+                : name;
+
+            return provider.ModelsUrl.Replace("{model}", model);
+        }
+
+        #endregion Model construction and documentation links
+
+        #region Comparers
 
         private sealed class NaturalModelNameComparer : IComparer<string>
         {
@@ -491,37 +500,6 @@ namespace Rappen.AI.WinForm
             }
         }
 
-        private static AiModel CreateModel(
-            AiProvider provider,
-            string name,
-            string documentationModelName = null)
-        {
-            var configuredModel = provider.Models?.FirstOrDefault(model =>
-                string.Equals(model.Name, name, StringComparison.OrdinalIgnoreCase));
-
-            return new AiModel
-            {
-                Name = name,
-                Url = configuredModel?.Url
-                    ?? GetDynamicModelUrl(provider, documentationModelName ?? name)
-                    ?? provider.ModelsUrl
-            };
-        }
-
-        private static string GetDynamicModelUrl(AiProvider provider, string name)
-        {
-            if (string.IsNullOrWhiteSpace(provider?.ModelsUrl) ||
-                string.IsNullOrWhiteSpace(name))
-            {
-                return provider?.ModelsUrl;
-            }
-
-            var model = IsAnthropic(provider.Name) &&
-                        name.StartsWith("claude-", StringComparison.OrdinalIgnoreCase)
-                ? name.Substring("claude-".Length)
-                : name;
-
-            return provider.ModelsUrl.Replace("{model}", model);
-        }
+        #endregion Comparers
     }
 }

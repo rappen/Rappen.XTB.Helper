@@ -40,6 +40,8 @@ namespace Rappen.AI.WinForm
         public string AppRegistrationEndpoint { get; set; } = "https://dc.services.visualstudio.com/v2/track";
         public Guid InstrumentationKey { get; set; } = new Guid("b9674a37-ff73-4187-8504-482a9e9403fb");
         public int MetadataMatchesToShowMax { get; set; } = 10;
+        public List<string> AiModelExcludedNames { get; set; } = new List<string>();
+        public List<string> AiModelPreviewNames { get; set; } = new List<string>();
 
         public AiSupport()
         { }
@@ -90,6 +92,8 @@ namespace Rappen.AI.WinForm
         public bool DynamicModels { get; set; } = false;
         public PromptsV2 Prompts { get; set; }
         public List<AiModel> Models { get; set; } = new List<AiModel>();
+        public List<string> AllowPrefixes { get; set; } = new List<string>();
+        public List<string> DatedModelPatterns { get; set; } = new List<string>();
 
         public AiModel Model(string model) => Models?.FirstOrDefault(n => n.Name.Equals(model));
 
