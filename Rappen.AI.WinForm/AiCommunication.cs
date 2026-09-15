@@ -60,7 +60,7 @@ namespace Rappen.AI.WinForm
 
                     if (w.Error != null)
                     {
-                        tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}\n{w.Error.ExceptionDetails()}\n{w.Error}\n{w.Error.StackTrace}");
+                        tool.LogError($"Error while communicating with {chatMessageHistory.ProviderDisplayName}{Environment.NewLine}{w.Error.ExceptionDetails()}{Environment.NewLine}{w.Error}{Environment.NewLine}{w.Error.StackTrace}");
 
                         var errorKind = AiErrorClassifier.Classify(w.Error);
                         var exception = CreateSpecificException(errorKind, GetUserFacingErrorMessage(w.Error, errorKind), w.Error);
@@ -123,9 +123,7 @@ namespace Rappen.AI.WinForm
             using var chatClient = clientBuilder.UseFunctionInvocation().Build();
             var chatOptions = new ChatOptions();
 
-            var supportsTools = !chatMessageHistory.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase);
-
-            if (supportsTools && internalTools != null && internalTools.Length > 0)
+            if (internalTools != null && internalTools.Length > 0)
             {
                 chatOptions.Tools = internalTools
                     .Select(tool => AIFunctionFactory.Create(
