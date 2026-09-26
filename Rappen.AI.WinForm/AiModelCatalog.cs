@@ -20,17 +20,12 @@ namespace Rappen.AI.WinForm
 
         #region Public Entry Points
 
-        public static bool CanDiscover(string provider, bool isFxbFreeProvider)
+        public static bool CanDiscover(AiProvider provider)
         {
-            if (isFxbFreeProvider || string.IsNullOrWhiteSpace(provider))
-            {
-                return false;
-            }
-
-            return IsGemini(provider) ||
-                   IsOpenAi(provider) ||
-                   IsAnthropic(provider) ||
-                   IsAzureOpenAi(provider);
+            return provider != null &&
+                   !provider.Free &&
+                   provider.DynamicModels &&
+                   provider.Type != AiProviderType.Unknown;
         }
 
         public static async Task<IReadOnlyList<AiModel>> GetAsync(
@@ -48,26 +43,35 @@ namespace Rappen.AI.WinForm
 
             IEnumerable<AiModel> models;
 
-            if (IsGemini(provider.Name))
+            switch (provider.Type)
             {
-                models = await GetGeminiModelsAsync(provider, apiKey, cancellationToken).ConfigureAwait(false);
-            }
-            else if (IsOpenAi(provider.Name))
-            {
-                models = await GetOpenAiModelsAsync(provider, apiKey, cancellationToken).ConfigureAwait(false);
-            }
-            else if (IsAnthropic(provider.Name))
-            {
-                models = await GetAnthropicModelsAsync(provider, apiKey, cancellationToken).ConfigureAwait(false);
-            }
-            else if (IsAzureOpenAi(provider.Name))
-            {
-                models = await GetAzureOpenAiDeploymentsAsync(provider, endpoint, apiKey, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                throw new NotSupportedException(
-                    $"Loading available models is not implemented for provider '{provider.Name}'.");
+                case AiProviderType.Gemini:
+                    models = await GetGeminiModelsAsync(provider, apiKey, cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
+
+                case AiProviderType.OpenAI:
+                    models = await GetOpenAiModelsAsync(provider, apiKey, cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
+
+                case AiProviderType.Anthropic:
+                    models = await GetAnthropicModelsAsync(provider, apiKey, cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
+
+                case AiProviderType.MicrosoftFoundryOpenAI:
+                    models = await GetAzureOpenAiDeploymentsAsync(
+                            provider,
+                            endpoint,
+                            apiKey,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                    break;
+
+                default:
+                    throw new NotSupportedException(
+                        $"Loading available models is not implemented for provider '{provider.Name}'.");
             }
 
             return models
@@ -215,67 +219,61 @@ namespace Rappen.AI.WinForm
             string apiKey,
             CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(endpoint))
+            if (!IsFoundryProjectEndpoint(endpoint))
             {
-                throw new ArgumentException(
-                    "An Azure OpenAI or Foundry endpoint is required to load deployments.",
-                    nameof(endpoint));
+                return provider.Models ?? Enumerable.Empty<AiModel>();
             }
 
-            var baseUrl = endpoint.TrimEnd('/');
-            var url = baseUrl + "/openai/deployments?api-version=2024-10-21";
+            if (string.IsNullOrWhiteSpace(provider.DeploymentsApiVersion))
+            {
+                throw new InvalidOperationException(
+                    $"Provider '{provider.Name}' must configure {nameof(provider.DeploymentsApiVersion)}.");
+            }
+
+            var url = endpoint.TrimEnd('/') +
+                "/deployments?api-version=" +
+                Uri.EscapeDataString(provider.DeploymentsApiVersion);
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, url))
             {
                 request.Headers.Add("api-key", apiKey);
 
-                var response = await HttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-                var json = await ReadJsonAsync(response, "Azure OpenAI deployment discovery").ConfigureAwait(false);
+                var response = await HttpClient.SendAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
 
-                return GetEnumerable(json, "data")
-                    .Where(deployment => !string.Equals(GetString(deployment, "status"), "deleted", StringComparison.OrdinalIgnoreCase))
-                    .Select(deployment =>
-                    {
-                        var model = GetDictionary(deployment, "model");
-                        var name = GetString(deployment, "id");
+                if (!response.IsSuccessStatusCode)
+                {
+                    return provider.Models ?? Enumerable.Empty<AiModel>();
+                }
 
-                        return new AiModel
-                        {
-                            Name = name,
-                            Url = GetDynamicModelUrl(provider, name)
-                        };
-                    })
-                    .Where(deployment => !string.IsNullOrWhiteSpace(deployment.Name))
+                var json = await ReadJsonAsync(
+                    response,
+                    "Microsoft Foundry deployment discovery").ConfigureAwait(false);
+
+                return GetEnumerable(json, "value")
+                    .Select(deployment => GetString(deployment, "name"))
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Select(name => CreateModel(provider, name))
                     .ToList();
             }
         }
 
+        private static bool IsFoundryProjectEndpoint(string endpoint)
+        {
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri))
+            {
+                return false;
+            }
+
+            return uri.Host.EndsWith(
+                       ".services.ai.azure.com",
+                       StringComparison.OrdinalIgnoreCase) &&
+                   uri.AbsolutePath.StartsWith(
+                       "/api/projects/",
+                       StringComparison.OrdinalIgnoreCase);
+        }
+
         #endregion Provider-specific discovery
-
-        #region Provider Identification Helpers
-
-        private static bool IsGemini(string provider)
-        {
-            return string.Equals(provider, "Gemini", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsOpenAi(string provider)
-        {
-            return string.Equals(provider, "OpenAI", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsAnthropic(string provider)
-        {
-            return string.Equals(provider, "Anthropic", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsAzureOpenAi(string provider)
-        {
-            return provider?.IndexOf("azure openai", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   provider?.IndexOf("foundry", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        #endregion Provider Identification Helpers
 
         #region Model filtering and sorting
 
@@ -367,16 +365,6 @@ namespace Rappen.AI.WinForm
                 .Deserialize<Dictionary<string, object>>(responseText);
         }
 
-        private static Dictionary<string, object> GetDictionary(Dictionary<string, object> values, string key)
-        {
-            if (values == null || !values.TryGetValue(key, out var value))
-            {
-                return null;
-            }
-
-            return value as Dictionary<string, object>;
-        }
-
         private static IEnumerable<Dictionary<string, object>> GetEnumerable(Dictionary<string, object> values, string key)
         {
             if (values == null ||
@@ -433,8 +421,8 @@ namespace Rappen.AI.WinForm
                 return provider?.ModelsUrl;
             }
 
-            var model = IsAnthropic(provider.Name) &&
-                        name.StartsWith("claude-", StringComparison.OrdinalIgnoreCase)
+            var model = string.Equals(provider.Name, "Anthropic", StringComparison.OrdinalIgnoreCase) &&
+                name.StartsWith("claude-", StringComparison.OrdinalIgnoreCase)
                 ? name.Substring("claude-".Length)
                 : name;
 
@@ -442,64 +430,5 @@ namespace Rappen.AI.WinForm
         }
 
         #endregion Model construction and documentation links
-
-        #region Comparers
-
-        private sealed class NaturalModelNameComparer : IComparer<string>
-        {
-            public int Compare(string left, string right)
-            {
-                if (ReferenceEquals(left, right))
-                {
-                    return 0;
-                }
-
-                if (left == null)
-                {
-                    return 1;
-                }
-
-                if (right == null)
-                {
-                    return -1;
-                }
-
-                var leftParts = left.Split('-', '_', '.');
-                var rightParts = right.Split('-', '_', '.');
-                var length = Math.Max(leftParts.Length, rightParts.Length);
-
-                for (var index = 0; index < length; index++)
-                {
-                    var leftPart = index < leftParts.Length ? leftParts[index] : string.Empty;
-                    var rightPart = index < rightParts.Length ? rightParts[index] : string.Empty;
-
-                    if (int.TryParse(leftPart, out var leftNumber) &&
-                        int.TryParse(rightPart, out var rightNumber))
-                    {
-                        var numericComparison = rightNumber.CompareTo(leftNumber);
-                        if (numericComparison != 0)
-                        {
-                            return numericComparison;
-                        }
-
-                        continue;
-                    }
-
-                    var textComparison = string.Compare(
-                        leftPart,
-                        rightPart,
-                        StringComparison.OrdinalIgnoreCase);
-
-                    if (textComparison != 0)
-                    {
-                        return textComparison;
-                    }
-                }
-
-                return 0;
-            }
-        }
-
-        #endregion Comparers
     }
 }
