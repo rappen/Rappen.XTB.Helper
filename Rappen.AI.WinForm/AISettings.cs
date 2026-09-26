@@ -84,6 +84,7 @@ namespace Rappen.AI.WinForm
         public string FullName { get; set; }
         public string FromVersion { get; set; }
         public string ToVersion { get; set; }
+        public string DeploymentsApiVersion { get; set; }
         public string Url { get; set; }
         public string ModelsUrl { get; set; }
         public string Endpoint { get; set; }
@@ -139,6 +140,17 @@ namespace Rappen.AI.WinForm
                 }
             }
         }
+
+        public AiProviderType Type => GetType(Name);
+
+        public static AiProviderType GetType(string name) => name switch
+        {
+            "Anthropic" => AiProviderType.Anthropic,
+            "OpenAI" => AiProviderType.OpenAI,
+            "Gemini" => AiProviderType.Gemini,
+            "Microsoft Foundry OpenAI" => AiProviderType.MicrosoftFoundryOpenAI,
+            _ => AiProviderType.Unknown
+        };
     }
 
     public class AiModel
@@ -195,5 +207,14 @@ namespace Rappen.AI.WinForm
             }
             return false;
         }
+    }
+
+    public enum AiProviderType
+    {
+        Unknown,
+        Anthropic,
+        OpenAI,
+        Gemini,
+        MicrosoftFoundryOpenAI
     }
 }
