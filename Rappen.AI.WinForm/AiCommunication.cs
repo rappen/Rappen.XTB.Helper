@@ -196,32 +196,36 @@ namespace Rappen.AI.WinForm
         private static ChatClientBuilder GetChatClientBuilder(ChatMessageHistory chatMessageHistory)
         {
             IChatClient client = null;
-            if (chatMessageHistory.Provider == "Anthropic")
+
+            var providerType = AiProvider.GetType(chatMessageHistory.Provider);
+
+            switch (providerType)
             {
-                client = new AnthropicClient(chatMessageHistory.ApiKey);
+                case AiProviderType.Anthropic:
+                    client = new AnthropicClient(chatMessageHistory.ApiKey);
+                    break;
+
+                case AiProviderType.OpenAI:
+                    client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
+                    break;
+
+                case AiProviderType.Gemini:
+                    client = new GeminiChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey);
+                    break;
+
+                case AiProviderType.MicrosoftFoundryOpenAI:
+                    client = new AzureOpenAIClient(
+                        new Uri(GetFoundryInferenceEndpoint(chatMessageHistory.Endpoint)),
+                        new AzureKeyCredential(chatMessageHistory.ApiKey))
+                        .GetChatClient(chatMessageHistory.Model)
+                        .AsIChatClient();
+                    break;
             }
-            else if (chatMessageHistory.Provider == "OpenAI")
-            {
-                client = new ChatClient(chatMessageHistory.Model, chatMessageHistory.ApiKey).AsIChatClient();
-            }
-            else if (chatMessageHistory.Provider.Equals("Gemini", StringComparison.OrdinalIgnoreCase))
-            {
-                client = new GeminiChatClient(
-                    chatMessageHistory.Model,
-                    chatMessageHistory.ApiKey);
-            }
-            else if (chatMessageHistory.Provider.ToLowerInvariant().Contains("foundry") &&
-                     chatMessageHistory.Model.StartsWith("gpt-", StringComparison.OrdinalIgnoreCase))
-            {
-                client = new AzureOpenAIClient(
-                    new Uri(chatMessageHistory.Endpoint),
-                    new AzureKeyCredential(chatMessageHistory.ApiKey))
-                .GetChatClient(chatMessageHistory.Model)
-                .AsIChatClient();
-            }
+
             if (client == null)
             {
-                throw new NotImplementedException($"AI provider '{chatMessageHistory.Provider}' not (yet?) implemented.");
+                throw new NotImplementedException(
+                    $"AI provider '{chatMessageHistory.Provider}' not (yet?) implemented.");
             }
 
             return client.AsBuilder().ConfigureOptions(options =>
@@ -283,6 +287,26 @@ namespace Rappen.AI.WinForm
                     pending.Enqueue(current.InnerException);
                 }
             }
+        }
+
+        private static string GetFoundryInferenceEndpoint(string endpoint)
+        {
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) ||
+                !uri.Host.EndsWith(
+                    ".services.ai.azure.com",
+                    StringComparison.OrdinalIgnoreCase) ||
+                !uri.AbsolutePath.StartsWith(
+                    "/api/projects/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return endpoint;
+            }
+
+            var resourceName = uri.Host.Substring(
+                0,
+                uri.Host.Length - ".services.ai.azure.com".Length);
+
+            return uri.Scheme + "://" + resourceName + ".openai.azure.com";
         }
     }
 
