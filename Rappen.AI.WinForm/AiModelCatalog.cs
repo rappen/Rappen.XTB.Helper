@@ -61,7 +61,7 @@ namespace Rappen.AI.WinForm
                     break;
 
                 case AiProviderType.MicrosoftFoundryOpenAI:
-                    models = await GetAzureOpenAiDeploymentsAsync(
+                    models = await GetFoundryProjectDeploymentsAsync(
                             provider,
                             endpoint,
                             apiKey,
@@ -213,15 +213,22 @@ namespace Rappen.AI.WinForm
             return models;
         }
 
-        private static async Task<IEnumerable<AiModel>> GetAzureOpenAiDeploymentsAsync(
+        private static async Task<IEnumerable<AiModel>> GetFoundryProjectDeploymentsAsync(
             AiProvider provider,
             string endpoint,
             string apiKey,
             CancellationToken cancellationToken)
         {
-            if (!IsFoundryProjectEndpoint(endpoint))
+            if (IsLegacyFoundryEndpoint(endpoint))
             {
                 return provider.Models ?? Enumerable.Empty<AiModel>();
+            }
+
+            if (!IsFoundryProjectEndpoint(endpoint))
+            {
+                throw new ArgumentException(
+                    "Enter the Microsoft Foundry Project endpoint from the Foundry portal.",
+                    nameof(endpoint));
             }
 
             if (string.IsNullOrWhiteSpace(provider.DeploymentsApiVersion))
@@ -240,11 +247,6 @@ namespace Rappen.AI.WinForm
 
                 var response = await HttpClient.SendAsync(request, cancellationToken)
                     .ConfigureAwait(false);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return provider.Models ?? Enumerable.Empty<AiModel>();
-                }
 
                 var json = await ReadJsonAsync(
                     response,
@@ -271,6 +273,17 @@ namespace Rappen.AI.WinForm
                    uri.AbsolutePath.StartsWith(
                        "/api/projects/",
                        StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsLegacyFoundryEndpoint(string endpoint)
+        {
+            return Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+                   (uri.Host.EndsWith(
+                        ".cognitiveservices.azure.com",
+                        StringComparison.OrdinalIgnoreCase) ||
+                    uri.Host.EndsWith(
+                        ".openai.azure.com",
+                        StringComparison.OrdinalIgnoreCase));
         }
 
         #endregion Provider-specific discovery
