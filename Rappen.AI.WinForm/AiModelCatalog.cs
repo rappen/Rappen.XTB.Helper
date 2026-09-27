@@ -338,7 +338,8 @@ namespace Rappen.AI.WinForm
 
             foreach (var part in parts)
             {
-                if (!int.TryParse(part, out var number))
+                if (!int.TryParse(part, out var number) ||
+                    IsDatePart(part))
                 {
                     continue;
                 }
@@ -358,6 +359,17 @@ namespace Rappen.AI.WinForm
             return (version[0] * 1000000L) +
                    (version[1] * 1000L) +
                    version[2];
+        }
+
+        private static bool IsDatePart(string part)
+        {
+            return part.Length == 8 &&
+                   DateTime.TryParseExact(
+                       part,
+                       "yyyyMMdd",
+                       System.Globalization.CultureInfo.InvariantCulture,
+                       System.Globalization.DateTimeStyles.None,
+                       out _);
         }
 
         #endregion Model filtering and sorting
